@@ -1,10 +1,10 @@
 
 #include <Core/TimeSystem.h>
-#include <unistd.h>
 
 #ifdef __MACH__
 #include <mach/clock.h>
 #include <mach/mach.h>
+#include <unistd.h>
 #endif
 
 #ifdef WIN32

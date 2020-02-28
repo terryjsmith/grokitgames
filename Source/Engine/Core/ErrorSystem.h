@@ -4,7 +4,6 @@
 
 #include <Core/System.h>
 #include <Core/Error.h>
-#include <IO/Resource.h>
 
 typedef void(*ErrorHandlingFunction)(Error* err);
 

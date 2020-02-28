@@ -66,7 +66,7 @@ public:
      * Create main application window
      */
     template<class T>
-    Window* CreateWindow() {
+    Window* CreateAppWindow() {
         m_window = new T;
         return(m_window);
     }

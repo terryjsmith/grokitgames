@@ -6,7 +6,7 @@
 #include <direct.h>
 #include <assert.h>
 #define GetCurrentDir _getcwd
-#define SetCurrentDit _chdir
+#define SetCurrentDir _chdir
 #else
 #include <unistd.h>
 #include <assert.h>

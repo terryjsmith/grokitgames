@@ -92,5 +92,5 @@ void PointLightComponent::GenerateDepthTexture(Scene* scene) {
 }
 
 matrix4 PointLightComponent::GetLightMatrix() {
-    
+    return(matrix4(1.0f));
 }

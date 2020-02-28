@@ -12,7 +12,7 @@ typedef Variant*(*CallableFunction)(GigaObject* obj, int argc, Variant** argv);
 /**
  * Base giga object class
  */
-class GigaObject {
+class GIGA_API GigaObject {
 public:
     virtual ~GigaObject() = default;
     
