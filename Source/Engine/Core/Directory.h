@@ -5,7 +5,7 @@
 #include <Core/GigaObject.h>
 
 GIGA_CLASS()
-class Directory : public GigaObject {
+class GIGA_API Directory : public GigaObject {
 public:
     Directory() = default;
     ~Directory() = default;

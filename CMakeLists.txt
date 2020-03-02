@@ -26,7 +26,8 @@ find_library(LIBRARY_BULLET_LINEARMATH LinearMath "${DEPENDENCY_PATH}/bullet/lib
 find_library(LIBRARY_LIBCURL curl "${DEPENDENCY_PATH}/libcurl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_SSL ssl "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_CRYPTO crypto "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
-find_library(LIBRARY_ASSIMP assimpd "${DEPENDENCY_PATH}/assimp/lib" NO_DEFAULT_PATH)
+find_library(LIBRARY_ZLIB zlib "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
+find_library(LIBRARY_ASSIMP assimp "${DEPENDENCY_PATH}/assimp/lib" NO_DEFAULT_PATH)
 
 # set the output directory without the /Debug/ and /Release/ equivalents
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
@@ -173,10 +174,10 @@ group_source_files("Source" "Source/Engine/Render")
 group_source_files("Source\\\\OpenGL" "Source/Engine/Render/OpenGL")
 group_source_files("Source\\\\Pipelines" "Source/Engine/Render/Pipelines")
 group_source_files("Source\\\\Pipelines\\\\Deferred" "Source/Engine/Render/Pipelines/Deferred")
-add_library(render SHARED ${ENGINE_SOURCE_FILES})
+add_library(render SHARED ${ENGINE_SOURCE_FILES} "${DEPENDENCY_PATH}/glew/src/glew.c")
 set_property(TARGET render APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
 target_include_directories(render PRIVATE ${ENGINE_INCLUDE_DIRS})
-target_link_libraries(render "core" "io" "-framework OpenGL" ${LIBRARY_SOIL} ${LIBRARY_GLFW})
+target_link_libraries(render "core" "io" ${ENGINE_LIBS})
 
 clear_source_files()
 
@@ -226,7 +227,7 @@ group_source_files("Source" "Source/Engine/Assets")
 add_library(assets SHARED ${ENGINE_SOURCE_FILES})
 target_include_directories(assets PRIVATE ${ENGINE_INCLUDE_DIRS})
 set_property(TARGET assets APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
-target_link_libraries(assets "core" "io" "render" ${LIBRARY_ASSIMP} "z")
+target_link_libraries(assets "core" "io" "render" ${LIBRARY_ASSIMP} ${LIBRARY_ZLIB})
 
 clear_source_files()
 
@@ -240,6 +241,7 @@ list (APPEND GENERATOR_INCLUDE_DIRS "Source/Engine")
 list (APPEND GENERATOR_INCLUDE_DIRS "${DEPENDENCY_PATH}/clang/include")
 list (APPEND GENERATOR_INCLUDE_DIRS "${DEPENDENCY_PATH}/glm/include")
 list (APPEND GENERATOR_INCLUDE_DIRS "${DEPENDENCY_PATH}/openssl/include")
+list (APPEND GENERATOR_INCLUDE_DIRS "${DEPENDENCY_PATH}/sqlite/include")
 
 add_executable(generator Source/Generator/main.cpp Source/Engine/Core/Directory.cpp Source/Generator/MetaClass.cpp Source/Engine/Core/Variant.cpp Source/Engine/IO/Resource.cpp)
 

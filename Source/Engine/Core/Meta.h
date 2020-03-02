@@ -18,7 +18,7 @@ struct Function {
     CallableFunction func;
 };
 
-class Class : public GigaObject {
+class GIGA_API Class : public GigaObject {
 public:
     Class();
     ~Class();
