@@ -8,7 +8,7 @@ TerrainSystem::TerrainSystem() {
     m_maxQuadSize = 64;
     m_loadDistance = 200;
     m_maxLOD = 4;
-    m_terrainScale = 0.2f;
+    m_terrainScale = 0.5f;
 }
 
 void TerrainSystem::Update(float delta) {

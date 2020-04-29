@@ -1,43 +1,28 @@
 
-#include <Render/Pipelines/Deferred/GBufferPass.h>
+#include <Render/Pipelines/Deferred/SkyboxPass.h>
 #include <Render/RenderSystem.h>
 #include <Core/Application.h>
 #include <Render/Defines.h>
 #include <IO/ResourceSystem.h>
-#include <Render/MaterialSystem.h>
+#include <Render/Skybox.h>
 
-void GBufferPass::Initialize(int width, int height) {
+void SkyboxPass::Initialize(int width, int height) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
     
-    Texture2D* diffuse = renderSystem->CreateTexture2D();
-    diffuse->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
-    fb->AddTexture(diffuse, FRAMEBUFFER_SLOT_0);
+    m_texture = renderSystem->CreateTexture2D();
+    m_texture->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
-    Texture2D* position = renderSystem->CreateTexture2D();
-    position->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
-    fb->AddTexture(position, FRAMEBUFFER_SLOT_1);
-    
-    Texture2D* normal = renderSystem->CreateTexture2D();
-    normal->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
-    fb->AddTexture(normal, FRAMEBUFFER_SLOT_2);
-    
-    Texture2D* aux = renderSystem->CreateTexture2D();
-    aux->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
-    fb->AddTexture(aux, FRAMEBUFFER_SLOT_3);
-    
-    Texture2D* depth = renderSystem->CreateTexture2D();
-    depth->Initialize(width, height, COLOR_DEPTH_COMPONENT24, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
-    fb->AddTexture(depth, FRAMEBUFFER_SLOT_DEPTH);
+    fb->AddTexture(m_texture, FRAMEBUFFER_SLOT_0);
     
     m_framebuffers.push_back(fb);
     
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     
     // Load shaders
-    Shader* vshader = dynamic_cast<Shader*>(resourceSystem->LoadResource("gbuffer.vs", "Shader"));
-    Shader* fshader = dynamic_cast<Shader*>(resourceSystem->LoadResource("gbuffer.fs", "Shader"));
+    Shader* vshader = dynamic_cast<Shader*>(resourceSystem->LoadResource("skybox.vs", "Shader"));
+    Shader* fshader = dynamic_cast<Shader*>(resourceSystem->LoadResource("skybox.fs", "Shader"));
     
     // Create a program
     if (m_program == 0) {
@@ -46,19 +31,23 @@ void GBufferPass::Initialize(int width, int height) {
     }
 }
 
-void GBufferPass::Render(Scene* scene) {
-    // Use shader program
+void SkyboxPass::SetInputTexture(Texture2D* texture) {
+    m_framebuffers[0]->SetTexture(texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+}
+
+void SkyboxPass::SetDepthTexture(Texture2D* texture) {
+    m_framebuffers[0]->SetTexture(texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_DEPTH);
+}
+
+void SkyboxPass::Render(Scene* scene) {
     m_program->Bind();
     
     // Bind output framebuffer
     m_framebuffers[0]->Bind();
-    
+
     // Get render system, set depth to less or equal
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
-    
-    // Clear our buffer
-    renderSystem->Clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
     
     // Get the camera
     CameraComponent* camera = scene->camera;
@@ -70,44 +59,65 @@ void GBufferPass::Render(Scene* scene) {
     camera->SetAspectRatio((float)windowWidth / windowHeight);
     
     // Get matrices
-    matrix4 view = camera->GetViewMatrix();
+    matrix4 view = glm::mat4(glm::mat3(camera->GetViewMatrix()));
     matrix4 proj = camera->GetProjectionMatrix();
     
     m_program->Set("projectionMatrix", proj);
-    m_program->Set("cameraPosition", camera->transform->GetWorldPosition());
     
     // Iterate over renderables
     auto it = scene->renderables.begin();
     for(; it != scene->renderables.end(); it++) {
-        MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
+        Skybox* mc = dynamic_cast<Skybox*>(*it);
         if(mc == 0) continue;
+
+        // Render skybox
         
-        if(mc->applyLighting == false) continue;
+        // Calculate model matrix
+        Transform* meshTransform = mc->transform;
+        matrix4 model = meshTransform->GetMatrix();
         
-        RecursiveRender(mc, view, matrix4(1.0));
+        // Send view/proj matrix to shader
+        matrix4 modelviewMatrix = view * model;
+        m_program->Set("modelviewMatrix", modelviewMatrix);
+        
+        Renderable* m = mc->renderable;
+        VertexBuffer* vertexBuffer = m->vertexBuffer;
+        VertexFormat* vertexType = vertexBuffer->GetFormat();
+        int vertexCount = vertexBuffer->GetCount();
+        
+        vertexType->Bind();
+        vertexBuffer->Bind();
+        
+        // Enable the attributes we need
+        vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
+        
+        mc->cubeMap->Bind(0);
+        m_program->Set("skybox", 0);
+        
+        renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
+        
+        mc->cubeMap->Unbind();
+        vertexBuffer->Unbind();
+        vertexType->Unbind();
     }
-    
-    //m_framebuffers[0]->GetTexture(0)->Save("diffuse.bmp");
     
     renderSystem->DisableDepthTest();
     
     m_framebuffers[0]->Unbind();
     m_program->Unbind();
 }
-
-void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
+/*
+void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
     // Calculate model matrix
     Transform* meshTransform = rc->transform;
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     
-    if(rc->children.size() > 0) {
+    if(rc->children.size()) {
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
             MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
-            if(mc == 0) {
-                continue;
-            }
+            if(mc == 0) continue;
             
             RecursiveRender(mc, view, model);
         }
@@ -115,13 +125,11 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
         return;
     }
     
-    Renderable* m = rc->renderable;
-    
     // Send view/proj matrix to shader
     matrix4 modelviewMatrix = view * model;
     m_program->Set("modelviewMatrix", modelviewMatrix);
-    m_program->Set("modelMatrix", model);
     
+    Renderable* m = rc->renderable;
     VertexBuffer* vertexBuffer = m->vertexBuffer;
     VertexFormat* vertexType = vertexBuffer->GetFormat();
     int vertexCount = vertexBuffer->GetCount();
@@ -138,8 +146,6 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     m_program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
     enabled = vertexType->EnableAttribute(1, VERTEXTYPE_ATTRIB_COLOR);
     m_program->Set("VERTEXTYPE_ATTRIB_COLOR", (int)enabled);
-    enabled = vertexType->EnableAttribute(2, VERTEXTYPE_ATTRIB_NORMAL);
-    m_program->Set("VERTEXTYPE_ATTRIB_NORMAL", (int)enabled);
     enabled = vertexType->EnableAttribute(3, VERTEXTYPE_ATTRIB_TEXCOORD0);
     m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
     enabled = vertexType->EnableAttribute(4, VERTEXTYPE_ATTRIB_TEXCOORD1);
@@ -161,17 +167,6 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
         m->normalTexture->Bind(1);
         m_program->Set("normalTexture", 1);
     }
-    
-    // Get our material texture
-    MaterialSystem* materialSystem = GetSystem<MaterialSystem>();
-    Texture* materialTexture = materialSystem->GetTexture();
-    
-    materialTexture->Bind(3);
-    m_program->Set("textureMaterialLookup", 3);
-    materialTexture->SetTextureFilter(FILTER_NEAREST);
-    
-    // Specify material
-    m_program->Set("materialID", (float)m->material->GetMaterial());
     
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
@@ -196,3 +191,4 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     vertexBuffer->Unbind();
     vertexType->Unbind();
 }
+*/

@@ -12,12 +12,12 @@ public:
     /**
      * Initialize a new "zero" texture
      */
-    virtual void Initialize(int width, int height, int format, int type) { }
+    virtual void Initialize(int width, int height, int format, int internalType, int type) { }
     
     /**
      * Set data
      */
-    virtual void SetData(int width, int height, int format, int type, void* data) { }
+    virtual void SetData(int width, int height, int format, int type, int dataType, void* data) { }
     
     /**
      * Bind this texture to a texture slot

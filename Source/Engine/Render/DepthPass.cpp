@@ -12,7 +12,7 @@ void DepthPass::Initialize(int width, int height) {
     m_framebuffer->Initialize();
     
     m_depthTexture = renderSystem->CreateTexture2D();
-    m_depthTexture->Initialize(width, height, COLOR_DEPTH_COMPONENT, COLOR_DEPTH_COMPONENT);
+    m_depthTexture->Initialize(width, height, COLOR_DEPTH_COMPONENT, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
     
     m_framebuffer->AddTexture(m_depthTexture, FRAMEBUFFER_SLOT_DEPTH);
     
@@ -47,6 +47,7 @@ void DepthPass::Render(Scene* scene) {
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
+    renderSystem->EnableFaceCulling(CULLMODE_FRONT);
     
     // Clear our buffer
     renderSystem->SetClearColor(vector4(1, 1, 1, 1));
@@ -68,24 +69,25 @@ void DepthPass::Render(Scene* scene) {
     // Iterate over renderables
     auto it = scene->renderables.begin();
     for(; it != scene->renderables.end(); it++) {
-        MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
-        if(mc == 0) continue;
+        RenderComponent* rc = dynamic_cast<RenderComponent*>(*it);
+        if(rc == 0) continue;
         
-        if(mc->applyLighting == false) continue;
+        if(rc->applyLighting == false) continue;
         
-        RecursiveRender(mc, view, matrix4(1.0));
+        RecursiveRender(rc, view, matrix4(1.0));
     }
     
     renderSystem->SetDrawBuffer(DRAW_BUFFER_BACK);
     
     renderSystem->DisableDepthTest();
+    renderSystem->DisableFaceCulling();
     renderSystem->SetClearColor(vector4(0, 0, 0, 1));
     
     m_framebuffer->Unbind();
     m_program->Unbind();
 }
 
-void DepthPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
+void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent) {
     Transform* meshTransform = rc->transform;
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;

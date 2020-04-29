@@ -15,7 +15,7 @@ void PointLightComponent::Initialize() {
     m_depthTextures = (Texture**)malloc(sizeof(Texture*));
     
     Texture3D* depthTexture = renderSystem->CreateTexture3D();
-    depthTexture->Initialize(POINTLIGHT_TEXTURE_SIZE, POINTLIGHT_TEXTURE_SIZE, COLOR_DEPTH_COMPONENT, COLOR_DEPTH_COMPONENT);
+    depthTexture->Initialize(POINTLIGHT_TEXTURE_SIZE, POINTLIGHT_TEXTURE_SIZE, COLOR_DEPTH_COMPONENT, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
     m_depthTextures[0] = depthTexture;
     
     // Initialize depth pass

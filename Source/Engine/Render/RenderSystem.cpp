@@ -9,6 +9,7 @@ RenderSystem::RenderSystem() {
     m_fullscreen = false;
     m_scene = new Scene();
     m_ambient = vector3(0.25f, 0.25f, 0.25f);
+    m_triCount = 0;
 }
 
 RenderSystem::~RenderSystem() {
@@ -21,6 +22,8 @@ void RenderSystem::Initialize() {
 }
 
 void RenderSystem::Update(float delta) {
+    m_triCount = 0;
+    
     // Get all render components from scene
     World* world = World::GetInstance();
     m_scene->renderables.clear();

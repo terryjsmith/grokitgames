@@ -35,6 +35,14 @@ Variant* DataRecord::Get(std::string var) {
     return(0);
 }
 
+bool DataRecord::KeyExists(std::string var) {
+    auto it = m_vars.find(var);
+    if(it != m_vars.end()) {
+        return(true);
+    }
+    return(false);
+}
+
 unsigned char* DataRecord::Serialize(int& size) {
     return(0);
 }

@@ -17,12 +17,12 @@ public:
     /**
      * Initialize a new "zero" texture
      */
-    void Initialize(int width, int height, int format, int type);
+    void Initialize(int width, int height, int format, int internalType, int type);
     
     /**
      * Set data
      */
-    void SetData(int width, int height, int format, int type, void* data);
+    void SetData(int width, int height, int format, int type, int internalType, void* data);
     
     /**
      * Bind/unbind this texture to a texture slot
@@ -69,6 +69,11 @@ public:
      * Set wrapping
      */
     void SetWrapping(bool wrap);
+    
+    /**
+     * Generate mip maps
+     */
+    void GenerateMipMaps();
     
 protected:
     // The internal data type (float or unsigned byte)

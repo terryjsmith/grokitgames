@@ -24,7 +24,7 @@ void LightingPass::Initialize(int width, int height) {
     fb->Initialize();
     
     Texture2D* buffer = renderSystem->CreateTexture2D();
-    buffer->Initialize(width, height, COLOR_RGB16F, COLOR_RGB);
+    buffer->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
     fb->AddTexture(buffer, FRAMEBUFFER_SLOT_0);
     
@@ -73,7 +73,10 @@ void LightingPass::Render(Scene* scene) {
         LightComponent* lc = dynamic_cast<LightComponent*>((*it));
         if(lc != 0) {
             lc->GenerateDepthTexture(scene);
-            //lc->GetDepthTexture(0)->Save("depth.bmp");
+            /*lc->GetDepthTexture(0)->Save("depth.bmp");
+            lc->GetDepthTexture(1)->Save("depth1.bmp");
+            lc->GetDepthTexture(2)->Save("depth2.bmp");
+            lc->GetDepthTexture(3)->Save("depth3.bmp");*/
         }
     }
     
@@ -176,21 +179,25 @@ void LightingPass::Render(Scene* scene) {
         }
         
         if(lc->GetType() == LightComponent::LIGHT_DIRECTIONAL) {
-            //for(int i = 0; i < 3; i++) {
-                lc->GetDepthTexture(0)->Bind(5);
-                lc->GetDepthTexture(0)->SetTextureFilter(FILTER_LINEAR);
-                m_program->Set("lightShadowMap", 5);
+            int passes = 4;
+            for(int i = 0; i < passes; i++) {
+                lc->GetDepthTexture(i)->Bind(7 + i);
+                //lc->GetDepthTexture(i)->Save("depth"+std::to_string(i)+".bmp");
+                lc->GetDepthTexture(i)->SetTextureFilter(FILTER_LINEAR);
+                lc->GetDepthTexture(i)->SetWrapping(false);
+                m_program->Set("lightShadowMap["+std::to_string(i)+"]", 7 + i);
+                m_program->Set("cascadeEnd["+std::to_string(i)+"]", lc->GetCamera(i)->GetFar());
             
-                CameraComponent* cc = lc->GetCamera(0);
+                CameraComponent* cc = lc->GetCamera(i);
                 matrix4 viewproj = cc->GetProjectionMatrix() * cc->GetViewMatrix();
-                m_program->Set("lightSpaceMatrix", viewproj);
+                m_program->Set("lightSpaceMatrix["+std::to_string(i)+"]", viewproj);
 
-                m_program->Set("farPlane", cc->GetFar());
-                m_program->Set("cascadeIndex", 0);
-                
-                // Render
-                renderSystem->Draw(DRAW_TRIANGLE_STRIP, 4);
-            //}
+                //m_program->Set("farPlane", cc->GetFar());
+                //m_program->Set("cascadeIndex", 0);
+            }
+            
+            // Render
+            renderSystem->Draw(DRAW_TRIANGLE_STRIP, 4);
         }
         
         //m_positionTexture->Bind(0);

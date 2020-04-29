@@ -3,18 +3,20 @@
 #define terrainquad_h
 
 #include <Core/GigaObject.h>
-#include <Render/Renderable.h>
+#include <Render/RenderComponent.h>
 #include <Render/BoundingBox.h>
 
-class GIGA_API TerrainQuad : public Renderable {
+class GIGA_API TerrainQuad : public RenderComponent {
 public:
     TerrainQuad();
     ~TerrainQuad();
     
+    GIGA_CLASS_NAME("TerrainQuad");
+    
     /**
      * Load / unload the data for this quad section
      */
-    void Load(Texture2D* hmap, vector2 offset, vector2 quadDimensions);
+    void Load(Texture2D* heightMap, Texture2D* normalMap, vector2 offset, vector2 quadDimensions);
     void Unload();
     
     /**
@@ -51,6 +53,7 @@ protected:
     
     // Our copy of the data for this quad
     unsigned char* m_data;
+    float* m_normals;
 };
 
 #endif

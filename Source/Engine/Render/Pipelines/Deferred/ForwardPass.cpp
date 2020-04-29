@@ -11,7 +11,7 @@ void ForwardPass::Initialize(int width, int height) {
     fb->Initialize();
     
     m_texture = renderSystem->CreateTexture2D();
-    m_texture->Initialize(width, height, COLOR_RGB16F, COLOR_RGB);
+    m_texture->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
     fb->AddTexture(m_texture, FRAMEBUFFER_SLOT_0);
     
@@ -39,7 +39,6 @@ void ForwardPass::SetDepthTexture(Texture2D* texture) {
 }
 
 void ForwardPass::Render(Scene* scene) {
-    // Use shader program
     m_program->Bind();
     
     // Bind output framebuffer
@@ -90,7 +89,10 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     if(rc->children.size()) {
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
-            RecursiveRender((*it), view, model);
+            MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
+            if(mc == 0) continue;
+            
+            RecursiveRender(mc, view, model);
         }
         
         return;

@@ -7,7 +7,7 @@
 
 class GIGA_API DataLoader {
 public:
-    ~DataLoader() = default;
+    virtual ~DataLoader() = default;
     
     /**
      * Open a connection

@@ -2,6 +2,7 @@
 #include <Render/OpenGL/OpenGLTexture2D.h>
 #include <Render/OpenGL/OpenGL.h>
 #include <SOIL.h>
+#include <Render/Defines.h>
 
 OpenGLTexture2D::~OpenGLTexture2D() {
     if (m_texture) {
@@ -10,7 +11,7 @@ OpenGLTexture2D::~OpenGLTexture2D() {
     }
 }
 
-void OpenGLTexture2D::Initialize(int width, int height, int format, int type) {
+void OpenGLTexture2D::Initialize(int width, int height, int format, int internalType, int type) {
     if (m_texture) {
         GL_CHECK(glDeleteTextures(1, &m_texture));
         m_texture = 0;
@@ -39,10 +40,10 @@ void OpenGLTexture2D::Initialize(int width, int height, int format, int type) {
             break;
     };
     
-    m_dataType = GL_FLOAT;
+    m_dataType = internalType;
     
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_texture));
-    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, type, GL_FLOAT, NULL));
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, type, internalType, NULL));
     
     GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
@@ -54,13 +55,38 @@ void OpenGLTexture2D::Initialize(int width, int height, int format, int type) {
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 }
 
-void OpenGLTexture2D::SetData(int width, int height, int format, int type, void* data) {
+void OpenGLTexture2D::SetData(int width, int height, int format, int type, int internalType, void* data) {
+    m_dataType = internalType;
+    if(m_texture == 0) {
+        GL_CHECK(glGenTextures(1, &m_texture));
+    }
+    
     GL_CHECK(glActiveTexture(GL_TEXTURE0));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_texture));
-    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, type, GL_FLOAT, data));
+    GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, type, internalType, data));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+
+    switch(format) {
+        case GL_RED:
+            m_channels = 1;
+            break;
+        case GL_RGB:
+        case GL_RGB8:
+            m_channels = 3;
+            break;
+        case GL_RGBA:
+        case GL_RGBA8:
+            m_channels = 4;
+            break;
+        default: break;
+    }
     
-    m_dataType = GL_FLOAT;
+    m_width = width;
+    m_height = height;
+    
+    int size = width * height * m_channels * (m_dataType == GL_FLOAT ? sizeof(float) : 1);
+    m_data = (unsigned char*)malloc(size);
+    memcpy(m_data, data, size);
 }
 
 void OpenGLTexture2D::Bind(int slot) {
@@ -112,17 +138,41 @@ void OpenGLTexture2D::ProcessData() {
     }
 }
 
+void OpenGLTexture2D::GenerateMipMaps() {
+    GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_texture));
+    
+    GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
+}
+
 void OpenGLTexture2D::SetTextureFilter(int filter) {
+    GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
+    
     // Make sure material texture does not filter
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter));
+    
+    if(filter != FILTER_MIPMAP) {
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter));
+    }
 }
 
 void OpenGLTexture2D::Save(std::string filename) {
     // Dump out normal texture
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    float* pixels = (float*)malloc(m_width * m_height * sizeof(float) * m_channels);
-    glGetTexImage(GL_TEXTURE_2D, 0, m_channels == 3 ? GL_RGB : GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+    GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_texture));
+    int byteSize = m_width * m_height * (m_dataType == GL_FLOAT ? sizeof(float) : 1) * 4;//m_channels;
+    //byteSize*=2;
+    unsigned char* pixels = (unsigned char*)malloc(byteSize);
+    
+    int width = 0;
+    int height = 0;
+    int format = 0;
+    
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
+    GL_UNSIGNED_BYTE;
+    glGetTexImage(GL_TEXTURE_2D, 0, m_channels == 3 ? GL_RGB : GL_DEPTH_COMPONENT, m_dataType, pixels);
     glBindTexture(GL_TEXTURE_2D, 0);
     
     // Convert from float to unsigned char
@@ -131,8 +181,13 @@ void OpenGLTexture2D::Save(std::string filename) {
         for (int x = 0; x < m_width; x++) {
             int offset = ((y * m_width) + x) * m_channels;
             for(int i = 0; i < m_channels; i++) {
-                float r = pixels[offset + i];
-                data[offset + i] = r * 255.0f;
+                if(m_dataType == GL_FLOAT) {
+                    float r = ((float*)pixels)[offset + i];
+                    data[offset + i] = r * 255.0f;
+                }
+                else {
+                    data[offset + i] = (pixels)[offset + i];
+                }
             }
         }
     }
@@ -151,6 +206,9 @@ void* OpenGLTexture2D::GetData() {
         return(m_data);
     }
     
+    m_data = SOIL_load_image_from_memory(m_resource->GetData(), m_resource->filesize, &m_width, &m_height, &m_channels, SOIL_LOAD_AUTO);
+    
+    /*GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
     glBindTexture(GL_TEXTURE_2D, m_texture);
     void* pixels = (void*)malloc(m_width * m_height * m_channels * ((m_dataType == GL_FLOAT) ? sizeof(float) : 1));
     int format = GL_RGB;
@@ -164,8 +222,8 @@ void* OpenGLTexture2D::GetData() {
     glGetTexImage(GL_TEXTURE_2D, 0, format, m_dataType, pixels);
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    m_data = (unsigned char*)pixels;
-    return(pixels);
+    m_data = (unsigned char*)pixels;*/
+    return(m_data);
 }
 
 void OpenGLTexture2D::SetAnisotropicFilter(float samples) {

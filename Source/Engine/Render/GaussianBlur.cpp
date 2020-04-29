@@ -20,7 +20,7 @@ void GaussianBlur::Apply() {
     
     if(m_tempTexture == 0) {
         m_tempTexture = renderSystem->CreateTexture2D();
-        m_tempTexture->Initialize(m_width, m_height, COLOR_RGB16F, COLOR_RGB);
+        m_tempTexture->Initialize(m_width, m_height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     }
     
     // Use shader program

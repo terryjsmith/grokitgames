@@ -18,6 +18,11 @@ public:
     Variant* Get(std::string var);
     
     /**
+     * Check whether a key exists
+     */
+    bool KeyExists(std::string var);
+    
+    /**
      * Serialize into binary
      */
     unsigned char* Serialize(int& size);

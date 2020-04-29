@@ -12,6 +12,11 @@ public:
     ~Texture2D() = default;
     
     GIGA_CLASS_NAME("Texture2D");
+    
+    /**
+     * Generate mip maps
+     */
+    virtual void GenerateMipMaps() { }
 };
 
 #endif

@@ -14,6 +14,11 @@ TerrainQuad::~TerrainQuad() {
         free(m_data);
         m_data = 0;
     }
+    
+    if(m_normals) {
+        free(m_normals);
+        m_normals = 0;
+    }
 }
 
 void TerrainQuad::Unload() {
@@ -22,29 +27,13 @@ void TerrainQuad::Unload() {
         m_data = 0;
     }
     
-    if(children.size()) {
-        for(int i = 0; i < 4; i++) {
-            if(children[i]) {
-                TerrainQuad* quad = dynamic_cast<TerrainQuad*>(children[i]);
-                quad->Unload();
-            }
-        }
-        
-        children.clear();
-    }
-    
-    if(vertexBuffer) {
-        delete(vertexBuffer);
-        vertexBuffer = 0;
-    }
-    
-    if(indexBuffer) {
-        delete indexBuffer;
-        indexBuffer = 0;
+    if(m_normals) {
+        free(m_normals);
+        m_normals = 0;
     }
 }
 
-void TerrainQuad::Load(Texture2D* hmap, vector2 offset, vector2 quadDimensions) {
+void TerrainQuad::Load(Texture2D* hmap, Texture2D* nmap, vector2 offset, vector2 quadDimensions) {
     TerrainSystem* terrainSystem = GetSystem<TerrainSystem>();
     uint32_t maxQuadSize = terrainSystem->GetMaxQuadSize();
     uint32_t imageWidth = hmap->GetWidth();
@@ -57,22 +46,22 @@ void TerrainQuad::Load(Texture2D* hmap, vector2 offset, vector2 quadDimensions) 
         
         // Load quad 0
         TerrainQuad* quad0 = new TerrainQuad();
-        quad0->Load(hmap, vector2(offset.x, offset.y), vector2(newWidth));
+        quad0->Load(hmap, nmap, vector2(offset.x, offset.y), vector2(newWidth));
         children.push_back(quad0);
         
         // Load quad 1
         TerrainQuad* quad1 = new TerrainQuad();
-        quad1->Load(hmap, vector2(offset.x + newWidth, offset.y), vector2(newWidth));
+        quad1->Load(hmap, nmap, vector2(offset.x + newWidth, offset.y), vector2(newWidth));
         children.push_back(quad1);
         
         // Load quad 2
         TerrainQuad* quad2 = new TerrainQuad();
-        quad2->Load(hmap, vector2(offset.x, offset.y + newWidth), vector2(newWidth));
+        quad2->Load(hmap, nmap, vector2(offset.x, offset.y + newWidth), vector2(newWidth));
         children.push_back(quad2);
         
         // Load quad 3
         TerrainQuad* quad3 = new TerrainQuad();
-        quad3->Load(hmap, vector2(offset.x + newWidth, offset.y + newWidth), vector2(newWidth));
+        quad3->Load(hmap, nmap, vector2(offset.x + newWidth, offset.y + newWidth), vector2(newWidth));
         children.push_back(quad3);
         
         return;
@@ -84,9 +73,16 @@ void TerrainQuad::Load(Texture2D* hmap, vector2 offset, vector2 quadDimensions) 
     // If we get here, load data
     unsigned int actualSize = quadDimensions.x + 1;
     int channels = hmap->GetChannels();
+    int nchannels = nmap->GetChannels();
     m_data = (unsigned char*)malloc(actualSize * actualSize);
+    m_normals = (float*)malloc(actualSize * actualSize * 3 * sizeof(float));
+    
+    // Get source data
     unsigned char* data = (unsigned char*)hmap->GetData();
+    unsigned char* ndata = (unsigned char*)nmap->GetData();
     std::vector<float> heights;
+    
+    int nmapWidth = nmap->GetWidth();
     
     float mmin = 255;
     float mmax = 0;
@@ -94,25 +90,33 @@ void TerrainQuad::Load(Texture2D* hmap, vector2 offset, vector2 quadDimensions) 
     for(int y = 0; y < actualSize; y++) {
         for(int x = 0; x < actualSize; x++) {
             int ptr = (((int)((offset.y + y) * imageWidth) + ((int)offset.x + x)) * channels);
+            int nptr = (((int)((offset.y + y) * nmapWidth) + ((int)offset.x + x)) * nchannels);
             unsigned char height = data[ptr];
             
-            if(height > 50){
-                int i = 0;
-                i++;
-            }
-            
             m_data[(y * actualSize) + x] = height;
+            vector3 normal = vector3((((float)ndata[nptr + 0] / 255.0f) - 0.5) / 0.5f,
+                                     (((float)ndata[nptr + 1] / 255.0f) - 0.5) / 0.5f,
+                                     (((float)ndata[nptr + 2] / 255.0f) - 0.5) / 0.5f);
+            normal = glm::normalize(normal);
+            
+            m_normals[(((y * actualSize) + x) * 3) + 0] = normal.x;
+            m_normals[(((y * actualSize) + x) * 3) + 1] = normal.y;
+            m_normals[(((y * actualSize) + x) * 3) + 2] = normal.z;
+            
             mmin = std::min(mmin, (float)height * terrainScale);
             mmax = std::max(mmax, (float)height * terrainScale);
         }
     }
     
-    m_aabb.Create(vector3(offset.x, mmin, offset.y), vector3(offset.x + quadDimensions.x, mmax, offset.y + quadDimensions.x));
-    
     // Save
     m_width = quadDimensions.x;
     m_totalWidth = imageWidth;
     m_offset = offset * terrainScale;
+    
+    m_aabb.Create(vector3(m_offset.x, mmin, m_offset.y), vector3(m_offset.x + quadDimensions.x * terrainScale, mmax, m_offset.y + quadDimensions.x * terrainScale));
+    
+    // Set transform
+    transform->SetWorldPosition(vector3(m_offset.x, 0, m_offset.y));
 }
 
 void TerrainQuad::SetLOD(vector3 cameraPosition) {
@@ -125,6 +129,10 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
         return;
     }
     
+    if(renderable == 0) {
+        renderable = new Renderable();
+    }
+    
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     TerrainSystem* terrainSystem = GetSystem<TerrainSystem>();
@@ -133,23 +141,32 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     float terrainScale = terrainSystem->GetTerrainScale();
     
     // Determine the LOD
-    float distance = glm::length(m_aabb.min - cameraPosition);
+    float minDistance = FLT_MAX;
     
-    // If out of distance, set to -1 (don't render)
-    if(distance > 100.0f) {
-        //m_currentLOD = -1;
-        //return;
+    for(int i = 0; i < 8; i++) {
+        minDistance = std::min(minDistance, glm::length(cameraPosition - m_aabb.points[i]));
     }
     
+    // If out of distance, set to -1 (don't render)
     uint32_t level = 0;
+    if(minDistance < 30) {
+        level = 0;
+    }
+    if(minDistance < 80) {
+        level = 1;
+    }
+    if(minDistance > 80) {
+        level = 2;
+    }
+    
+    //level = 0;
     
     if(m_currentLOD == level)
         return;
     
     m_currentLOD = level;
     
-    uint32_t skip = pow(2, level);
-    unsigned int actualSize = (m_width / skip) + 1;
+    unsigned int actualSize = m_width + 1;
     unsigned int vertexSize = 3 /* position */ + 3 /* normal */ + 4 /* tex coords */;
     unsigned int vertexCount = actualSize * actualSize;
     std::vector<float> vertexData;
@@ -161,84 +178,34 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     float mmax = 0.0f;
     for(int z = 0; z < actualSize; z++) {
         for(int x = 0; x < actualSize; x++) {
+            int offset = (z * actualSize) + x;
+            int noffset = ((z * actualSize) + x) * 3;
+            float height = (float)m_data[offset] * terrainScale;
+            
+            // Position
             vertexData.push_back(x * terrainScale);
-            float height = (float)m_data[(z * actualSize) + x] * terrainScale;
-            mmax = std::max(mmax, height);
             vertexData.push_back(height);
             vertexData.push_back(z * terrainScale);
             
-            vertexData.push_back(0.0f);
-            vertexData.push_back(0.0f);
-            vertexData.push_back(0.0f);
+            mmax = std::max(mmax, height);
             
-            vertexData.push_back(x);
-            vertexData.push_back(z);
+            // Normal
+            vertexData.push_back((float)m_normals[noffset + 0]);
+            vertexData.push_back((float)m_normals[noffset + 1]);
+            vertexData.push_back((float)m_normals[noffset + 2]);
             
-            vertexData.push_back((m_offset.x + x) / actualSize);
-            vertexData.push_back((m_offset.y + z) / actualSize);
+            // Tex coord 0
+            vertexData.push_back(x * terrainScale * 0.5);
+            vertexData.push_back(z * terrainScale * 0.5);
+            
+            // Tex coord 1
+            vector2 actualOffset = m_offset / terrainScale;
+            vertexData.push_back((actualOffset.x + x) / m_totalWidth);
+            vertexData.push_back((actualOffset.y + z) / m_totalWidth);
         }
     }
     
-    // Calculate normals
-    for(int z = 0; z < actualSize - 1; z++) {
-        for(int x = 0; x < actualSize - 1; x++) {
-            int one = ((z * actualSize) + x) * vertexSize;
-            int two = (((z + 1) * actualSize) + x) * vertexSize;
-            int three = ((z * actualSize) + (x + 1)) * vertexSize;
-            int four = (((z + 1) * actualSize) + (x + 1)) * vertexSize;
-
-            vector3 first = vector3(vertexData[one + 0], vertexData[one + 1], vertexData[one + 2]);
-            vector3 second = vector3(vertexData[two + 0], vertexData[two + 1], vertexData[two + 2]);
-            vector3 third = vector3(vertexData[three + 0], vertexData[three + 1], vertexData[three + 2]);
-            vector3 fourth = vector3(vertexData[four + 0], vertexData[four + 1], vertexData[four + 2]);
-            
-            vector3 avg1 = vector3(vertexData[one + 3], vertexData[one + 4], vertexData[one + 5]);
-            vector3 avg2 = vector3(vertexData[two + 3], vertexData[two + 4], vertexData[two + 5]);
-            vector3 avg3 = vector3(vertexData[three + 3], vertexData[three + 4], vertexData[three + 5]);
-            vector3 avg4 = vector3(vertexData[four + 3], vertexData[four + 4], vertexData[four + 5]);
-            
-            // Bottom left
-            vector3 vec1 = first - second;
-            vector3 vec2 = first - third;
-            
-            vector3 normal = glm::normalize(glm::cross(vec1, vec2));
-            avg1 += normal;
-            avg2 += normal;
-            avg3 += normal;
-            
-            // Top right
-            vec1 = fourth - third;
-            vec2 = fourth - second;
-            
-            normal = glm::normalize(glm::cross(vec1, vec2));
-            
-            avg2 += normal;
-            avg3 += normal;
-            avg4 += normal;
-            
-            avg1 = glm::normalize(avg1);
-            avg2 = glm::normalize(avg2);
-            avg3 = glm::normalize(avg3);
-            avg4 = glm::normalize(avg4);
-            
-            vertexData[one + 3] = avg1.x;
-            vertexData[one + 4] = avg1.y;
-            vertexData[one + 5] = avg1.z;
-            
-            vertexData[two + 3] = avg2.x;
-            vertexData[two + 4] = avg2.y;
-            vertexData[two + 5] = avg2.z;
-            
-            vertexData[three + 3] = avg3.x;
-            vertexData[three + 4] = avg3.y;
-            vertexData[three + 5] = avg3.z;
-            
-            vertexData[four + 3] = avg4.x;
-            vertexData[four + 4] = avg4.y;
-            vertexData[four + 5] = avg4.z;
-        }
-    }
-    
+    VertexBuffer* vertexBuffer = renderable->vertexBuffer;
     if(vertexBuffer == 0) {
         vertexBuffer = renderSystem->CreateVertexBuffer();
         
@@ -251,6 +218,7 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
         vertexFormat->AddVertexAttrib(VERTEXTYPE_ATTRIB_TEXCOORD1, 2, 8);
         
         vertexBuffer->Create(vertexFormat, vertexCount, vertexData.data(), true);
+        renderable->vertexBuffer = vertexBuffer;
     }
     else {
         vertexBuffer->SetData(vertexCount, vertexData.data());
@@ -263,25 +231,286 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     //indexData.resize(indexCount);
     
     //unsigned int* indices = (unsigned int*)malloc(sizeof(unsigned int) * indexCount);
-    for(int z = 0; z < m_width; z++) {
-        for(int x = 0; x < m_width; x++) {
-            indexData.push_back((z * actualSize) + x);
-            indexData.push_back(((z + 1) * actualSize) + x);
-            indexData.push_back((z * actualSize) + (x+ 1));
+    for(int z = 0; z < (m_width - 1); z += 2) {
+        for(int x = 0; x < (m_width - 1); x += 2) {
+            int vec1, vec2, vec3;
+            vector3 v1, v2, v3, n;
+            float d;
             
-            // Second triangle
-            indexData.push_back((z * actualSize) + (x+ 1));
-            indexData.push_back(((z + 1) * actualSize) + x);
-            indexData.push_back(((z + 1) * actualSize) + (x + 1));
+            /**
+             * LOD 0
+             * *-----*----*
+             * |  \   |  /   |
+             * *-----*----*
+             * |  /   |  \   |
+             * *----*-----*
+             */
+            
+            if(level == 0) {
+                // Bottom left quad
+                vec1 = (z * actualSize) + x;
+                vec2 = ((z + 1) * actualSize) + x;
+                vec3 = ((z + 1) * actualSize) + (x + 1);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                vec1 = (z * actualSize) + x;
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = (z * actualSize) + (x + 1);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Top left quad
+                vec1 = ((z + 1) * actualSize) + x;
+                vec2 = ((z + 2) * actualSize) + x;
+                vec3 = ((z + 1) * actualSize) + (x + 1);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                vec1 = ((z + 2) * actualSize) + x;
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = ((z + 2) * actualSize) + (x + 1);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Top right quad
+                vec1 = ((z + 1) * actualSize) + (x + 1);
+                vec2 = ((z + 2) * actualSize) + (x + 1);
+                vec3 = ((z + 2) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                vec1 = ((z + 1) * actualSize) + (x + 1);
+                vec2 = ((z + 2) * actualSize) + (x + 2);
+                vec3 = ((z + 1) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Bottom right quad
+                vec1 = (z * actualSize) + (x + 1);
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = (z * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+            
+                vec1 = (z * actualSize) + (x + 2);
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = ((z + 1) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+            }
+            
+            /**
+            * LOD 1
+            * *----------*
+            * |  \      /   |
+            * |     *      |
+            * |  /      \   |
+            * *----------*
+            */
+            
+            if(level == 1) {
+                // Left tri
+                vec1 = (z * actualSize) + x;
+                vec2 = ((z + 2) * actualSize) + x;
+                vec3 = ((z + 1) * actualSize) + (x + 1);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Top tri
+                vec1 = ((z + 1) * actualSize) + (x + 1);
+                vec2 = ((z + 2) * actualSize) + x;
+                vec3 = ((z + 2) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Right tri
+                vec1 = (z * actualSize) + (x + 2);
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = ((z + 2) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                // Bottom tri
+                vec1 = (z * actualSize) + x;
+                vec2 = ((z + 1) * actualSize) + (x + 1);
+                vec3 = (z * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+            }
+            
+            /**
+            * LOD 2
+            * *----------*
+            * |  \          |
+            * |      \      |
+            * |         \   |
+            * *----------*
+            */
+            
+            if(level == 2) {
+                // Left tri
+                vec1 = (z * actualSize) + x;
+                vec2 = ((z + 2) * actualSize) + x;
+                vec3 = (z * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+                
+                
+                // Right tri
+                vec1 = (z * actualSize) + (x + 2);
+                vec2 = ((z + 2) * actualSize) + x;
+                vec3 = ((z + 2) * actualSize) + (x + 2);
+                v1 = vector3(vertexData[vec1 * vertexSize + 0], vertexData[vec1 * vertexSize + 1], vertexData[vec1 * vertexSize + 2]);
+                v2 = vector3(vertexData[vec2 * vertexSize + 0], vertexData[vec2 * vertexSize + 1], vertexData[vec2 * vertexSize + 2]);
+                v3 = vector3(vertexData[vec3 * vertexSize + 0], vertexData[vec3 * vertexSize + 1], vertexData[vec3 * vertexSize + 2]);
+                n = vector3(vertexData[vec1 * vertexSize + 3], vertexData[vec1 * vertexSize + 4], vertexData[vec1 * vertexSize + 5]);
+                
+                d = glm::dot(n, glm::cross(v2 - v1, v3 - v1));
+                
+                if(d < 0) {
+                    int ff = 0;
+                }
+                
+                indexData.push_back(vec1);
+                indexData.push_back(d > 0 ? vec2 : vec3);
+                indexData.push_back(d > 0 ? vec3 : vec2);
+            }
         }
     }
     
+    IndexBuffer* indexBuffer = renderable->indexBuffer;
     if(indexBuffer == 0) {
         indexBuffer = renderSystem->CreateIndexBuffer();
-        indexBuffer->Create(indexCount, indexData.data());
+        indexBuffer->Create(indexData.size(), indexData.data());
+        renderable->indexBuffer = indexBuffer;
     }
     else {
-        indexBuffer->SetData(indexCount, indexData.data());
+        indexBuffer->SetData(indexData.size(), indexData.data());
     }
     
     // Save

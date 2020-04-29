@@ -12,6 +12,9 @@ extern int COLOR_DEPTH_COMPONENT24;
 extern int COLOR_DEPTH_COMPONENT32F;
 extern int COLOR_DEPTH_COMPONENT;
 
+extern int TEXTURE_TYPE_BYTE;
+extern int TEXTURE_TYPE_FLOAT;
+
 // Value tests
 extern int TEST_LESS;
 extern int TEST_EQUAL;
@@ -23,6 +26,7 @@ extern int TEST_ALWAYS;
 // Filters
 extern int FILTER_NEAREST;
 extern int FILTER_LINEAR;
+extern int FILTER_MIPMAP;
 
 // Clear bits
 extern int COLOR_BUFFER_BIT;
@@ -54,5 +58,15 @@ extern int TEXTURE_REPEAT_Y;
 
 extern int TEXTURE_REPEAT_MODE_REPEAT;
 extern int TEXTURE_REPEAT_MODE_CLAMP;
+
+extern int CUBEMAP_FACE_RIGHT;
+extern int CUBEMAP_FACE_LEFT;
+extern int CUBEMAP_FACE_TOP;
+extern int CUBEMAP_FACE_BOTTOM;
+extern int CUBEMAP_FACE_BACK;
+extern int CUBEMAP_FACE_FRONT;
+
+extern int CULLMODE_FRONT;
+extern int CULLMODE_BACK;
 
 #endif

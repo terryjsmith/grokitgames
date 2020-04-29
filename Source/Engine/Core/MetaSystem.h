@@ -31,6 +31,11 @@ public:
     GigaObject* CreateClass(uint32_t typeID);
     
     /**
+     * Get registered classes
+     */
+    std::vector<Meta::Class*> GetRegisteredClasses() { return m_definitions; }
+    
+    /**
      * Add class definition
      */
     void AddClass(Meta::Class* cl);

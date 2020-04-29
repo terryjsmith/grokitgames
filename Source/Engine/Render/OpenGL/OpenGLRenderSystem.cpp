@@ -15,6 +15,17 @@ void OpenGLRenderSystem::Initialize() {
 
 void OpenGLRenderSystem::Initialize(int width, int height, bool fullscreen) {
     GL_CHECK(glEnable(GL_TEXTURE_2D));
+    GL_CHECK(glDisable(GL_CULL_FACE));
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+}
+
+void OpenGLRenderSystem::EnableFaceCulling(int cullmode) {
+    GL_CHECK(glEnable(GL_CULL_FACE));
+    GL_CHECK(glCullFace(cullmode));
+}
+
+void OpenGLRenderSystem::DisableFaceCulling() {
+    GL_CHECK(glDisable(GL_CULL_FACE));
 }
 
 void OpenGLRenderSystem::Clear(int bitmask) {
@@ -27,10 +38,12 @@ void OpenGLRenderSystem::SetClearColor(vector4 color) {
 
 void OpenGLRenderSystem::Draw(int type, int elements) {
     GL_CHECK(glDrawArrays(type, 0, elements));
+    m_triCount += elements / 3;
 }
 
 void OpenGLRenderSystem::DrawIndexed(int type, int elements) {
     GL_CHECK(glDrawElements(type, elements, GL_UNSIGNED_INT, 0));
+    m_triCount += elements / 3;
 }
 
 void OpenGLRenderSystem::EnableDepthTest(int type) {

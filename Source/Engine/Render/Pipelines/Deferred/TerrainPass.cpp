@@ -43,6 +43,10 @@ void TerrainPass::SetDepthTexture(Texture2D* texture) {
     m_framebuffers[0]->AddTexture(texture, FRAMEBUFFER_SLOT_DEPTH);
 }
 
+void TerrainPass::SetAuxTexture(Texture2D* texture) {
+    m_framebuffers[0]->AddTexture(texture, FRAMEBUFFER_SLOT_3);
+}
+
 void TerrainPass::Render(Scene* scene) {
     // Use shader program
     m_program->Bind();
@@ -53,6 +57,7 @@ void TerrainPass::Render(Scene* scene) {
     // Get render system, set depth to less or equal
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
+    renderSystem->EnableFaceCulling(CULLMODE_BACK);
     
     // DO NOT Clear our buffer - keep gbuffer pass
     // renderSystem->Clear(COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT);
@@ -71,6 +76,7 @@ void TerrainPass::Render(Scene* scene) {
     matrix4 proj = camera->GetProjectionMatrix();
     
     m_program->Set("projectionMatrix", proj);
+    m_program->Set("cameraPosition", camera->transform->GetWorldPosition());
     
     // Iterate over renderables
     auto it = scene->renderables.begin();
@@ -78,20 +84,45 @@ void TerrainPass::Render(Scene* scene) {
         TerrainComponent* mc = dynamic_cast<TerrainComponent*>(*it);
         if(mc == 0) continue;
         
+        if(mc->GetSplatMap() != 0) {
+            m_program->Set("splatMap", 0);
+            mc->GetSplatMap()->Bind(0);
+        }
+        
+        // Bind number of textures
+        int numTextures = mc->GetNumTextures();
+        m_program->Set("numTextures", numTextures);
+        
+        // Bind textures
+        int baseTexture = 1;
+        for(int i = 0; i < numTextures; i++) {
+            mc->GetTexture(i)->Bind(baseTexture + i);
+            m_program->Set("diffuseTextures[" + std::to_string(i) + "]", baseTexture + i);
+            
+            mc->GetTexture(i)->SetAnisotropicFilter(16.0f);
+            mc->GetTexture(i)->SetWrapping(true);
+        }
+        baseTexture += numTextures;
+        
         matrix4 parent = glm::translate(matrix4(1.0f), vector3(mc->transform->GetWorldPosition()));
-        TerrainQuad* quad = dynamic_cast<TerrainQuad*>(mc->renderable);
-        RecursiveRender(quad, view, parent, mc);
+        TerrainQuad* quad = dynamic_cast<TerrainQuad*>(mc->children[0]);
+        RecursiveRender(quad, view, parent, scene);
+        
+        for(int i = 0; i < numTextures; i++) {
+            mc->GetTexture(i)->Unbind();
+        }
     }
     
     //m_framebuffers[0]->GetTexture(0)->Save("diffuse.bmp");
     
+    renderSystem->DisableFaceCulling();
     renderSystem->DisableDepthTest();
     
     m_framebuffers[0]->Unbind();
     m_program->Unbind();
 }
 
-void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, TerrainComponent* tc) {
+void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, Scene* scene) {
     // Calculate model matrix
     matrix4 mat = glm::translate(matrix4(1.0f), rc->GetOffset());
     matrix4 model = mat * parent;
@@ -100,9 +131,18 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
             TerrainQuad* quad = dynamic_cast<TerrainQuad*>(*it);
-            RecursiveRender(quad, view, model, tc);
+            RecursiveRender(quad, view, model, scene);
         }
         
+        return;
+    }
+    
+    CameraComponent* cc = scene->camera;
+    Frustum frustum = cc->GetFrustum();
+    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    BoundingBox* aabb = rc->GetBoundingBox();
+    
+    if(frustum.Intersects(*aabb) == false && aabb->Inside(cameraPosition) == false) {
         return;
     }
     
@@ -110,11 +150,12 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
         return;
     }
     
-    Renderable* m = rc;
+    Renderable* m = rc->renderable;
     
     // Send view/proj matrix to shader
     matrix4 modelviewMatrix = view * model;
     m_program->Set("modelviewMatrix", modelviewMatrix);
+    m_program->Set("modelMatrix", model);
 
     VertexBuffer* vertexBuffer = m->vertexBuffer;
     VertexFormat* vertexType = vertexBuffer->GetFormat();
@@ -138,23 +179,10 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
     m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
     enabled = vertexType->EnableAttribute(4, VERTEXTYPE_ATTRIB_TEXCOORD1);
     m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD1", (int)enabled);
-
-    // Bind number of textures
-    int numTextures = tc->GetNumTextures();
-    m_program->Set("numTextures", numTextures);
-    
-    // Bind textures
-    for(int i = 0; i < numTextures; i++) {
-        tc->GetTexture(i)->Bind(i);
-        m_program->Set("diffuseTextures[" + std::to_string(i) + "]", i);
-        
-        tc->GetTexture(i)->SetAnisotropicFilter(16.0f);
-        tc->GetTexture(i)->SetWrapping(true);
-    }
     
     if(m->normalTexture) {
-        m->normalTexture->Bind(5);
-        m_program->Set("normalTexture", 5);
+        m->normalTexture->Bind(0);
+        m_program->Set("normalTexture", 0);
     }
     
     // Get render system
@@ -167,10 +195,6 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
     }
     else {
         renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
-    }
-    
-    for(int i = 0; i < numTextures; i++) {
-        tc->GetTexture(i)->Unbind();
     }
     
     if(m->normalTexture) {

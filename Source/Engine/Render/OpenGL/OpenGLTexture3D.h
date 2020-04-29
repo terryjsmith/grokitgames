@@ -15,8 +15,8 @@ public:
     /**
      * Initialize a new "zero" texture
      */
-    void Initialize(int width, int height, int format, int type);
-    
+    virtual void Initialize(int width, int height, int format, int internalType, int type);
+
     /**
      * Set data
      */
@@ -42,6 +42,15 @@ public:
      * Dump texture to disk
      */
     void Save(std::string filename);
+    
+    /**
+     * Load a face from a 2D texture
+     */
+    void Load(int slot, std::string filename);
+    
+protected:
+    // The internal data type (float or unsigned byte)
+    int m_dataType;
 };
 
 

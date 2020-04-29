@@ -26,9 +26,6 @@ public:
     virtual void Deserialize(DataRecord* record);
     
 public:
-    // Children
-    std::vector<MeshComponent*> children;
-    
     Mesh* m_mesh;
 };
 

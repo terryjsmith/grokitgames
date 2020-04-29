@@ -105,6 +105,12 @@ public:
     vector3 GetAmbientLighting() { return m_ambient; }
     void SetAmbientLighting(vector3 ambient) { m_ambient = ambient; }
     
+    /**
+     * Enable/disable face culling
+     */
+    virtual void EnableFaceCulling(int cullmode) { }
+    virtual void DisableFaceCulling() { }
+    
 protected:
     // Window dimensions
     int m_width, m_height;
@@ -123,6 +129,9 @@ protected:
     
     // Ambient lighting
     vector3 m_ambient;
+    
+    // Total rendered triangles
+    int m_triCount = 0;
 };
 
 #endif

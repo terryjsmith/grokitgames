@@ -3,6 +3,7 @@
 
 RenderComponent::RenderComponent() {
     transform = new Transform();
+    renderable = 0;
 }
 
 RenderComponent::~RenderComponent() {

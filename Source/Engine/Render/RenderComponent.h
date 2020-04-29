@@ -19,6 +19,9 @@ public:
     // Renderable base object
     Renderable* renderable;
     
+    // Children
+    std::vector<RenderComponent*> children;
+    
     // Transform
     Transform* transform;
     

@@ -23,10 +23,12 @@
 #include <Render/DirectionalLightComponent.h>
 #include <Render/MaterialSystem.h>
 #include <Render/TerrainSystem.h>
+#include <Render/Skybox.h>
 
 Resource* m_errorLog = 0;
 int moveFactor = 0;
 int turnFactor = 0;
+DirectionalLightComponent* dirLightCo = 0;
 
 enum Commands {
     MOVE_FORWARD = 1000,
@@ -84,6 +86,12 @@ void CommandHandler(GigaObject* obj, Message* message) {
         
         if(cmd->GetType() == TURN_RIGHT) {
             turnFactor = -1;
+        }
+        if(cmd->GetType() == 100) {
+            dirLightCo->GetDepthTexture(0)->Save("depth.bmp");
+            dirLightCo->GetDepthTexture(1)->Save("depth1.bmp");
+            dirLightCo->GetDepthTexture(2)->Save("depth2.bmp");
+            dirLightCo->GetDepthTexture(3)->Save("depth3.bmp");
         }
     }
     else {
@@ -179,7 +187,8 @@ int main(int argc, const char * argv[]) {
     
     // Set up camera
     CameraComponent* camera = new CameraComponent();
-    camera->transform->SetWorldPosition(vector3(0, 3.25, 4));
+    camera->transform->SetWorldPosition(vector3(20, 3.25, 20));
+    camera->transform->Rotate(vector3(0, 1, 0), -80);
     Scene* scene = renderSystem->GetScene();
     
     scene->camera = camera;
@@ -200,11 +209,13 @@ int main(int argc, const char * argv[]) {
     Command::RegisterCommandType("MOVE_BACKWARD", MOVE_BACKWARD);
     Command::RegisterCommandType("TURN_LEFT", TURN_LEFT);
     Command::RegisterCommandType("TURN_RIGHT", TURN_RIGHT);
+    Command::RegisterCommandType("TAKE_PICTURE", 100);
     
     inputSystem->RegisterInputMapping(keyboard, KEY_UP, "MOVE_FORWARD");
     inputSystem->RegisterInputMapping(keyboard, KEY_DOWN, "MOVE_BACKWARD");
     inputSystem->RegisterInputMapping(keyboard, KEY_LEFT, "TURN_LEFT");
     inputSystem->RegisterInputMapping(keyboard, KEY_RIGHT, "TURN_RIGHT");
+    inputSystem->RegisterInputMapping(keyboard, KEY_P, "TAKE_PICTURE");
     
     messageSystem->RegisterCallback(0, "COMMAND_START", CommandHandler);
     messageSystem->RegisterCallback(0, "COMMAND_END", CommandHandler);
@@ -241,8 +252,12 @@ int main(int argc, const char * argv[]) {
     //lightEntity->AddComponent(plc);
     
     DirectionalLightComponent* dlc = new DirectionalLightComponent();
-    dlc->transform->SetWorldPosition(glm::normalize(vector3(-0.4, -0.8, 0.4)));
+    dlc->transform->SetWorldPosition(glm::normalize(vector3(-0.4, -0.7, 0.4)));
     dlc->Initialize();
+    
+    dirLightCo = dlc;
+    
+    //scene->camera = dlc->GetCamera(2);
     
     Entity* sunlight = world->CreateEntity();
     sunlight->AddComponent(dlc);
@@ -253,12 +268,16 @@ int main(int argc, const char * argv[]) {
     TerrainComponent* tc = terrain->CreateComponent<TerrainComponent>();
     tc->Load("terrain1.json", vector3(0));
     
+    Entity* skybox = world->CreateEntity();
+    Skybox* sb = skybox->CreateComponent<Skybox>();
+    sb->Initialize("sky");
+    
     // Main loop
     while(window->IsClosing() == false) {
         float delta = gameTimer->Duration();
         gameTimer->Reset();
         
-        camera->transform->Move(camera->transform->GetLook() * 5.0f * (float)moveFactor * delta);
+        camera->transform->Move(camera->transform->GetLook() * 15.0f * (float)moveFactor * delta);
         camera->transform->Rotate(camera->transform->GetUp(), 60.0f * (float)turnFactor * delta);
         app->Update(delta);
         

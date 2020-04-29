@@ -6,6 +6,7 @@
 #include <Render/Pipelines/Deferred/ForwardPass.h>
 #include <Render/Pipelines/Deferred/RenderToScreenPass.h>
 #include <Render/Pipelines/Deferred/TerrainPass.h>
+#include <Render/Pipelines/Deferred/SkyboxPass.h>
 
 void DeferredRenderPipeline::Initialize(int width, int height) {
     // Set up render pipeline
@@ -19,6 +20,7 @@ void DeferredRenderPipeline::Initialize(int width, int height) {
     terrainPass->SetDiffuseTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(0));
     terrainPass->SetPositionTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(1));
     terrainPass->SetNormalTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(2));
+    terrainPass->SetAuxTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(3));
     terrainPass->SetDepthTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(4));
     
     AddPass(terrainPass);
@@ -45,9 +47,16 @@ void DeferredRenderPipeline::Initialize(int width, int height) {
     
     AddPass(forwardPass);
     
+    SkyboxPass* skyboxPass = new SkyboxPass();
+    skyboxPass->Initialize(width, height);
+    skyboxPass->SetInputTexture((Texture2D*)forwardPass->GetFramebuffer(0)->GetTexture(0));
+    skyboxPass->SetDepthTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(4));
+    
+    AddPass(skyboxPass);
+    
     RenderToScreenPass* screenPass = new RenderToScreenPass();
     screenPass->Initialize(width, height);
-    screenPass->SetInputTexture((Texture2D*)forwardPass->GetFramebuffer(0)->GetTexture(0));
+    screenPass->SetInputTexture((Texture2D*)skyboxPass->GetFramebuffer(0)->GetTexture(0));
     
     AddPass(screenPass);
 }

@@ -48,6 +48,7 @@ public:
     * Calculate a frustum with a near and far set of numbers with our aspect ratio and fov
     */
     Frustum CalculateFrustum(float fnear, float ffar);
+    Frustum GetFrustum();
 
 protected:
     float m_fnear, m_ffar;

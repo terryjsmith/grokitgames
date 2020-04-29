@@ -45,7 +45,7 @@ void Filter::Initialize(std::string shader, int width, int height) {
     m_framebuffer->Initialize();
     
     m_outputTexture = renderSystem->CreateTexture2D();
-    m_outputTexture->Initialize(width, height, COLOR_RGB16F, COLOR_RGB);
+    m_outputTexture->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
     m_framebuffer->AddTexture(m_outputTexture, FRAMEBUFFER_SLOT_0);
     

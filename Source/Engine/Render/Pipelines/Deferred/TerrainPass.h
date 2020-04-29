@@ -30,14 +30,10 @@ public:
     void SetPositionTexture(Texture2D* texture);
     void SetDiffuseTexture(Texture2D* texture);
     void SetDepthTexture(Texture2D* texture);
+    void SetAuxTexture(Texture2D* texture);
     
 protected:
-    void RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, TerrainComponent* tc);
-    
-    Texture2D* m_normalTexture;
-    Texture2D* m_positionTexture;
-    Texture2D* m_diffuseTexture;
-    Texture2D* m_depthTexture;
+    void RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, Scene* scene);
 };
 
 #endif 

@@ -114,14 +114,14 @@ Texture2D* MaterialSystem::GetTexture() {
     if (m_texture == 0) {
         RenderSystem* renderSystem = GetSystem<RenderSystem>();
         m_texture = renderSystem->CreateTexture2D();
-        m_texture->Initialize(4, MAX_MATERIAL_TEXTURE_SIZE, COLOR_RGB16F, COLOR_RGB);
+        m_texture->Initialize(4, MAX_MATERIAL_TEXTURE_SIZE, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
         m_dirty = true;
     }
     
     // Rebuild our material texture if necessary
     if (m_dirty) {
         // Rebuild
-        m_texture->SetData(4, MAX_MATERIAL_TEXTURE_SIZE, COLOR_RGB16F, COLOR_RGB, (void*)m_data);
+        m_texture->SetData(4, MAX_MATERIAL_TEXTURE_SIZE, COLOR_RGB16F, COLOR_RGB, TEXTURE_TYPE_FLOAT, (void*)m_data);
         m_dirty = false;
     }
     

@@ -20,7 +20,7 @@ void CombinePass::Initialize(int width, int height) {
     fb->Initialize();
     
     Texture2D* buffer = renderSystem->CreateTexture2D();
-    buffer->Initialize(width, height, COLOR_RGB16F, COLOR_RGB);
+    buffer->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
     fb->AddTexture(buffer, FRAMEBUFFER_SLOT_0);
     

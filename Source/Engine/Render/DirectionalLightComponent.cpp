@@ -4,8 +4,10 @@
 #include <Render/Defines.h>
 #include <Core/Application.h>
 
+#define DIRECTION_LIGHT_TEXSIZE 1024
+
 void DirectionalLightComponent::Initialize() {
-    m_passes = 3;
+    m_passes = 4;
     m_type = LIGHT_DIRECTIONAL;
     m_attenuation = 100.0f;
     
@@ -18,13 +20,13 @@ void DirectionalLightComponent::Initialize() {
     // Create 3 textures for various depth levels
     for(int i = 0; i < m_passes; i++) {
         Texture2D* depthTexture = renderSystem->CreateTexture2D();
-        depthTexture->Initialize(1024, 1024, COLOR_DEPTH_COMPONENT24, COLOR_DEPTH_COMPONENT);
+        depthTexture->Initialize(DIRECTION_LIGHT_TEXSIZE, DIRECTION_LIGHT_TEXSIZE, COLOR_DEPTH_COMPONENT24, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
         m_depthTextures[i] = depthTexture;
     }
     
     // Initialize depth pass
     m_depthPass = new DepthPass();
-    m_depthPass->Initialize(1024, 1024);
+    m_depthPass->Initialize(DIRECTION_LIGHT_TEXSIZE, DIRECTION_LIGHT_TEXSIZE);
     
     // Initialize "camera"
     m_cameras = (CameraComponent**)malloc(sizeof(CameraComponent*) * 3);
@@ -37,25 +39,26 @@ void DirectionalLightComponent::Initialize() {
 
 void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
     // Split the camera frustum into pieces for Cascaded Shadow Mapping
-    float distances[4] = {
-        0.01f, 0.15, 0.40, 1.0f
+    float distances[5] = {
+        0.0f, 0.10, 0.30, 0.60, 1.0f
     };
     
     CameraComponent* sceneCamera = scene->camera;
+    float sceneFar = sceneCamera->GetFar();
     
-    Frustum lightFrustums[3];
+    Frustum lightFrustums[m_passes];
     
     // Create the frustums
-    for(int i = 0; i < 3; i++) {
-        lightFrustums[i] = sceneCamera->CalculateFrustum(distances[i] * m_attenuation, distances[i + 1] * m_attenuation);
+    for(int i = 0; i < m_passes; i++) {
+        lightFrustums[i] = sceneCamera->CalculateFrustum(distances[i] * sceneFar, distances[i + 1] * sceneFar);
     }
     
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < m_passes; i++) {
         // Get the far point
         CameraComponent* camera = GetCamera(i);
         
-        float fnear = distances[i] * m_attenuation;
-        float ffar = distances[i + 1] * m_attenuation;
+        float fnear = distances[i] * sceneFar;
+        float ffar = distances[i + 1] * sceneFar;
         
         camera->SetNear(fnear);
         camera->SetFar(ffar);
@@ -64,6 +67,10 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         
         vector4 position = vector4(transform->GetWorldPosition(), 0.0f);
         camera->transform->SetLook(vector3(position));
+        vector3 cameraPosition = sceneCamera->transform->GetWorldPosition();
+        vector3 cameraUp = sceneCamera->transform->GetRight();
+        vector3 cameraRight = sceneCamera->transform->GetUp();
+        vector3 cameraLook = sceneCamera->transform->GetLook();
         
         float fov = sceneCamera->GetFOV();
         float aspect = sceneCamera->GetAspectRatio();
@@ -77,15 +84,27 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         float yf = ffar * tanHalfVFOV;
         
         vector3 frustumCorners[8];
-        frustumCorners[0] = vector3(xn, yn, -fnear);
-        frustumCorners[1] = vector3(-xn, yn, -fnear);
-        frustumCorners[2] = vector3(xn, -yn, -fnear);
-        frustumCorners[3] = vector3(-xn, -yn, -fnear);
         
-        frustumCorners[4] = vector3(xf, yf, -ffar);
-        frustumCorners[5] = vector3(-xf, yf, -ffar);
-        frustumCorners[6] = vector3(xf, -yf, -ffar);
-        frustumCorners[7] = vector3(-xf, -yf, -ffar);
+        // Near plane
+        frustumCorners[0] = cameraPosition + (cameraLook * fnear) + (cameraUp * yn) - (cameraRight * xn); // Top left
+        frustumCorners[1] = cameraPosition + (cameraLook * fnear) + (cameraUp * yn) + (cameraRight * xn); // Top right
+        frustumCorners[2] = cameraPosition + (cameraLook * fnear) - (cameraUp * yn) - (cameraRight * xn); // Bottom left
+        frustumCorners[3] = cameraPosition + (cameraLook * fnear) - (cameraUp * yn) + (cameraRight * xn); // Bottom right
+        
+        // Far plane
+        frustumCorners[4] = cameraPosition + (cameraLook * ffar) + (cameraUp * yf) - (cameraRight * xf); // Top left
+        frustumCorners[5] = cameraPosition + (cameraLook * ffar) + (cameraUp * yf) + (cameraRight * xf); // Top right
+        frustumCorners[6] = cameraPosition + (cameraLook * ffar) - (cameraUp * yf) - (cameraRight * xf); // Bottom left
+        frustumCorners[7] = cameraPosition + (cameraLook * ffar) - (cameraUp * yf) + (cameraRight * xf); // Bottom right
+        
+        vector3 position2 = vector3(0.0f);
+        for(int k = 0; k < 8; k++) {
+            position2 += frustumCorners[k];
+        }
+        
+        position2 /= 8.0f;
+        
+        vector3 position3 = position2 + vector3(-position * (ffar / 2.0f));
         
         vector4 frustumCornersL[8];
 
@@ -96,15 +115,12 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         float minZ = FLT_MAX;
         float maxZ = -FLT_MAX;
 
-        matrix4 viewMatrix = glm::lookAt(vector3(0, 0, 0), -transform->GetWorldPosition(), vector3(0, 1, 0));
-        matrix4 camInverse = glm::inverse(sceneCamera->GetViewMatrix());
-        
-        vector4 worldPosition = camInverse * vector4(0.0f, 0.0f, 0.0f, 1.0f);
-        worldPosition = viewMatrix * worldPosition;
+        matrix4 viewMatrix = glm::lookAt(position3, position2, vector3(0, 1, 0));
+        matrix4 viewMatrix2 = glm::lookAt(position2 + vector3(position.x, position.y, position.z), position2, vector3(0, -1, 0));
         
         for (uint32_t j = 0 ; j < 8 ; j++) {
-            vector4 vW = camInverse * vector4(frustumCorners[j], 1.0);
-            frustumCornersL[j] = viewMatrix * vW;
+            vector4 vW = vector4(frustumCorners[j], 1.0);
+            frustumCornersL[j] = viewMatrix2 * vW;
 
             minX = std::min(minX, frustumCornersL[j].x);
             maxX = std::max(maxX, frustumCornersL[j].x);
@@ -114,13 +130,20 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
             maxZ = std::max(maxZ, frustumCornersL[j].z);
         }
         
+        //vector3 halfExtents = vector3((maxX - minX) / 2.0f, (maxY - minY) / 2.0f, (std::abs(maxZ - minZ)) / 2.0f);
+        vector3 halfExtents = vector3((maxX - minX), (maxY - minY), std::abs(-maxZ - -minZ));
+        //halfExtents /= 2.0f;
+        
+        // Create our light's orthographic projection matrix
+        matrix4 lightProj = glm::ortho(-halfExtents.x, halfExtents.x, -halfExtents.y, halfExtents.y, halfExtents.z, -halfExtents.z);
+
         //matrix4 ortho = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-        matrix4 ortho = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+        matrix4 ortho = glm::ortho(minX, maxX, minY, maxY, maxZ, minZ);
         
-        camera->SetProjectionMatrix(ortho);
-        matrix4 view2 = camera->GetViewMatrix();
+        camera->SetProjectionMatrix(lightProj);
+        camera->SetViewMatrix(viewMatrix2);
         
-        matrix4 viewproj = ortho * view2;
+        matrix4 viewproj = ortho * viewMatrix;
         
         // Set "camera" and draw
         m_depthPass->SetTexture((Texture2D*)m_depthTextures[i]);

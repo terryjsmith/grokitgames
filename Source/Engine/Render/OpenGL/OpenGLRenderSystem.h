@@ -72,6 +72,12 @@ public:
      * Use default framebuffer
      */
     void UseDefaultFramebuffer();
+    
+    /**
+     * Enable/disable face culling
+     */
+    void EnableFaceCulling(int cullmode);
+    void DisableFaceCulling();
 };
 
 #endif
