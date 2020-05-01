@@ -16,7 +16,7 @@ void JSONDataLoader::Open(std::string location) {
     delete jsonFile;
     
     // Parse
-    m_json.Parse(jsonData.c_str());
+    m_json.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonData.c_str());
 }
 
 void JSONDataLoader::Close() {

@@ -2,6 +2,7 @@
 #include <Render/OpenGL/OpenGLRenderSystem.h>
 #include <Render/OpenGL/OpenGL.h>
 #include <IO/ResourceSystem.h>
+#include <Core/ErrorSystem.h>
 #include <Core/Application.h>
 #include <Render/OpenGL/OpenGLTexture2D.h>
 
@@ -14,6 +15,19 @@ void OpenGLRenderSystem::Initialize() {
 }
 
 void OpenGLRenderSystem::Initialize(int width, int height, bool fullscreen) {
+    ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
+
+#ifdef WIN32
+    if (gl3wInit()) {
+        errorSystem->HandleError(new Error(Error::ERROR_FATAL, "Unable to initialize GL3W."));
+        return;
+    }
+
+    if (!gl3wIsSupported(4, 0)) {
+        fprintf(stderr, "OpenGL 4.0 not supported\n");
+    }
+#endif
+
     GL_CHECK(glEnable(GL_TEXTURE_2D));
     GL_CHECK(glDisable(GL_CULL_FACE));
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );

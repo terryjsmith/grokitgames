@@ -2,7 +2,6 @@
 #include <IO/Window.h>
 #include <Core/ErrorSystem.h>
 #include <Core/Application.h>
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 bool Window::m_initialized = false;
@@ -49,17 +48,8 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     
     // Get our actual framebuffer size
     glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
-    
-    if (Window::m_initialized == false) {
-#ifdef WIN32
-        glewExperimental = true;
-        GLenum err = glewInit();
-        if (GLEW_OK != err) {
-            errorSystem->HandleError(new Error(Error::ERROR_FATAL, "Unable to initialize GLEW."));
-            return;
-        }
-#endif
-    }
+
+    printf("%s\n", glGetString(GL_VERSION));
 }
 
 bool Window::IsClosing() {

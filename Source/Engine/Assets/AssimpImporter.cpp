@@ -109,7 +109,9 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
         ret->material->shininess = 0.0;*/
         
         // Use the material index to set the data
-        ret->diffuseTexture = dynamic_cast<Texture2D*>(resourceSystem->LoadResource(materialList[paiMesh->mMaterialIndex]->texture, "Texture2D"));
+        if (materialList[paiMesh->mMaterialIndex]->texture.length()) {
+            ret->diffuseTexture = dynamic_cast<Texture2D*>(resourceSystem->LoadResource(materialList[paiMesh->mMaterialIndex]->texture, "Texture2D"));
+        }
         ret->material = materialList[paiMesh->mMaterialIndex]->material;
         
         // Initialize our data

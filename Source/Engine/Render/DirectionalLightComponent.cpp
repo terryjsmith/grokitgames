@@ -4,10 +4,11 @@
 #include <Render/Defines.h>
 #include <Core/Application.h>
 
-#define DIRECTION_LIGHT_TEXSIZE 1024
+#define DIRECTIONAL_LIGHT_TEXSIZE 1024
+#define DIRECTIONAL_LIGHT_PASSES    4
 
 void DirectionalLightComponent::Initialize() {
-    m_passes = 4;
+    m_passes = DIRECTIONAL_LIGHT_PASSES;
     m_type = LIGHT_DIRECTIONAL;
     m_attenuation = 100.0f;
     
@@ -20,13 +21,13 @@ void DirectionalLightComponent::Initialize() {
     // Create 3 textures for various depth levels
     for(int i = 0; i < m_passes; i++) {
         Texture2D* depthTexture = renderSystem->CreateTexture2D();
-        depthTexture->Initialize(DIRECTION_LIGHT_TEXSIZE, DIRECTION_LIGHT_TEXSIZE, COLOR_DEPTH_COMPONENT24, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
+        depthTexture->Initialize(DIRECTIONAL_LIGHT_TEXSIZE, DIRECTIONAL_LIGHT_TEXSIZE, COLOR_DEPTH_COMPONENT24, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
         m_depthTextures[i] = depthTexture;
     }
     
     // Initialize depth pass
     m_depthPass = new DepthPass();
-    m_depthPass->Initialize(DIRECTION_LIGHT_TEXSIZE, DIRECTION_LIGHT_TEXSIZE);
+    m_depthPass->Initialize(DIRECTIONAL_LIGHT_TEXSIZE, DIRECTIONAL_LIGHT_TEXSIZE);
     
     // Initialize "camera"
     m_cameras = (CameraComponent**)malloc(sizeof(CameraComponent*) * 3);
@@ -46,7 +47,7 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
     CameraComponent* sceneCamera = scene->camera;
     float sceneFar = sceneCamera->GetFar();
     
-    Frustum lightFrustums[m_passes];
+    Frustum lightFrustums[DIRECTIONAL_LIGHT_PASSES];
     
     // Create the frustums
     for(int i = 0; i < m_passes; i++) {

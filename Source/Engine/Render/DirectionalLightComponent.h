@@ -8,7 +8,7 @@
  * Our implementation of a directional light with cascaded shadow maps
  */
 GIGA_CLASS()
-class DirectionalLightComponent : public LightComponent {
+class GIGA_API DirectionalLightComponent : public LightComponent {
 public:
     DirectionalLightComponent() = default;
     ~DirectionalLightComponent() = default;

@@ -227,7 +227,7 @@ void* OpenGLTexture2D::GetData() {
 }
 
 void OpenGLTexture2D::SetAnisotropicFilter(float samples) {
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, samples);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, samples);
 }
 
 void OpenGLTexture2D::SetWrapping(bool wrap) {

@@ -594,7 +594,9 @@ int main(int argc, char** argv) {
         
         classes[mc->name] = mc;
         exportGigaClasses[mc->name] = (*clit)->Get("exported")->AsBool();
-        singletonClasses[mc->name] = mc->singleton;
+        if (mc->singleton) {
+            singletonClasses[mc->name] = true;
+        }
     }
     
     auto fnit = fnrecords.begin();
@@ -931,7 +933,7 @@ int main(int argc, char** argv) {
         }
         
         output += "\tMeta::Class* metaClass" + cl->name + " = new Meta::Class();\n";
-        if(cl->templated == false && cl->hasPublicConstructor == true) {
+        if(cl->hasPublicConstructor == true) {
             output += "\tmetaClass" + cl->name + "->RegisterConstructor<" + cl->name + ">();\n";
         }
         output += "\tmetaClass" + cl->name + "->name = \"" + cl->name + "\";\n";

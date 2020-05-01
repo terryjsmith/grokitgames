@@ -2,6 +2,7 @@
 #include <iostream>
 #include <SOIL.h>
 #include <glm/glm.hpp>
+#include <algorithm>
 
 int main(int argc, const char * argv[]) {
     std::string baseHeightmap;
