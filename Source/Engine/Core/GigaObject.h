@@ -3,6 +3,7 @@
 #define gigaobject_h
 
 #include <Core/Variant.h>
+#include <mutex>
 
 namespace Meta { class Class; }
 class DataRecord;
@@ -30,19 +31,28 @@ public:
     /**
      * Serialization
      */
-    void Serialize(DataRecord* record);
-    void Deserialize(DataRecord* record);
+    virtual void Serialize(DataRecord* record) { }
+    virtual void Deserialize(DataRecord* record) { }
     
     /**
      * Get class type
      */
     Meta::Class* GetClass();
     
+    /**
+     * Lock/unlock mutex
+     */
+    void Lock();
+    void Unlock();
+    
 protected:
-    GigaObject() = default;
+    GigaObject();
     
     // Class type
     Meta::Class* m_mc;
+    
+    // Mutex
+    std::mutex* m_mutex;
 };
 
 #endif

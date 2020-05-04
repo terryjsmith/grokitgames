@@ -21,8 +21,10 @@ public:
     template<class T>
     T* CreateComponent() {
         T* component = new T();
-        GIGA_ASSERT(dynamic_cast<Component*>(component) != 0, "Must be derived from Component type.");
+        Component* c = dynamic_cast<Component*>(component);
+        GIGA_ASSERT(c != 0, "Must be derived from Component type.");
         
+        c->m_parent = this;
         m_components.push_back(component);
         return(component);
     }

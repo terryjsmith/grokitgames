@@ -41,7 +41,7 @@ void DirectionalLightComponent::Initialize() {
 void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
     // Split the camera frustum into pieces for Cascaded Shadow Mapping
     float distances[5] = {
-        0.0f, 0.10, 0.30, 0.60, 1.0f
+        0.01f, 0.10, 0.30, 0.60, 1.0f
     };
     
     CameraComponent* sceneCamera = scene->camera;
@@ -51,14 +51,23 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
     
     // Create the frustums
     for(int i = 0; i < m_passes; i++) {
-        lightFrustums[i] = sceneCamera->CalculateFrustum(distances[i] * sceneFar, distances[i + 1] * sceneFar);
+        float nearDistance = distances[i] * sceneFar;
+        if(i == 0) {
+            nearDistance = 0.1f;
+        }
+        lightFrustums[i] = sceneCamera->CalculateFrustum(nearDistance, distances[i + 1] * sceneFar);
     }
     
     for(int i = 0; i < m_passes; i++) {
         // Get the far point
         CameraComponent* camera = GetCamera(i);
         
-        float fnear = distances[i] * sceneFar;
+        float nearDistance = distances[i] * sceneFar;
+        if(i == 0) {
+            nearDistance = 0.1f;
+        }
+        
+        float fnear = nearDistance;
         float ffar = distances[i + 1] * sceneFar;
         
         camera->SetNear(fnear);

@@ -191,7 +191,7 @@ int main(int argc, const char * argv[]) {
     
     std::cout << "Saving splat map... ";
     std::string splatmapFilename = outputHeightmap + "_splat.bmp";
-    SOIL_save_image(splatmapFilename.c_str(), SOIL_SAVE_TYPE_BMP, textureWidth, textureWidth, 3, splatmap);
+    SOIL_save_image(splatmapFilename.c_str(), SOIL_SAVE_TYPE_BMP, textureWidth - 1, textureWidth - 1, 3, splatmap);
     std::cout << "complete" << std::endl;
     
     std::cout << "Generating normals... ";
@@ -278,7 +278,7 @@ int main(int argc, const char * argv[]) {
     
     std::cout << "Saving normal map... ";
     std::string normalsFilename = outputHeightmap + "_normals.bmp";
-    SOIL_save_image(normalsFilename.c_str(), SOIL_SAVE_TYPE_BMP, textureWidth, textureWidth, 3, normalmap);
+    SOIL_save_image(normalsFilename.c_str(), SOIL_SAVE_TYPE_BMP, textureWidth - 1, textureWidth - 1, 3, normalmap);
     std::cout << "complete" << std::endl;
     
     return(0);

@@ -24,6 +24,7 @@
 #include <Render/MaterialSystem.h>
 #include <Render/TerrainSystem.h>
 #include <Render/Skybox.h>
+#include <Scripting/ScriptingSystem.h>
 
 Resource* m_errorLog = 0;
 int moveFactor = 0;
@@ -134,6 +135,7 @@ int main(int argc, const char * argv[]) {
     TimeSystem* timeSystem = app->CreateSystem<TimeSystem>();
     InputSystem* inputSystem = app->CreateSystem<InputSystem>();
     MaterialSystem* materialSystem = app->CreateSystem<MaterialSystem>();
+    ScriptingSystem* scriptingSystem = app->CreateSystem<ScriptingSystem>();
     
     errorSystem->RegisterErrorHandler(Error::ERROR_DEBUG, HandleError);
     errorSystem->RegisterErrorHandler(Error::ERROR_INFO, HandleError);
@@ -187,7 +189,7 @@ int main(int argc, const char * argv[]) {
     
     // Set up camera
     CameraComponent* camera = new CameraComponent();
-    camera->transform->SetWorldPosition(vector3(20, 3.25, 20));
+    camera->transform->SetWorldPosition(vector3(100, 70.0f, 5));
     camera->transform->Rotate(vector3(0, 1, 0), -80);
     Scene* scene = renderSystem->GetScene();
     
@@ -278,7 +280,7 @@ int main(int argc, const char * argv[]) {
         gameTimer->Reset();
         
         camera->transform->Move(camera->transform->GetLook() * 15.0f * (float)moveFactor * delta);
-        camera->transform->Rotate(camera->transform->GetUp(), 60.0f * (float)turnFactor * delta);
+        camera->transform->Rotate(vector3(0, 1, 0), 60.0f * (float)turnFactor * delta);
         app->Update(delta);
         
         window->ProcessEvents();
