@@ -205,6 +205,8 @@ set_property(TARGET scripting APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS"
 target_include_directories(scripting PRIVATE ${ENGINE_INCLUDE_DIRS})
 target_link_libraries(scripting "core" "io" ${ENGINE_LIBS})
 
+clear_source_files()
+
 #
 ## engine physics
 ##
