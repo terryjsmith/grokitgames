@@ -43,7 +43,7 @@ public:
     /**
      * Add a function definition
      */
-    void AddFunction(MetaFunction* fn);
+    bool AddFunction(MetaFunction* fn, bool checkSignature = true);
     
     /**
      * Find a function

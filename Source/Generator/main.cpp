@@ -250,6 +250,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
                 }
                 else {
                     success = false;
+                    cout << "Unmapped argument type." << endl;
                 }
                 
                 //cout << "Arg " << i << " type '" << argtype.c_str() << "'" << endl;
@@ -257,11 +258,17 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             
             assert(func != 0);
             if(success == true) {
-                currentMetaClass->AddFunction(func);
+                if(currentMetaClass->AddFunction(func)) {
+                    cout << "Added function " << func->name << " to class " << currentMetaClass->name << endl;
+                }
+                else {
+                    cout << "Not adding duplicate function " << func->name << " to class " << currentMetaClass->name << endl;
+                }
             }
         }
         else {
             int error = 1;
+            cout << "Unmapped type error." << endl;
         }
         
         grabNextFunction = false;
@@ -317,7 +324,8 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             exportGigaClass = false;
             
             // Clear
-            currentMetaClass->Clear();
+            //cout << "Clearing meta class " << currentMetaClass->name << endl;
+            //currentMetaClass->Clear();
         //}
         
         markSingleton = false;
@@ -610,7 +618,7 @@ int main(int argc, char** argv) {
         fn->isStatic = (*fnit)->Get("isStatic")->AsBool();
         fn->isConstructor = (*fnit)->Get("isConstructor")->AsBool();
         
-        mcl->AddFunction(fn);
+        mcl->AddFunction(fn, false);
     }
     
     auto pmit = pmrecords.begin();
@@ -693,9 +701,12 @@ int main(int argc, char** argv) {
     std::map<std::string, MetaClass*>::iterator it = classes.begin();
     for (; it != classes.end(); it++) {
         MetaClass* cl = it->second;
+    
+        cout << "Checking class " << cl->name << endl;
         
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cl->name);
         if(ei == exportGigaClasses.end()) {
+            cout << "Non-exportable, skipping" << endl;
             continue;
         }
         
@@ -740,7 +751,9 @@ int main(int argc, char** argv) {
         for (; f1 != flist.end(); f1++) {
             if ((*f1)->isConstructor == false) continue;
             
+            cout << "Has constructor" << endl;
             hasConstructor = true;
+            break;
         }
         
         if (hasConstructor) {
@@ -786,12 +799,16 @@ int main(int argc, char** argv) {
         }
         
         // Functions
+        cout << "Has " << (int)flist.size() << " functions." << endl;
         std::map<std::string, bool> funcNames;
+        flist = cl->GetFunctions();
         auto fi = flist.begin();
         for (; fi != flist.end(); fi++) {
             MetaFunction* mf = (*fi);
             
+            cout << "Checking function " << mf->name << endl;
             if(funcNames.find(mf->name) != funcNames.end()) {
+                cout << "Skipping function " << mf->name << endl;
                 continue;
             }
             
@@ -809,7 +826,10 @@ int main(int argc, char** argv) {
             }
             
             // Skip constructors
-            if (mf->isConstructor == true) continue;
+            if (mf->isConstructor == true) {
+                cout << "Skipping constructor function " << mf->name << endl;
+                continue;
+            }
             
             output += "Variant* metaClass_" + cl->name + "_" + mf->name + "(GigaObject* obj, int argc, Variant** argv) {\n";
             
@@ -939,6 +959,10 @@ int main(int argc, char** argv) {
         output += "\tmetaClass" + cl->name + "->name = \"" + cl->name + "\";\n";
         output += "\tmetaClass" + cl->name + "->typeID = " + std::to_string(typeID) + ";\n";
         output += "\tmetaClass" + cl->name + "->singleton = " + (cl->singleton == true ? "true" : "false") + ";\n\n";
+    
+        /*if(cl->singleton) {
+            output += "\tmetaSystem->SetSingleton(GetSystem<" + cl->name + ">());\n\n";
+        }*/
 
         auto flist = cl->GetFunctions();
         auto fi = flist.begin();

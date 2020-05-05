@@ -8,8 +8,6 @@
 
 ScriptThread::ScriptThread() {
     m_isolate = 0;
-    m_locker = 0;
-    m_currentLocker = 0;
     m_currentScript = 0;
 }
 
@@ -19,6 +17,10 @@ void ScriptThread::Initialize() {
     create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = v8::Isolate::New(create_params);
     
+    UpdateCache();
+}
+
+void ScriptThread::UpdateCache() {
     Lock(this);
     m_isolate->SetData(0, this);
     
@@ -32,6 +34,12 @@ void ScriptThread::Initialize() {
     
     // Add classes
     for(; it != classes.end(); it++) {
+        auto ci = std::find(m_classCache.begin(), m_classCache.end(), (*it)->typeID);
+        if(ci != m_classCache.end())
+            continue;
+        
+        m_classCache.push_back((*it)->typeID);
+        
         // Create a stack-allocated handle scope.
         v8::HandleScope handle_scope(m_isolate);
         
@@ -43,9 +51,10 @@ void ScriptThread::Initialize() {
         v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(m_isolate, ScriptCallbackHandler::New);
         
         // Add functions
-        std::vector<Meta::Function*>::iterator fi = (*it)->GetFunctions().begin();
-        for (; fi != (*it)->GetFunctions().end(); fi++) {
-            if ((*fi)->isStatic == false) {
+        std::vector<Meta::Function*> functions = (*it)->GetFunctions();
+        std::vector<Meta::Function*>::iterator fi = functions.begin();
+        for (; fi != functions.end(); fi++) {
+            if ((*fi)->isStatic == false && (*it)->singleton == false) {
                 tpl->InstanceTemplate()->Set(v8::String::NewFromUtf8(m_isolate, (*fi)->name.c_str()), v8::FunctionTemplate::New(m_isolate, ScriptCallbackHandler::HandleObjectFunctionCallback));
             }
             else {
@@ -118,44 +127,11 @@ void ScriptThread::Shutdown() {
 }
 
 void ScriptThread::Lock(ScriptThread* locker) {
-    if(locker == 0) {
-        locker = this;
-    }
-    
-    if(m_locker && locker == m_currentLocker) {
-        return;
-    }
-    
-    while(v8::Locker::IsLocked(m_isolate)) {
-        TimeSystem::Sleep(1);
-    }
-    
-    GIGA_ASSERT(m_locker == 0, "Locker already exists.");
-    
-    m_locker = new v8::Locker(m_isolate);
     m_isolate->Enter();
-    m_currentLocker = locker;
-}
-
-bool ScriptThread::IsLocked() {
-    if(m_locker) {
-        return(true);
-    }
-    
-    return(false);
 }
 
 void ScriptThread::Unlock() {
     m_isolate->Exit();
-    
-    if(m_locker) {
-        if(v8::Locker::IsLocked(m_isolate)) {
-            delete m_locker;
-        }
-    }
-    
-    m_locker = 0;
-    m_currentLocker = 0;
 }
 
 std::vector<ScriptThread::ScriptObjectType*> ScriptThread::GetScriptObjectTypes() {

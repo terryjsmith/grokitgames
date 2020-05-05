@@ -13,8 +13,7 @@ ResourceSystem::~ResourceSystem() {
 }
 
 void ResourceSystem::Initialize() {
-    MetaSystem* metaSystem = GetSystem<MetaSystem>();
-    metaSystem->SetSingleton(this);
+
 }
 
 ResourceObject* ResourceSystem::LoadResource(std::string filename, std::string type) {

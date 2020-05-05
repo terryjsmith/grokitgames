@@ -25,6 +25,8 @@
 #include <Render/TerrainSystem.h>
 #include <Render/Skybox.h>
 #include <Scripting/ScriptingSystem.h>
+#include <Network/NetworkSystem.h>
+#include "register_globals.h"
 
 Resource* m_errorLog = 0;
 int moveFactor = 0;
@@ -136,6 +138,7 @@ int main(int argc, const char * argv[]) {
     InputSystem* inputSystem = app->CreateSystem<InputSystem>();
     MaterialSystem* materialSystem = app->CreateSystem<MaterialSystem>();
     ScriptingSystem* scriptingSystem = app->CreateSystem<ScriptingSystem>();
+    NetworkSystem* networkSystem = app->CreateSystem<NetworkSystem>();
     
     errorSystem->RegisterErrorHandler(Error::ERROR_DEBUG, HandleError);
     errorSystem->RegisterErrorHandler(Error::ERROR_INFO, HandleError);
@@ -161,12 +164,19 @@ int main(int argc, const char * argv[]) {
     resourceSystem->AddSearchPath("Resources/Models");
     resourceSystem->AddSearchPath("Resources/Textures");
     resourceSystem->AddSearchPath("Resources/Terrain");
+    resourceSystem->AddSearchPath("Resources/Scripts");
     
     // Register meta data
     MetaData::RegisterMetaFunctions();
     
     // Initialize the world
     World* world = World::GetInstance();
+    
+    // Set some globals
+    scriptingSystem->SetGlobal("MOVE_FORWARD", new Variant(MOVE_FORWARD));
+    scriptingSystem->SetGlobal("MOVE_BACKWARD", new Variant(MOVE_BACKWARD));
+    scriptingSystem->SetGlobal("TURN_LEFT", new Variant(TURN_LEFT));
+    scriptingSystem->SetGlobal("TURN_RIGHT", new Variant(TURN_RIGHT));
     
     // Create a shape
     Shape* shape = new Shape();
@@ -207,6 +217,7 @@ int main(int argc, const char * argv[]) {
     
     inputSystem->RegisterInputDevice(keyboard);
     
+    // Register keys
     Command::RegisterCommandType("MOVE_FORWARD", MOVE_FORWARD);
     Command::RegisterCommandType("MOVE_BACKWARD", MOVE_BACKWARD);
     Command::RegisterCommandType("TURN_LEFT", TURN_LEFT);
@@ -222,6 +233,9 @@ int main(int argc, const char * argv[]) {
     messageSystem->RegisterCallback(0, "COMMAND_START", CommandHandler);
     messageSystem->RegisterCallback(0, "COMMAND_END", CommandHandler);
     
+    // Set up scripting globals
+    RegisterGlobals();
+    
     // Game timer
     Timer* gameTimer = new Timer();
     gameTimer->Start();
@@ -230,11 +244,14 @@ int main(int argc, const char * argv[]) {
     std::string crateFilename = resourceSystem->FindResourcePath("CommonTree_1.fbx");
     Mesh* mesh = importer->LoadFromFile(crateFilename);
     
-    MeshComponent* mc = new MeshComponent();
+    Entity* crateEntity = world->CreateEntity();
+    
+    MeshComponent* mc = crateEntity->CreateComponent<MeshComponent>();
     mc->Initialize(mesh);
     
-    Entity* crateEntity = world->CreateEntity();
-    crateEntity->AddComponent(mc);
+    ScriptComponent* sc = crateEntity->CreateComponent<ScriptComponent>();
+    Script* script = dynamic_cast<Script*>(resourceSystem->LoadResource("game.js", "Script"));
+    sc->Initialize(script);
     
     std::string floorFilename = resourceSystem->FindResourcePath("floor.fbx");
     Mesh* floorMesh = importer->LoadFromFile(floorFilename);

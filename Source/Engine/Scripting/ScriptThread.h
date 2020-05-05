@@ -16,6 +16,11 @@ public:
     * Thread initialization
     */
     void Initialize();
+    
+    /**
+     * Load any missing class types
+     */
+    void UpdateCache();
 
     /**
     * Thread shutdown
@@ -31,11 +36,6 @@ public:
     * Lock thread
     */
     void Lock(ScriptThread* thread);
-
-    /**
-    * Check lock
-    */
-    bool IsLocked();
 
     /**
     * Unlock
@@ -83,13 +83,12 @@ protected:
 
     // V8 isolated execution environment (own heap, stack, GC, etc.)
     v8::Isolate* m_isolate;
-    v8::Locker* m_locker;
 
     // Currently executing script component
     ScriptComponent* m_currentScript;
-
-    // The thread which is currently locking this
-    ScriptThread* m_currentLocker;
+    
+    // Cache of class types
+    std::vector<uint32_t> m_classCache;
 };
 
 #endif

@@ -22,6 +22,9 @@ void ScriptComponent::Initialize(Script* script) {
 
     m_thread = (ScriptThread*)isolate->GetData(0);
     m_scriptSource = script;
+    
+    m_thread->UpdateCache();
+    m_thread->Lock(m_thread);
 
     m_thread->SetCurrentScript(this);
 
@@ -145,6 +148,7 @@ void ScriptComponent::Initialize(Script* script) {
     }
 
     context->Exit();
+    m_thread->Unlock();
 }
 
 void ScriptComponent::SetGlobal(std::string name, Variant* value) {

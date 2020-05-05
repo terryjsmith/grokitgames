@@ -3,6 +3,7 @@
 #define application_h
 
 #include <Core/System.h>
+#include <Core/MetaSystem.h>
 
 class Window;
 
@@ -37,6 +38,10 @@ public:
         rs->system = sys;
         rs->accumulator = 0;
         m_systems.push_back(rs);
+        
+        // Also register with meta system
+        MetaSystem* metaSystem = GetSystem<MetaSystem>();
+        metaSystem->SetSingleton(sys);
         
         return(obj);
     }

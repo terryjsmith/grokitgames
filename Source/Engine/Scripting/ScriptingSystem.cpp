@@ -4,6 +4,7 @@
 #include <Core/Application.h>
 #include <Core/MessageSystem.h>
 #include <Core/World.h>
+#include <IO/ResourceSystem.h>
 
 #ifdef WIN32
 #include <direct.h>
@@ -44,6 +45,9 @@ void ScriptingSystem::Update(float delta) {
     Variant* d = new Variant(delta);
     
     ScriptThread::Lock(this);
+    
+    // Update cache
+    ScriptThread::UpdateCache();
     
     // Add to any existing script components
     World* world = World::GetInstance();

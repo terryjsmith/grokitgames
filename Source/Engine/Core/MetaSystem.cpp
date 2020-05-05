@@ -61,5 +61,12 @@ GigaObject* MetaSystem::GetSingleton(std::string className) {
 }
 
 void MetaSystem::SetSingleton(GigaObject* obj) {
+    for(size_t i = 0; i < m_singletons.size(); i++) {
+        if(m_singletons[i]->GetGigaName() == obj->GetGigaName()) {
+            m_singletons[i] = obj;
+            return;
+        }
+    }
+    
     m_singletons.push_back(obj);
 }

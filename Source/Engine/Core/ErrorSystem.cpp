@@ -5,8 +5,7 @@
 #include <Core/Application.h>
 
 void ErrorSystem::Initialize() {
-    MetaSystem* metaSystem = GetSystem<MetaSystem>();
-    metaSystem->SetSingleton(this);
+
 }
 
 void ErrorSystem::HandleError(Error* err) {

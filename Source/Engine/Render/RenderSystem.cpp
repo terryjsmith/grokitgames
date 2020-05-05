@@ -17,8 +17,7 @@ RenderSystem::~RenderSystem() {
 }
 
 void RenderSystem::Initialize() {
-    MetaSystem* metaSystem = GetSystem<MetaSystem>();
-    metaSystem->SetSingleton(this);
+
 }
 
 void RenderSystem::Update(float delta) {
