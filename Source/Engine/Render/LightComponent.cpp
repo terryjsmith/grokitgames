@@ -8,6 +8,7 @@ LightComponent::LightComponent() {
     m_depthPass = 0;
     m_cameras = 0;
     m_depthTextures = 0;
+    applyLighting = false;
 }
 
 LightComponent::~LightComponent() {

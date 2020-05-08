@@ -174,13 +174,16 @@ void ScriptCallbackHandler::HandleObjectGetter(v8::Local<v8::String> property, c
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
     ScriptVariant* retval = 0;
     
-    /*v8::String::Utf8Value propName(property);
-    MetaSystem::GetterFunction getfunc = metaSystem->FindVariableGetFunction(jsobj->GetGigaName(), *propName);
-    GIGA_ASSERT(getfunc != 0, "Get function not defined for variable.");
+    v8::String::Utf8Value propName(property);
+    Meta::Class* cl = metaSystem->FindClass(jsobj->GetGigaName());
+    GIGA_ASSERT(cl != 0, "Class not found.");
     
-    ScriptVariant* value = (ScriptVariant*)(getfunc(jsobj));
+    Meta::Variable* var = cl->FindVariable(*propName);
+    GIGA_ASSERT(var != 0, "Variable not found.");
+    
+    ScriptVariant* value = (ScriptVariant*)var->getter(jsobj);
     v8::Local<v8::Value> val = value->GetValue();
-    info.GetReturnValue().Set(val);*/
+    info.GetReturnValue().Set(val);
     
     jsobj->Unlock();
 }
@@ -198,13 +201,16 @@ void ScriptCallbackHandler::HandleObjectSetter(v8::Local<v8::String> property, v
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
     ScriptVariant* retval = 0;
     
-    /*v8::String::Utf8Value propName(property);
-    MetaSystem::SetterFunction setfunc = metaSystem->FindVariableSetFunction(jsobj->GetGigaName(), *propName);
-    GIGA_ASSERT(setfunc != 0, "Set function not defined for variable.");
+    v8::String::Utf8Value propName(property);
+    Meta::Class* cl = metaSystem->FindClass(jsobj->GetGigaName());
+    GIGA_ASSERT(cl != 0, "Class not found.");
     
-    Variant* sv = new ScriptVariant(value);
-    setfunc(jsobj, sv);
+    Meta::Variable* var = cl->FindVariable(*propName);
+    GIGA_ASSERT(var != 0, "Variable not found.");
     
-    delete sv;*/
+    ScriptVariant* sv = new ScriptVariant(value);
+    var->setter(jsobj, sv);
+    
+    delete sv;
     jsobj->Unlock();
 }

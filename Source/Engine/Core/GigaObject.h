@@ -8,8 +8,6 @@
 namespace Meta { class Class; }
 class DataRecord;
 
-typedef Variant*(*CallableFunction)(GigaObject* obj, int argc, Variant** argv);
-
 /**
  * Base giga object class
  */

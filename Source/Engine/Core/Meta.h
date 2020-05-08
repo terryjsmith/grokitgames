@@ -4,6 +4,10 @@
 
 #include <Core/GigaObject.h>
 
+typedef Variant*(*CallableFunction)(GigaObject* obj, int argc, Variant** argv);
+typedef Variant*(*GetterFunction)(GigaObject* obj);
+typedef void(*SetterFunction)(GigaObject* obj, Variant* value);
+
 namespace Meta {
 
 struct Function {
@@ -16,6 +20,15 @@ struct Function {
     
     // Actual callable function
     CallableFunction func;
+};
+
+struct Variable {
+    // Var name
+    std::string name;
+    
+    // Getter / setter
+    GetterFunction getter;
+    SetterFunction setter;
 };
 
 class GIGA_API Class : public GigaObject {
@@ -39,6 +52,21 @@ public:
      * Get all functions
      */
     std::vector<Meta::Function*> GetFunctions() { return m_functions; }
+    
+    /**
+     * Add a variable definition
+     */
+    void AddVariable(Meta::Variable* fn);
+    
+    /**
+     * Find a variable
+     */
+    Meta::Variable* FindVariable(std::string name);
+    
+    /**
+     * Get all variables
+     */
+    std::vector<Meta::Variable*> GetVariables() { return m_variables; }
 
     /**
      * Create an object of this type
@@ -73,6 +101,9 @@ protected:
 protected:
     // List of callable function names
     std::vector<Meta::Function*> m_functions;
+    
+    // List of variables
+    std::vector<Meta::Variable*> m_variables;
     
     // Constructor for all meta GigaObject types
     typedef GigaObject* (*MetaConstructor)(void);

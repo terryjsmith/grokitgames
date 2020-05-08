@@ -3,6 +3,7 @@
 #define metaclass_h
 
 #include <Core/GigaObject.h>
+#include <Core/Meta.h>
 
 /**
  * Definitions of variables and functions
@@ -32,6 +33,19 @@ public:
     CallableFunction func;
 };
 
+struct MetaVariable {
+    // Variable / property name
+    std::string name;
+    
+    // Type info
+    uint32_t type;
+    std::string typeStr;
+    
+    // Getter / setter functions
+    GetterFunction getter;
+    SetterFunction setter;
+};
+
 /**
  * Definition of an object
  */
@@ -54,6 +68,21 @@ public:
      * Get all functions
      */
     std::vector<MetaFunction*> GetFunctions() { return m_functions; }
+    
+    /**
+     * Add a property
+     */
+    bool AddVariable(MetaVariable* prop, bool checkSignature = true);
+    
+    /**
+     * Find a property
+     */
+    MetaVariable* FindVariable(std::string name);
+    
+    /**
+     * Get all variables
+     */
+    std::vector<MetaVariable*> GetVariables() { return m_variables; }
     
     /**
      * Create an object of this type
@@ -96,6 +125,9 @@ protected:
 protected:
     // List of callable function names
     std::vector<MetaFunction*> m_functions;
+    
+    // List of variables
+    std::vector<MetaVariable*> m_variables;
     
     // Constructor for all meta GigaObject types
     typedef GigaObject* (*MetaConstructor)(void);

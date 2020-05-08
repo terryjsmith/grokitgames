@@ -27,6 +27,21 @@ void Meta::Class::AddFunction(Meta::Function* fn) {
     m_functions.push_back(fn);
 }
 
+void Meta::Class::AddVariable(Meta::Variable* fn) {
+    m_variables.push_back(fn);
+}
+
+Meta::Variable* Meta::Class::FindVariable(std::string name) {
+    auto it = m_variables.begin();
+    for(; it != m_variables.end(); it++) {
+        if((*it)->name == name) {
+            return((*it));
+        }
+    }
+    
+    return(0);
+}
+
 GigaObject* Meta::Class::CreateObject() {
     return(m_ctor());
 }

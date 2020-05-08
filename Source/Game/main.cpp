@@ -29,16 +29,7 @@
 #include "register_globals.h"
 
 Resource* m_errorLog = 0;
-int moveFactor = 0;
-int turnFactor = 0;
 DirectionalLightComponent* dirLightCo = 0;
-
-enum Commands {
-    MOVE_FORWARD = 1000,
-    MOVE_BACKWARD,
-    TURN_LEFT,
-    TURN_RIGHT
-};
 
 void HandleError(Error* err) {
     TimeSystem* timeSystem = GetSystem<TimeSystem>();
@@ -75,43 +66,11 @@ void HandleError(Error* err) {
 void CommandHandler(GigaObject* obj, Message* message) {
     Command* cmd = (Command*)message->obj;
     if(cmd->GetState() == Command::COMMAND_START) {
-        if(cmd->GetType() == MOVE_FORWARD) {
-            moveFactor = 1;
-        }
-        
-        if(cmd->GetType() == MOVE_BACKWARD) {
-            moveFactor = -1;
-        }
-        
-        if(cmd->GetType() == TURN_LEFT) {
-            turnFactor = 1;
-        }
-        
-        if(cmd->GetType() == TURN_RIGHT) {
-            turnFactor = -1;
-        }
         if(cmd->GetType() == 100) {
             dirLightCo->GetDepthTexture(0)->Save("depth.bmp");
             dirLightCo->GetDepthTexture(1)->Save("depth1.bmp");
             dirLightCo->GetDepthTexture(2)->Save("depth2.bmp");
             dirLightCo->GetDepthTexture(3)->Save("depth3.bmp");
-        }
-    }
-    else {
-        if(cmd->GetType() == MOVE_FORWARD) {
-            moveFactor = 0;
-        }
-        
-        if(cmd->GetType() == MOVE_BACKWARD) {
-            moveFactor = 0;
-        }
-        
-        if(cmd->GetType() == TURN_LEFT) {
-            turnFactor = 0;
-        }
-        
-        if(cmd->GetType() == TURN_RIGHT) {
-            turnFactor = 0;
         }
     }
 }
@@ -172,12 +131,6 @@ int main(int argc, const char * argv[]) {
     // Initialize the world
     World* world = World::GetInstance();
     
-    // Set some globals
-    scriptingSystem->SetGlobal("MOVE_FORWARD", new Variant(MOVE_FORWARD));
-    scriptingSystem->SetGlobal("MOVE_BACKWARD", new Variant(MOVE_BACKWARD));
-    scriptingSystem->SetGlobal("TURN_LEFT", new Variant(TURN_LEFT));
-    scriptingSystem->SetGlobal("TURN_RIGHT", new Variant(TURN_RIGHT));
-    
     // Create a shape
     Shape* shape = new Shape();
     
@@ -198,7 +151,9 @@ int main(int argc, const char * argv[]) {
     triangle->AddComponent(shape);
     
     // Set up camera
-    CameraComponent* camera = new CameraComponent();
+    Entity* playerEntity = world->CreateEntity();
+    CameraComponent* camera = playerEntity->CreateComponent<CameraComponent>();
+    
     camera->transform->SetWorldPosition(vector3(100, 70.0f, 5));
     camera->transform->Rotate(vector3(0, 1, 0), -80);
     Scene* scene = renderSystem->GetScene();
@@ -218,16 +173,8 @@ int main(int argc, const char * argv[]) {
     inputSystem->RegisterInputDevice(keyboard);
     
     // Register keys
-    Command::RegisterCommandType("MOVE_FORWARD", MOVE_FORWARD);
-    Command::RegisterCommandType("MOVE_BACKWARD", MOVE_BACKWARD);
-    Command::RegisterCommandType("TURN_LEFT", TURN_LEFT);
-    Command::RegisterCommandType("TURN_RIGHT", TURN_RIGHT);
     Command::RegisterCommandType("TAKE_PICTURE", 100);
-    
-    inputSystem->RegisterInputMapping(keyboard, KEY_UP, "MOVE_FORWARD");
-    inputSystem->RegisterInputMapping(keyboard, KEY_DOWN, "MOVE_BACKWARD");
-    inputSystem->RegisterInputMapping(keyboard, KEY_LEFT, "TURN_LEFT");
-    inputSystem->RegisterInputMapping(keyboard, KEY_RIGHT, "TURN_RIGHT");
+
     inputSystem->RegisterInputMapping(keyboard, KEY_P, "TAKE_PICTURE");
     
     messageSystem->RegisterCallback(0, "COMMAND_START", CommandHandler);
@@ -245,41 +192,34 @@ int main(int argc, const char * argv[]) {
     Mesh* mesh = importer->LoadFromFile(crateFilename);
     
     Entity* crateEntity = world->CreateEntity();
-    
     MeshComponent* mc = crateEntity->CreateComponent<MeshComponent>();
     mc->Initialize(mesh);
     
-    ScriptComponent* sc = crateEntity->CreateComponent<ScriptComponent>();
+    ScriptComponent* sc = playerEntity->CreateComponent<ScriptComponent>();
     Script* script = dynamic_cast<Script*>(resourceSystem->LoadResource("game.js", "Script"));
     sc->Initialize(script);
     
+    Entity* floor = world->CreateEntity();
     std::string floorFilename = resourceSystem->FindResourcePath("floor.fbx");
     Mesh* floorMesh = importer->LoadFromFile(floorFilename);
     
-    MeshComponent* fmc = new MeshComponent();
+    MeshComponent* fmc = floor->CreateComponent<MeshComponent>();
     fmc->Initialize(floorMesh);
     
-    Entity* floorEntity = world->CreateEntity();
-    floorEntity->AddComponent(fmc);
-    
-    PointLightComponent* plc = new PointLightComponent();
+    /*Entity* light = world->CreateEntity();
+    PointLightComponent* plc = light->CreateComponent<PointLightComponent>();
     plc->transform->SetWorldPosition(vector3(3, 3, 0));
     plc->SetAttenuation(10.0f);
-    plc->Initialize();
+    plc->Initialize();*/
     
-    Entity* lightEntity = world->CreateEntity();
-    //lightEntity->AddComponent(plc);
-    
-    DirectionalLightComponent* dlc = new DirectionalLightComponent();
+    Entity* sun = world->CreateEntity();
+    DirectionalLightComponent* dlc = sun->CreateComponent<DirectionalLightComponent>();
     dlc->transform->SetWorldPosition(glm::normalize(vector3(-0.4, -0.7, 0.4)));
     dlc->Initialize();
     
     dirLightCo = dlc;
     
     //scene->camera = dlc->GetCamera(2);
-    
-    Entity* sunlight = world->CreateEntity();
-    sunlight->AddComponent(dlc);
     
     renderSystem->SetAmbientLighting(vector3(0.7f, 0.7f, 0.7f));
     
@@ -296,8 +236,8 @@ int main(int argc, const char * argv[]) {
         float delta = gameTimer->Duration();
         gameTimer->Reset();
         
-        camera->transform->Move(camera->transform->GetLook() * 15.0f * (float)moveFactor * delta);
-        camera->transform->Rotate(vector3(0, 1, 0), 60.0f * (float)turnFactor * delta);
+        //camera->transform->Move(camera->transform->GetLook() * 15.0f * (float)moveFactor * delta);
+        //camera->transform->Rotate(vector3(0, 1, 0), 60.0f * (float)turnFactor * delta);
         app->Update(delta);
         
         window->ProcessEvents();

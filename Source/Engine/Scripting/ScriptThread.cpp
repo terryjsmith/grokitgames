@@ -62,11 +62,12 @@ void ScriptThread::UpdateCache() {
             }
         }
         
-        /* Add variables
-        std::map<Meta::Variable*>::iterator vi = (*it)->variables.begin();
-        for (; vi != (*it)->variables.end(); vi++) {
-            tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(m_isolate, vi->second->name.c_str()), ScriptCallbackHandler::HandleObjectGetter, ScriptCallbackHandler::HandleObjectSetter);
-        }*/
+        // Add variables
+        std::vector<Meta::Variable*> variables = (*it)->GetVariables();
+        auto vi = variables.begin();
+        for (; vi != variables.end(); vi++) {
+            tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(m_isolate, (*vi)->name.c_str()), ScriptCallbackHandler::HandleObjectGetter, ScriptCallbackHandler::HandleObjectSetter);
+        }
         
         // End template
         tpl->InstanceTemplate()->SetInternalFieldCount(1);

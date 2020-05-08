@@ -66,6 +66,31 @@ bool MetaClass::AddFunction(MetaFunction* fn, bool checkSignature) {
     return(true);
 }
 
+bool MetaClass::AddVariable(MetaVariable* prop, bool checkSignature) {
+    if(checkSignature) {
+        auto it = m_variables.begin();
+        for(; it != m_variables.end(); it++) {
+            if((*it)->name.compare(prop->name) == 0) {
+                return(false);
+            }
+        }
+    }
+    
+    m_variables.push_back(prop);
+    return(true);
+}
+
+MetaVariable* MetaClass::FindVariable(std::string name) {
+    auto it = m_variables.begin();
+    for(; it != m_variables.end(); it++) {
+        if((*it)->name.compare(name) == 0) {
+            return(*it);
+        }
+    }
+    
+    return(0);
+}
+
 GigaObject* MetaClass::CreateObject() {
     return(m_ctor());
 }

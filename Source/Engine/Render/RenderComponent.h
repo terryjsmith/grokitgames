@@ -15,6 +15,8 @@ public:
     void SetProperty(std::string property, VariantRef val);
     VariantRef GetProperty(std::string property);
     
+    GIGA_FUNCTION() Transform* GetTransform() { return transform; }
+    
 public:
     // Renderable base object
     Renderable* renderable;

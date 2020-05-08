@@ -28,11 +28,11 @@ void MessageSystem::Update(float delta) {
             }
         }
         
-        delete(m);
+        // delete(m);
     }
     
     // Erase as many messages as we had when we started - sometimes messages can spawn other messages
-    m_messages.erase(m_messages.begin(), m_messages.begin() + count);
+    // m_messages.erase(m_messages.begin(), m_messages.begin() + count);
 }
 
 void MessageSystem::Broadcast(Message* msg, bool synchronized) {

@@ -65,8 +65,8 @@ bool grabNextVar = false;
 bool grabNextClass = false;
 
 // Dummy getter/setter functions
-void DummySetter(GigaObject* obj, Variant value) { }
-Variant DummyGetter(GigaObject* obj) { return(Variant(0)); }
+void DummySetter(GigaObject* obj, Variant* value) { }
+Variant* DummyGetter(GigaObject* obj) { return(new Variant(0)); }
 
 ostream& operator<<(ostream& stream, const CXString& str)
 {
@@ -333,17 +333,17 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
         return CXChildVisit_Recurse;
     }
     
-    /*if (grabNextVar && cursor == CXCursor_FieldDecl && currentMetaClass) {
+    if (grabNextVar && cursor == CXCursor_FieldDecl && currentMetaClass) {
         cout << "Found GIGA variable named '" << name.c_str() << "'" << endl;
         
         std::string typestr = clang_getCString(clang_getTypeSpelling(type));
         int internalType = map_internal_type(type, typestr);
         
         if(internalType != 0) {
-            MetaProperty* var = new MetaProperty();
+            MetaVariable* var = new MetaVariable();
             var->name = name;
             var->type = internalType;
-            var->typeString = typestr;
+            var->typeStr = typestr;
             
             if (markGet) {
                 var->getter = DummyGetter;
@@ -355,22 +355,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
                 markSet = false;
             }
             
-            if (markSerialize) {
-                var->serialize = true;
-                markSerialize = false;
-            }
-            
-            if (markNonEditable) {
-                var->noneditable = true;
-                markNonEditable = false;
-            }
-            
-            if (markOptional) {
-                var->optional = true;
-                markOptional = false;
-            }
-            
-            //currentMetaClass->AddProperty(var);
+            currentMetaClass->AddVariable(var);
         }
         else {
             int error = 1;
@@ -380,7 +365,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
         //cout << "Type '" << typestr.c_str() << "'" << endl;
         
         return CXChildVisit_Continue;
-    }*/
+    }
     
     if (cursor == CXCursor_CXXMethod && name.compare("GVARIABLE") == 0) {
         grabNextVar = true;
@@ -591,6 +576,7 @@ int main(int argc, char** argv) {
     std::vector<DataRecord*> clrecords = dataLoader->GetRecords("classes");
     std::vector<DataRecord*> fnrecords = dataLoader->GetRecords("functions");
     std::vector<DataRecord*> pmrecords = dataLoader->GetRecords("params");
+    std::vector<DataRecord*> varrecords = dataLoader->GetRecords("variables");
     std::vector<DataRecord*> filerecords = dataLoader->GetRecords("files");
     
     auto clit = clrecords.begin();
@@ -636,6 +622,22 @@ int main(int argc, char** argv) {
         
         mfc->params.push_back(p);
     }
+    
+    auto vit = varrecords.begin();
+    for(; vit != varrecords.end(); vit++) {
+        std::string className = (*vit)->Get("className")->AsString();
+        MetaClass* mcl = classes[className];
+        
+        MetaVariable* fn = new MetaVariable();
+        fn->name = (*vit)->Get("varName")->AsString();
+        fn->type = (*vit)->Get("type")->AsInt();
+        fn->typeStr = (*vit)->Get("typeStr")->AsString();
+        fn->getter = (*vit)->Get("getter")->AsBool() ? DummyGetter : 0;
+        fn->setter = (*vit)->Get("setter")->AsBool() ? DummySetter : 0;
+        
+        mcl->AddVariable(fn, false);
+    }
+    
     
     auto fiit = filerecords.begin();
     for(; fiit != filerecords.end(); fiit++) {
@@ -720,11 +722,13 @@ int main(int argc, char** argv) {
     
         startOffset = output.length();
         
-        /* Variables
-        auto vlist = cl->GetProperties();
+        // Variables
+        auto vlist = cl->GetVariables();
+        std::cout << "Has " << (int)vlist.size() << " variables." << endl;
         auto vi = vlist.begin();
         for (; vi != vlist.end(); vi++) {
-            MetaProperty* mp = (*vi);
+            std::cout << "Check variable " << (*vi)->name << endl;
+            MetaVariable* mp = (*vi);
             if (mp->getter) {
                 output += "Variant* meta_" + cl->name + "_" + mp->name + "_get(GigaObject* obj) {\n";
                 output += "\t" + cl->name + "* cobj = dynamic_cast<" + cl->name + "*>(obj);\n";
@@ -742,7 +746,7 @@ int main(int argc, char** argv) {
                 output += "\tcobj->" + mp->name + " = value->As" + functionMappings[mp->type] + "();\n";
                 output += "}\n\n";
             }
-        }*/
+        }
         
         // Constructors
         bool hasConstructor = false;
@@ -984,6 +988,19 @@ int main(int argc, char** argv) {
             output += "\tmetaClass" + cl->name + "->AddFunction(metaFunc_" + cl->name + "_" + funcName + ");\n\n";
             funcNames[mf->name] = true;
         }
+    
+        auto vlist = cl->GetVariables();
+        auto vi = vlist.begin();
+        for (; vi != vlist.end(); vi++) {
+            MetaVariable* mv = (*vi);
+    
+            output += "\tMeta::Variable* metaVar_" + cl->name + "_" + mv->name + " = new Meta::Variable();\n";
+            output += "\tmetaVar_" + cl->name + "_" + mv->name + "->name = \"" + mv->name + "\";\n";
+            output += "\tmetaVar_" + cl->name + "_" + mv->name + "->getter = meta_" + cl->name + "_" + mv->name + "_get;\n";
+            output += "\tmetaVar_" + cl->name + "_" + mv->name + "->setter = meta_" + cl->name + "_" + mv->name + "_set;\n";
+
+            output += "\tmetaClass" + cl->name + "->AddVariable(metaVar_" + cl->name + "_" + mv->name + ");\n\n";
+        }
         
         output += "\tmetaSystem->AddClass(metaClass" + cl->name + ");\n\n";
         
@@ -1055,12 +1072,14 @@ int main(int argc, char** argv) {
     dataLoader->Delete("functions");
     dataLoader->Delete("params");
     dataLoader->Delete("files");
+    dataLoader->Delete("variables");
     
     // Save data
     auto cli = classes.begin();
     std::vector<DataRecord*> cldrs;
     std::vector<DataRecord*> fndrs;
     std::vector<DataRecord*> pmdrs;
+    std::vector<DataRecord*> vardrs;
     for(; cli != classes.end(); cli++) {
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cli->second->name);
         if(ei == exportGigaClasses.end()) {
@@ -1112,11 +1131,26 @@ int main(int argc, char** argv) {
             offset++;
             offsets[(*fni)->name] = offset;
         }
+    
+        auto vars = cli->second->GetVariables();
+        auto vi = vars.begin();
+        for(; vi != vars.end(); vi++) {
+            DataRecord* fdr = new DataRecord();
+            fdr->Set("className", new Variant(cli->first));
+            fdr->Set("varName", new Variant((*vi)->name));
+            fdr->Set("type", new Variant((*vi)->type));
+            fdr->Set("typeStr", new Variant((*vi)->typeStr));
+            fdr->Set("getter", new Variant((*vi)->getter != 0));
+            fdr->Set("setter", new Variant((*vi)->setter != 0));
+            
+            vardrs.push_back(fdr);
+        }
     }
     
     dataLoader->SaveRecords("classes", cldrs);
     dataLoader->SaveRecords("functions", fndrs);
     dataLoader->SaveRecords("params", pmdrs);
+    dataLoader->SaveRecords("variables", vardrs);
     
     auto fili = fileHashes.begin();
     std::vector<DataRecord*> fdrs;

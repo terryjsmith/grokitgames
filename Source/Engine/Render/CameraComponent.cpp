@@ -14,6 +14,7 @@ CameraComponent::CameraComponent() {
     transform->SetUp(vector3(0, 1, 0));
     m_customProj = false;
     m_customView = false;
+    applyLighting = false;
 }
 
 matrix4 CameraComponent::GetViewMatrix() {
