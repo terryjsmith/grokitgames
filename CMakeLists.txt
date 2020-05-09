@@ -28,6 +28,7 @@ find_library(LIBRARY_SSL ssl "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_CRYPTO crypto "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_ZLIB zlib "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_ASSIMP assimp "${DEPENDENCY_PATH}/assimp/lib" NO_DEFAULT_PATH)
+find_library(LIBRARY_FMOD fmod "${DEPENDENCY_PATH}/fmod/lib" NO_DEFAULT_PATH)
 
 # set the output directory without the /Debug/ and /Release/ equivalents
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
@@ -78,6 +79,7 @@ list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/libcurl/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/assimp/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/openssl/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/rapidjson/include")
+list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/fmod/include")
 
 set (ENGINE_LIBS "")
 
@@ -97,6 +99,7 @@ list (APPEND ENGINE_LIBS ${LIBRARY_LIBCURL})
 list (APPEND ENGINE_LIBS ${LIBRARY_SSL})
 list (APPEND ENGINE_LIBS ${LIBRARY_CRYPTO})
 list (APPEND ENGINE_LIBS ${LIBRARY_ASSIMP})
+list (APPEND ENGINE_LIBS ${LIBRARY_FMOD})
 
 IF(WIN32)
 	list (APPEND ENGINE_LIBS "legacy_stdio_definitions.lib")
