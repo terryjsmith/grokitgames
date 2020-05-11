@@ -53,7 +53,7 @@ void ScriptingSystem::Update(float delta) {
     World* world = World::GetInstance();
     std::vector<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
     std::vector<ScriptComponent*>::iterator i = components.begin();
-    for (i; i != components.end(); i++) {
+    for (; i != components.end(); i++) {
         Entity* parent = (*i)->GetParent();
         Variant* p = new Variant(parent);
         if(parent) {

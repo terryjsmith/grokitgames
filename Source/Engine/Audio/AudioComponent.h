@@ -17,6 +17,19 @@ public:
      * Initialize from audio clip
      */
     void Initialize(Sound* clip);
+    
+    /**
+     * Play
+     */
+    GIGA_FUNCTION() void Play();
+    
+public:
+    // Channel
+    FMOD::Channel* channel;
+    
+protected:
+    // Audio file
+    Sound* m_sound;
 };
 
 #endif 

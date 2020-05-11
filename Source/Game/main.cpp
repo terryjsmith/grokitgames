@@ -26,6 +26,7 @@
 #include <Render/Skybox.h>
 #include <Scripting/ScriptingSystem.h>
 #include <Network/NetworkSystem.h>
+#include <Audio/AudioSystem.h>
 #include "register_globals.h"
 
 Resource* m_errorLog = 0;
@@ -98,6 +99,7 @@ int main(int argc, const char * argv[]) {
     MaterialSystem* materialSystem = app->CreateSystem<MaterialSystem>();
     ScriptingSystem* scriptingSystem = app->CreateSystem<ScriptingSystem>();
     NetworkSystem* networkSystem = app->CreateSystem<NetworkSystem>();
+    AudioSystem* audioSystem = app->CreateSystem<AudioSystem>();
     
     errorSystem->RegisterErrorHandler(Error::ERROR_DEBUG, HandleError);
     errorSystem->RegisterErrorHandler(Error::ERROR_INFO, HandleError);
@@ -124,6 +126,7 @@ int main(int argc, const char * argv[]) {
     resourceSystem->AddSearchPath("Resources/Textures");
     resourceSystem->AddSearchPath("Resources/Terrain");
     resourceSystem->AddSearchPath("Resources/Scripts");
+    resourceSystem->AddSearchPath("Resources/Audio");
     
     // Register meta data
     MetaData::RegisterMetaFunctions();
@@ -236,8 +239,6 @@ int main(int argc, const char * argv[]) {
         float delta = gameTimer->Duration();
         gameTimer->Reset();
         
-        //camera->transform->Move(camera->transform->GetLook() * 15.0f * (float)moveFactor * delta);
-        //camera->transform->Rotate(vector3(0, 1, 0), 60.0f * (float)turnFactor * delta);
         app->Update(delta);
         
         window->ProcessEvents();
