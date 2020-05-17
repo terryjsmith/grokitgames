@@ -219,7 +219,7 @@ group_source_files("Source" "Source/Engine/Physics")
 add_library(physics SHARED ${ENGINE_SOURCE_FILES})
 set_property(TARGET physics APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
 target_include_directories(physics PRIVATE ${ENGINE_INCLUDE_DIRS})
-target_link_libraries(physics "core")
+target_link_libraries(physics "core" ${ENGINE_LIBS})
 
 clear_source_files()
 

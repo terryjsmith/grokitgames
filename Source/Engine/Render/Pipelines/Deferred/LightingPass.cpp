@@ -73,10 +73,6 @@ void LightingPass::Render(Scene* scene) {
         LightComponent* lc = dynamic_cast<LightComponent*>((*it));
         if(lc != 0) {
             lc->GenerateDepthTexture(scene);
-            /*lc->GetDepthTexture(0)->Save("depth.bmp");
-            lc->GetDepthTexture(1)->Save("depth1.bmp");
-            lc->GetDepthTexture(2)->Save("depth2.bmp");
-            lc->GetDepthTexture(3)->Save("depth3.bmp");*/
         }
     }
     
@@ -182,7 +178,6 @@ void LightingPass::Render(Scene* scene) {
             int passes = 4;
             for(int i = 0; i < passes; i++) {
                 lc->GetDepthTexture(i)->Bind(7 + i);
-                //lc->GetDepthTexture(i)->Save("depth"+std::to_string(i)+".bmp");
                 lc->GetDepthTexture(i)->SetTextureFilter(FILTER_LINEAR);
                 lc->GetDepthTexture(i)->SetWrapping(false);
                 m_program->Set("lightShadowMap["+std::to_string(i)+"]", 7 + i);
@@ -190,6 +185,17 @@ void LightingPass::Render(Scene* scene) {
             
                 CameraComponent* cc = lc->GetCamera(i);
                 matrix4 viewproj = cc->GetProjectionMatrix() * cc->GetViewMatrix();
+                
+                /*float shadowMapSize = 1024.0f; // Set this to the size of your shadow map
+                vector3 shadowOrigin = vector3(viewproj * vector4(0));
+                shadowOrigin *= (shadowMapSize / 2.0f);
+                vector2 roundedOrigin = vector2(std::round(shadowOrigin.x), std::round(shadowOrigin.y));
+                vector2 rounding = roundedOrigin - vector2(shadowOrigin);
+                rounding /= (shadowMapSize / 2.0f);
+                matrix4 roundMatrix = glm::translate(matrix4(1.0f), vector3(rounding.x, rounding.y, 0.0f));
+                
+                viewproj *= roundMatrix;*/
+                
                 m_program->Set("lightSpaceMatrix["+std::to_string(i)+"]", viewproj);
 
                 //m_program->Set("farPlane", cc->GetFar());

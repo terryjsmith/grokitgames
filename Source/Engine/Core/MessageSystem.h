@@ -48,7 +48,7 @@ public:
     
 protected:
     // Current message queue (flushed after handling)
-    std::vector<Message*> m_messages;
+    std::map<Message*, bool> m_messages;
     
     // Message callbacks
     struct MessageHandler {

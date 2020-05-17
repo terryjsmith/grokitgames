@@ -47,7 +47,7 @@ void DepthPass::Render(Scene* scene) {
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
-    renderSystem->EnableFaceCulling(CULLMODE_FRONT);
+    //renderSystem->EnableFaceCulling(CULLMODE_BACK);
     
     // Clear our buffer
     renderSystem->SetClearColor(vector4(1, 1, 1, 1));
@@ -61,6 +61,16 @@ void DepthPass::Render(Scene* scene) {
     matrix4 proj = m_camera->GetProjectionMatrix();
     
     matrix4 viewproj = proj * view;
+    
+    /*float shadowMapSize = 1024.0f; // Set this to the size of your shadow map
+    vector3 shadowOrigin = vector3(viewproj * vector4(0));
+    shadowOrigin *= (shadowMapSize / 2.0f);
+    vector2 roundedOrigin = vector2(std::round(shadowOrigin.x), std::round(shadowOrigin.y));
+    vector2 rounding = roundedOrigin - vector2(shadowOrigin);
+    rounding /= (shadowMapSize / 2.0f);
+    matrix4 roundMatrix = glm::translate(matrix4(1.0f), vector3(rounding.x, rounding.y, 0.0f));
+    
+    viewproj *= roundMatrix;*/
     
     m_program->Set("projectionMatrix", proj);
     m_program->Set("farPlane", m_camera->GetFar());

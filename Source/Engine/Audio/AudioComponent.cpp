@@ -3,6 +3,22 @@
 #include <Audio/AudioSystem.h>
 #include <Core/ErrorSystem.h>
 #include <Core/Application.h>
+#include <Core/Entity.h>
+
+AudioComponent::AudioComponent() {
+    m_transform = new Transform();
+    
+    if(m_parent) {
+        m_transform->SetParent(m_parent->GetTransform());
+    }
+}
+
+AudioComponent::~AudioComponent() {
+    if(m_transform) {
+        delete m_transform;
+        m_transform = 0;
+    }
+}
 
 void AudioComponent::Initialize(Sound* clip) {
     m_sound = clip;

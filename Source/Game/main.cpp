@@ -157,7 +157,7 @@ int main(int argc, const char * argv[]) {
     Entity* playerEntity = world->CreateEntity();
     CameraComponent* camera = playerEntity->CreateComponent<CameraComponent>();
     
-    camera->transform->SetWorldPosition(vector3(100, 70.0f, 5));
+    camera->transform->SetWorldPosition(vector3(5, 10.0f, 5));
     camera->transform->Rotate(vector3(0, 1, 0), -80);
     Scene* scene = renderSystem->GetScene();
     

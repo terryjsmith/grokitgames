@@ -21,7 +21,7 @@ public:
     friend class Entity;
     
 protected:
-    Component() = default;
+    Component();
     
     // Parent entity
     Entity* m_parent;

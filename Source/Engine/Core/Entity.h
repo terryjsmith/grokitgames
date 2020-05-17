@@ -3,6 +3,7 @@
 #define entity_h
 
 #include <Core/Component.h>
+#include <Core/Transform.h>
 
 /**
  * Entities - root object made up of components
@@ -10,8 +11,8 @@
 GIGA_CLASS()
 class GIGA_API Entity : public GigaObject {
 public:
-    Entity() = default;
-    ~Entity() = default;
+    Entity();
+    ~Entity();
     
     GIGA_CLASS_NAME("Entity");
     
@@ -75,6 +76,11 @@ public:
      */
     void RemoveComponent(Component* c);
     
+    /**
+     * Get transform
+     */
+    GIGA_FUNCTION() Transform* GetTransform() { return m_transform; }
+    
 public:
     // Name
     std::string name;
@@ -85,6 +91,9 @@ public:
 protected:
     // List of components
     std::vector<Component*> m_components;
+    
+    // Transform of entity
+    Transform* m_transform;
 };
 
 #endif

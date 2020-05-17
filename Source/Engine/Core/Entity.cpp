@@ -3,6 +3,17 @@
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
 
+Entity::Entity() {
+    m_transform = new Transform();
+}
+
+Entity::~Entity() {
+    if(m_transform) {
+        delete m_transform;
+        m_transform = 0;
+    }
+}
+
 Component* Entity::CreateComponent(std::string className) {
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
     Meta::Class* mc = metaSystem->FindClass(className);

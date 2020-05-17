@@ -17,8 +17,34 @@ MessageSystem::~MessageSystem() {
 void MessageSystem::Update(float delta) {
     int count = (int)m_messages.size();
     
-    for (int i = 0; i < count; i++) {
-        Message* m = m_messages[i];
+    /* Erase old messages
+    if(count > 0) {
+        auto it = m_messages.end();
+        it--;
+        
+        for(; it != m_messages.begin(); it--) {
+            if(it->second == true) {
+                delete(it->first);
+                m_messages.erase(it);
+            }
+        }
+        
+        it = m_messages.begin();
+        if(it->second == true) {
+            delete(it->first);
+            m_messages.erase(it);
+        }
+    }*/
+    
+    
+    // Dispatch
+    auto it = m_messages.begin();
+    for(; it != m_messages.end(); it++) {
+        if(it->second == true) {
+            continue;
+        }
+        
+        Message* m = it->first;
         
         auto callback = m_handlers.begin();
         for (; callback != m_handlers.end(); callback++) {
@@ -28,11 +54,8 @@ void MessageSystem::Update(float delta) {
             }
         }
         
-        // delete(m);
+        m_messages[m] = true;
     }
-    
-    // Erase as many messages as we had when we started - sometimes messages can spawn other messages
-    // m_messages.erase(m_messages.begin(), m_messages.begin() + count);
 }
 
 void MessageSystem::Broadcast(Message* msg, bool synchronized) {
@@ -57,7 +80,7 @@ void MessageSystem::Broadcast(Message* msg, bool synchronized) {
         return;
     }
     
-    m_messages.push_back(msg);
+    m_messages[msg] = false;
 }
 
 void MessageSystem::RegisterCallback(GigaObject* obj, std::string type, MessageHandlingCallback cb) {

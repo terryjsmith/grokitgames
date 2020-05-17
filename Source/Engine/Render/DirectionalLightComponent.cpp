@@ -107,53 +107,29 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         frustumCorners[6] = cameraPosition + (cameraLook * ffar) - (cameraUp * yf) - (cameraRight * xf); // Bottom left
         frustumCorners[7] = cameraPosition + (cameraLook * ffar) - (cameraUp * yf) + (cameraRight * xf); // Bottom right
         
-        vector3 position2 = vector3(0.0f);
+        // Determine sphere radius
+        vector3 center = vector3(0.0f);
+        float maxDistance = 0.0f;
         for(int k = 0; k < 8; k++) {
-            position2 += frustumCorners[k];
+            center += frustumCorners[k];
+            
+            for(int j = 0; j < 8; j++) {
+                maxDistance = std::max(maxDistance, glm::distance(frustumCorners[k], frustumCorners[j]));
+            }
         }
         
-        position2 /= 8.0f;
-        
-        vector3 position3 = position2 + vector3(-position * (ffar / 2.0f));
-        
-        vector4 frustumCornersL[8];
+        float radius = maxDistance / 2.0f;
+        center /= 8.0f;
 
-        float minX = FLT_MAX;
-        float maxX = -FLT_MAX;
-        float minY = FLT_MAX;
-        float maxY = -FLT_MAX;
-        float minZ = FLT_MAX;
-        float maxZ = -FLT_MAX;
-
-        matrix4 viewMatrix = glm::lookAt(position3, position2, vector3(0, 1, 0));
-        matrix4 viewMatrix2 = glm::lookAt(position2 + vector3(position.x, position.y, position.z), position2, vector3(0, -1, 0));
-        
-        for (uint32_t j = 0 ; j < 8 ; j++) {
-            vector4 vW = vector4(frustumCorners[j], 1.0);
-            frustumCornersL[j] = viewMatrix2 * vW;
-
-            minX = std::min(minX, frustumCornersL[j].x);
-            maxX = std::max(maxX, frustumCornersL[j].x);
-            minY = std::min(minY, frustumCornersL[j].y);
-            maxY = std::max(maxY, frustumCornersL[j].y);
-            minZ = std::min(minZ, frustumCornersL[j].z);
-            maxZ = std::max(maxZ, frustumCornersL[j].z);
-        }
-        
-        //vector3 halfExtents = vector3((maxX - minX) / 2.0f, (maxY - minY) / 2.0f, (std::abs(maxZ - minZ)) / 2.0f);
-        vector3 halfExtents = vector3((maxX - minX), (maxY - minY), std::abs(-maxZ - -minZ));
-        //halfExtents /= 2.0f;
+        float additionalOffset = 20.0f;
+        vector3 lightCameraPosition = center - (vector3(position) * (maxDistance + additionalOffset));
+        matrix4 viewMatrix = glm::lookAt(lightCameraPosition, center, vector3(0, 1, 0));
         
         // Create our light's orthographic projection matrix
-        matrix4 lightProj = glm::ortho(-halfExtents.x, halfExtents.x, -halfExtents.y, halfExtents.y, halfExtents.z, -halfExtents.z);
-
-        //matrix4 ortho = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-        matrix4 ortho = glm::ortho(minX, maxX, minY, maxY, maxZ, minZ);
+        matrix4 lightProj = glm::ortho(-radius, radius, -radius, radius, 1.0f, (maxDistance * 2.0f) + additionalOffset);
         
         camera->SetProjectionMatrix(lightProj);
-        camera->SetViewMatrix(viewMatrix2);
-        
-        matrix4 viewproj = ortho * viewMatrix;
+        camera->SetViewMatrix(viewMatrix);
         
         // Set "camera" and draw
         m_depthPass->SetTexture((Texture2D*)m_depthTextures[i]);

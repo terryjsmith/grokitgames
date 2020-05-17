@@ -1,8 +1,14 @@
 
 #include <Render/RenderComponent.h>
+#include <Core/Entity.h>
 
 RenderComponent::RenderComponent() {
     transform = new Transform();
+    
+    if(m_parent != 0) {
+        transform->SetParent(m_parent->GetTransform());
+    }
+    
     renderable = 0;
 }
 
