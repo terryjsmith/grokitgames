@@ -247,10 +247,40 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
                     }
                     
                     if(foundSlot == false) {
-                        // If we get here, more bones than slots
-                        assert(0);
+                        // If we get here, more bones than slots, need to take highest one by replacing the one with the
+                        // least weight
+                        int index = 0;
+                        float minFactor = 1.0f;
+                        for(int k = 0; k < 4; k++) {
+                            if(vertex_data[offsetToBoneWeights + k] < minFactor) {
+                                index = k;
+                                minFactor = vertex_data[offsetToBoneWeights + k];
+                            }
+                        }
+                        
+                        if(minFactor < weight) {
+                            vertex_data[offsetToBoneIDs + index] = boneOffset;
+                            vertex_data[offsetToBoneWeights + index] = weight;
+                        }
                     }
                 }
+            }
+            
+            // Make sure the vertex weights add up to 1.0
+            int numVertices = vertex_data.size() / vf->GetVertexSize();
+            for(int i  = 0; i < numVertices; i++) {
+                int offsetToBoneWeights = (i * vertexSize) + vertexSize - 8 + 4;
+                vector4 v = vector4(vertex_data[offsetToBoneWeights + 0], vertex_data[offsetToBoneWeights + 1],
+                                    vertex_data[offsetToBoneWeights + 2], vertex_data[offsetToBoneWeights + 3]);
+                float size = v.x + v.y + v.z + v.w;
+                float factor = 1.0f / size;
+                v *= factor;
+                size = v.x + v.y + v.z + v.w;
+                
+                vertex_data[offsetToBoneWeights + 0] = v.x;
+                vertex_data[offsetToBoneWeights + 1] = v.y;
+                vertex_data[offsetToBoneWeights + 2] = v.z;
+                vertex_data[offsetToBoneWeights + 3] = v.w;
             }
         }
         

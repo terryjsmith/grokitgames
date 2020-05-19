@@ -191,7 +191,7 @@ int main(int argc, const char * argv[]) {
     gameTimer->Start();
     
     AssimpImporter* importer = new AssimpImporter();
-    std::string crateFilename = resourceSystem->FindResourcePath("CommonTree_1.fbx");
+    std::string crateFilename = resourceSystem->FindResourcePath("Cow.fbx");
     Mesh* mesh = importer->LoadFromFile(crateFilename);
     
     Entity* crateEntity = world->CreateEntity();
