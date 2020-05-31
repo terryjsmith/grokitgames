@@ -130,9 +130,13 @@ void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 paren
     }
     
     // Enable the attributes we need
-    vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
-    vertexType->EnableAttribute(5, VERTEXTYPE_ATTRIB_BONES);
-    vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
+    // Enable the attributes we need
+    bool enabled = vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
+    m_program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
+    enabled = vertexType->EnableAttribute(5, VERTEXTYPE_ATTRIB_BONES);
+    m_program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
+    enabled = vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
+    m_program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
     
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();

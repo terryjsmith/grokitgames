@@ -7,7 +7,7 @@
 
 class GIGA_API Shape : public MeshComponent {
 public:
-    Shape() = default;
+    Shape();
     ~Shape() = default;
     
     GIGA_CLASS_NAME("Shape");

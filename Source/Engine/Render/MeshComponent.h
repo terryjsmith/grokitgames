@@ -5,11 +5,12 @@
 #include <Render/RenderComponent.h>
 #include <Render/Mesh.h>
 #include <Core/Serializable.h>
+#include <Render/AnimationInstance.h>
 
 GIGA_CLASS()
 class GIGA_API MeshComponent : public RenderComponent, public Serializable {
 public:
-    MeshComponent() = default;
+    MeshComponent();
     ~MeshComponent() = default;
     
     GIGA_CLASS_NAME("MeshComponent");
@@ -26,7 +27,11 @@ public:
     virtual void Deserialize(DataRecord* record);
     
 public:
-    Mesh* m_mesh;
+    // Loaded mesh
+    Mesh* mesh;
+    
+    // Currently playing animation
+    AnimationInstance* animation;
 };
 
 #endif

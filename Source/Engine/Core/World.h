@@ -13,7 +13,7 @@ public:
     World();
     ~World() = default;
     
-    GIGA_CLASS_NAME("Entity");
+    GIGA_CLASS_NAME("World");
     
     /**
      * Initialize the whole world

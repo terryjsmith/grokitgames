@@ -2,7 +2,7 @@
 #ifndef animation_h
 #define animation_h
 
-#include <Render/AnimationFrame.h>
+#include <Render/AnimationTransforms.h>
 
 /**
  * A single animation
@@ -12,26 +12,29 @@ public:
     Animation() = default;
     virtual ~Animation() = default;
     
+    enum {
+        ANIMATIONTYPE_SKELETAL = 1,
+        ANIMATIONTYPE_MESH
+    };
+    
 public:
-    /**
-     * The name of the animation
-     */
+    // Type of animation
+    int type;
+    
+    // The name of the animation
     std::string name;
     
-    /**
-     * Duration of the animation in frames
-     */
+    // Duration of the animation in frames
     uint32_t duration;
     
-    /**
-     * The number of frames per second
-     */
+    // The number of frames per second
     uint32_t framesPerSecond;
     
-    /**
-     * The frames of this animation
-     */
-    std::vector<AnimationFrame*> frames;
+    // The transforms of this animation (indexed by node name)
+    std::map<std::string, AnimationTransforms*> transforms;
+    
+    // Global inverse matrix
+    matrix4 globalInverseMatrix;
 };
 
 #endif

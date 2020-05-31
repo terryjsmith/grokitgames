@@ -3,6 +3,10 @@
 #include <Render/RenderSystem.h>
 #include <Core/Application.h>
 
+Shape::Shape() {
+    applyLighting = false;
+}
+
 void Shape::SetVertices(VertexFormat* fmt, float* data, int count) {
     renderable = new Renderable();
     

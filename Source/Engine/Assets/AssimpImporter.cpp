@@ -5,6 +5,8 @@
 #include <Render/RenderSystem.h>
 #include <Core/Application.h>
 #include <Render/MaterialSystem.h>
+#include <Render/Node.h>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
@@ -15,6 +17,37 @@ struct AssimpMaterial {
     Material* material;
 };
 
+static inline glm::mat4 mat4_convert(const aiMatrix4x4 &m) { return glm::transpose(glm::make_mat4(&m.a1)); }
+
+Node* CreateNodeHeirarchy(const aiNode* pNode) {
+    Node* n = new Node();
+    n->name = pNode->mName.C_Str();
+    n->transform = mat4_convert(pNode->mTransformation);
+    
+    for (uint i = 0 ; i < pNode->mNumChildren ; i++) {
+        Node* child = CreateNodeHeirarchy(pNode->mChildren[i]);
+        child->parent = n;
+        n->children.push_back(child);
+    }
+    
+    return(n);
+}
+
+Node* GetNode(std::string name, Node* parent) {
+    if(parent->name == name) {
+        return(parent);
+    }
+    
+    for(int i = 0; i < parent->children.size(); i++) {
+        Node* n = GetNode(name, parent->children[i]);
+        if(n) {
+            return(n);
+        }
+    }
+    
+    return(0);
+}
+
 Mesh* AssimpImporter::LoadFromFile(std::string filename) {
     Mesh* mesh = new Mesh();
     
@@ -23,7 +56,7 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
     MaterialSystem* materialSystem = GetSystem<MaterialSystem>();
     
     // Use Assimp to import our scene
-    const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate);
+    const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
     
     std::vector<AssimpMaterial*> materialList;
     
@@ -92,15 +125,45 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
     
     mesh->renderable = new Renderable();
     
-    // Load mesh data (and bones)
-    for(int i = 0; i < scene->mNumMeshes; i++) {
-        const struct aiMesh* paiMesh = scene->mMeshes[i];
+    // Read node hierarchy
+    mesh->nodes = CreateNodeHeirarchy(scene->mRootNode);
+    
+    // Create meshes and bones
+    std::map<std::string, aiMatrix4x4> boneOffsets;
+    for(int m = 0; m < scene->mNumMeshes; m++) {
+        const struct aiMesh* paiMesh = scene->mMeshes[m];
 
         Renderable* ret = new Renderable();
         mesh->renderable->children.push_back(ret);
         
         // Save the name
         mesh->name = paiMesh->mName.data;
+        
+        // Load bones
+        if(paiMesh->HasBones()) {
+            for(int i = 0; i < paiMesh->mNumBones; i++) {
+                char* boneName = paiMesh->mBones[i]->mName.data;
+                auto bi = mesh->bones.find(boneName);
+                
+                if(bi == mesh->bones.end()) {
+                    // Create a new bone
+                    Bone* newBone = new Bone();
+                    
+                    // Save the name of the bone
+                    newBone->name = paiMesh->mBones[i]->mName.data;
+                    newBone->offsetMatrix = mat4_convert(paiMesh->mBones[i]->mOffsetMatrix);
+                    mesh->bones[boneName] = newBone;
+                    
+                    boneOffsets[boneName] = paiMesh->mBones[i]->mOffsetMatrix;
+                }
+            }
+        }
+    }
+    
+    // Load mesh data
+    for(int m = 0; m < scene->mNumMeshes; m++) {
+        const struct aiMesh* paiMesh = scene->mMeshes[m];
+        Renderable* ret = mesh->renderable->children[m];
         
         /* Initialize material data
         ret->material->diffuse = vector4(1.0, 1.0, 1.0, 1.0);
@@ -138,8 +201,11 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
         }
         
         if(paiMesh->HasBones()) {
-            vf->AddVertexAttrib(VERTEXTYPE_ATTRIB_BONES, 8, offset);
-            offset += 8;
+            vf->AddVertexAttrib(VERTEXTYPE_ATTRIB_BONES, 4, offset);
+            offset += 4;
+            
+            vf->AddVertexAttrib(VERTEXTYPE_ATTRIB_BONEWEIGHTS, 4, offset);
+            offset += 4;
         }
         
         int vertexSize = vf->GetVertexSize();
@@ -156,7 +222,7 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
             const aiVector3D* pNormal = paiMesh->HasNormals() ? &(paiMesh->mNormals[i]) : NULL;
             const aiVector3D* pTexCoord = paiMesh->HasTextureCoords(0) ? &(paiMesh->mTextureCoords[0][i]) : NULL;
 
-            vector4 position = vector4(pPos->x, pPos->z, pPos->y, 1.0);
+            vector4 position = vector4(pPos->x, pPos->y, pPos->z, 1.0);
             
             vertex_data[offset + 0] = position.x;
             vertex_data[offset + 1] = position.y;
@@ -196,39 +262,15 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
         ret->indexBuffer = renderSystem->CreateIndexBuffer();
         ret->indexBuffer->Create((int)index_data.size(), &index_data[0]);
         
-        // Create our bone mappings
-        if(paiMesh->HasBones()) {
-            for(int i = 0; i < paiMesh->mNumBones; i++) {
-                char* boneName = paiMesh->mBones[i]->mName.data;
-                auto bi = mesh->bones.find(boneName);
-                
-                if(bi == mesh->bones.end()) {
-                    // Create a new bone
-                    Bone* newBone = new Bone();
-                    
-                    // Save the name of the bone
-                    newBone->name = paiMesh->mBones[i]->mName.data;
-                    mesh->bones[boneName] = newBone;
-                }
-            }
-        }
-        
         if(paiMesh->HasBones()) {
             for(int i = 0; i < paiMesh->mNumBones; i++) {
                 // Get the bone ID
                 char* boneName = paiMesh->mBones[i]->mName.data;
-                int boneOffset = 0;
-                auto bi = mesh->bones.begin();
-                for(; bi != mesh->bones.end(); bi++) {
-                    if(strcmp(bi->first.c_str(), boneName) == 0) {
-                        break;
-                    }
-                    boneOffset++;
-                }
+                auto bi = mesh->bones.find(boneName);
+                int boneOffset = std::distance(mesh->bones.begin(), bi);
                 
                 // Save the vertex weights
                 for(int j = 0; j < paiMesh->mBones[i]->mNumWeights; j++) {
-                    aiBone* bone = paiMesh->mBones[i];
                     unsigned int vertexID = paiMesh->mBones[i]->mWeights[j].mVertexId;
                     float weight = paiMesh->mBones[i]->mWeights[j].mWeight;
                     
@@ -266,179 +308,90 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
                 }
             }
             
-            // Make sure the vertex weights add up to 1.0
+            /* Make sure the vertex weights add up to 1.0
             int numVertices = vertex_data.size() / vf->GetVertexSize();
             for(int i  = 0; i < numVertices; i++) {
                 int offsetToBoneWeights = (i * vertexSize) + vertexSize - 8 + 4;
                 vector4 v = vector4(vertex_data[offsetToBoneWeights + 0], vertex_data[offsetToBoneWeights + 1],
                                     vertex_data[offsetToBoneWeights + 2], vertex_data[offsetToBoneWeights + 3]);
                 float size = v.x + v.y + v.z + v.w;
-                float factor = 1.0f / size;
-                v *= factor;
-                size = v.x + v.y + v.z + v.w;
-                
-                vertex_data[offsetToBoneWeights + 0] = v.x;
-                vertex_data[offsetToBoneWeights + 1] = v.y;
-                vertex_data[offsetToBoneWeights + 2] = v.z;
-                vertex_data[offsetToBoneWeights + 3] = v.w;
-            }
+                if(size < 1.0f) {
+                    float factor = 1.0f / size;
+                    v *= factor;
+                    size = v.x + v.y + v.z + v.w;
+                    
+                    vertex_data[offsetToBoneWeights + 0] = v.x;
+                    vertex_data[offsetToBoneWeights + 1] = v.y;
+                    vertex_data[offsetToBoneWeights + 2] = v.z;
+                    vertex_data[offsetToBoneWeights + 3] = v.w;
+                }
+            }*/
         }
         
         // Load vertex buffer
         ret->vertexBuffer->Create(vf, vertex_data.size() / vf->GetVertexSize(), &vertex_data[0], false);
     }
-
-    // Load bones
-    std::map<Bone*, aiMatrix4x4> boneOffsets;
-    for(int i = 0; i < scene->mNumMeshes; i++) {
-        aiMesh* paiMesh = scene->mMeshes[i];
-        
-        if(paiMesh->HasBones()) {
-            for(int j = 0; j < paiMesh->mNumBones; j++) {
-                // Check to see if we need a new bone
-                auto it = mesh->bones.find(paiMesh->mBones[j]->mName.data);
-                
-                // Save the bone's offset matrix
-                boneOffsets[it->second] = paiMesh->mBones[j]->mOffsetMatrix;
-            }
-        }
-    }
+    
+    // Save the global inverse matrix for later use
+    mesh->globalInverseMatrix = glm::inverse(mat4_convert(scene->mRootNode->mTransformation));
     
     // Load animations
     if(scene->HasAnimations()) {
-        // Save the global inverse matrix for later use
-        aiMatrix4x4 globalInverseTransform = scene->mRootNode->mTransformation.Inverse();
-        
         for(int i = 0; i < scene->mNumAnimations; i++) {
             // Save the name
             std::string animationName = scene->mAnimations[i]->mName.data;
             
             // Create new animation
             Animation* animation = new Animation();
+            animation->type = Animation::ANIMATIONTYPE_SKELETAL;
             animation->duration = scene->mAnimations[i]->mDuration;
             animation->framesPerSecond = scene->mAnimations[i]->mTicksPerSecond;
             
+            mesh->animations[animationName] = animation;
+            
             // Loop over Assimp's "channels" and figure out the discrete frame timestamps
             std::vector<double> frameTimes;
-            for(int j = 0; j < scene->mAnimations[i]->mNumChannels; j++) {
-                for(int k = 0; k < scene->mAnimations[i]->mChannels[j]->mNumPositionKeys; k++) {
-                    double t = scene->mAnimations[i]->mChannels[j]->mPositionKeys->mTime;
-                    std::vector<double>::iterator it = std::find(frameTimes.begin(), frameTimes.end(), t);
-                    if(it == frameTimes.end()) {
-                        frameTimes.push_back(t);
-                    }
-                }
+            for(int j = 0; j < scene->mAnimations[i]->mDuration; j++) {
+                frameTimes.push_back(j);
             }
             
-            // For each frame, go over all of Assimp's channels (bones) and get the transform data out
-            int counter = 0;
-            for(; counter < frameTimes.size(); counter++) {
-                // Save the frame time
-                AnimationFrame* frame = new AnimationFrame;
-                frame->time = frameTimes[counter];
+            // For each channel (bone) in the animation, get the keyframes
+            for(int c = 0; c < scene->mAnimations[i]->mNumChannels; c++) {
+                aiNodeAnim* nodeAnim = scene->mAnimations[i]->mChannels[c];
+                std::string nodeName = nodeAnim->mNodeName.C_Str();
                 
-                double frameTime = frameTimes[counter];
+                AnimationTransforms* at = new AnimationTransforms();
+                at->nodeName = nodeName;
                 
-                // For each channel in the animation, get the location at the time
-                for(int c = 0; c < scene->mAnimations[i]->mNumChannels; c++) {
-                    aiNodeAnim* nodeAnim = scene->mAnimations[i]->mChannels[c];
+                for(int s = 0; s < nodeAnim->mNumScalingKeys; s++) {
+                    AnimationTransforms::Scaling* sc = new AnimationTransforms::Scaling();
+                    sc->time = nodeAnim->mScalingKeys[s].mTime;
+                    sc->scaling = vector3(nodeAnim->mScalingKeys[s].mValue.x,nodeAnim->mScalingKeys[s].mValue.y, nodeAnim->mScalingKeys[s].mValue.z);
                     
-                    // Look for a bone
-                    std::map<std::string, Bone*>::iterator it = mesh->bones.find(std::string(nodeAnim->mNodeName.data));
-                    if(it == mesh->bones.end()) {
-                        // Non-skeletal animation, use node transform
-                    }
-                    
-                    // Find the scaling vector
-                    aiVector3D scaling;
-                    if(nodeAnim->mNumScalingKeys > 1) {
-                        unsigned int index = 0;
-                        for(int s = 0; s < nodeAnim->mNumScalingKeys - 1; s++) {
-                            if(frame->time <= nodeAnim->mScalingKeys[s + 1].mTime) {
-                                index = s;
-                                break;
-                            }
-                        }
-                        
-                        // Calculate the difference between this time and the next time
-                        float delta = nodeAnim->mScalingKeys[index + 1].mTime - nodeAnim->mScalingKeys[index].mTime;
-                        float factor = (frame->time - nodeAnim->mScalingKeys[index].mTime) / delta;
-                        assert(factor >= 0.0f && factor <= 1.0f);
-                        
-                        const aiVector3D& start = nodeAnim->mScalingKeys[index].mValue;
-                        const aiVector3D& end = nodeAnim->mScalingKeys[index + 1].mValue;
-                        aiVector3D difference = end - start;
-                        scaling = start + difference * factor;
-                    }
-                    else {
-                        scaling = nodeAnim->mScalingKeys[0].mValue;
-                    }
-                    
-                    // Do the same for transform
-                    aiVector3D translate;
-                    if(nodeAnim->mNumPositionKeys > 1) {
-                        unsigned int index = 0;
-                        for(int s = 0; s < nodeAnim->mNumPositionKeys - 1; s++) {
-                            if(frame->time <= nodeAnim->mPositionKeys[s + 1].mTime) {
-                                index = s;
-                                break;
-                            }
-                        }
-                        
-                        // Calculate the difference between this time and the next time
-                        float delta = nodeAnim->mPositionKeys[index + 1].mTime - nodeAnim->mPositionKeys[index].mTime;
-                        float factor = (frame->time - nodeAnim->mPositionKeys[index].mTime) / delta;
-                        assert(factor >= 0.0f && factor <= 1.0f);
-                        
-                        const aiVector3D& start = nodeAnim->mPositionKeys[index].mValue;
-                        const aiVector3D& end = nodeAnim->mPositionKeys[index + 1].mValue;
-                        aiVector3D difference = end - start;
-                        translate = start + difference * factor;
-                    }
-                    else {
-                        translate = nodeAnim->mPositionKeys[0].mValue;
-                    }
-
-                    // And finally rotation
-                    aiQuaternion rotation;
-                    if(nodeAnim->mNumRotationKeys > 1) {
-                        unsigned int index = 0;
-                        for(int s = 0; s < nodeAnim->mNumRotationKeys - 1; s++) {
-                            if(frame->time <= nodeAnim->mRotationKeys[s + 1].mTime) {
-                                index = s;
-                                break;
-                            }
-                        }
-                        
-                        // Calculate the difference between this time and the next time
-                        float delta = nodeAnim->mRotationKeys[index + 1].mTime - nodeAnim->mRotationKeys[index].mTime;
-                        float factor = (frame->time - nodeAnim->mRotationKeys[index].mTime) / delta;
-                        assert(factor >= 0.0f && factor <= 1.0f);
-                        
-                        const aiQuaternion& start = nodeAnim->mRotationKeys[index].mValue;
-                        const aiQuaternion& end = nodeAnim->mRotationKeys[index + 1].mValue;
-                        aiQuaternion::Interpolate(rotation, start, end, factor);
-                    }
-                    else {
-                        rotation = nodeAnim->mRotationKeys[0].mValue;
-                    }
-                    
-                    AnimationTransform* transform = new AnimationTransform();
-                    transform->scaling = vector3(scaling.x, scaling.y, scaling.z);
-                    transform->translation = vector3(translate.x, translate.y, translate.z);
-                    transform->rotation = quaternion(rotation.w, rotation.x, rotation.y, rotation.z);
-                    
-                    std::map<std::string, Bone*>::iterator bi = mesh->bones.find(nodeAnim->mNodeName.data);
-                    size_t offset = std::distance(mesh->bones.begin(), bi);
-                    
-                    transform->objectID = (uint32_t)offset;
-                    
-                    frame->transforms.push_back(transform);
+                    at->scaling.push_back(sc);
                 }
+                
+                for(int s = 0; s < nodeAnim->mNumPositionKeys; s++) {
+                    AnimationTransforms::Translation* tc = new AnimationTransforms::Translation();
+                    tc->time = nodeAnim->mPositionKeys[s].mTime;
+                    tc->translation = vector3(nodeAnim->mPositionKeys[s].mValue.x, nodeAnim->mPositionKeys[s].mValue.y, nodeAnim->mPositionKeys[s].mValue.z);
+                    
+                    at->translations.push_back(tc);
+                }
+                
+                for(int s = 0; s < nodeAnim->mNumRotationKeys; s++) {
+                    AnimationTransforms::Rotation* rc = new AnimationTransforms::Rotation();
+                    rc->time = nodeAnim->mRotationKeys[s].mTime;
+                    rc->rotation = quaternion(nodeAnim->mRotationKeys[s].mValue.w, nodeAnim->mRotationKeys[s].mValue.x, nodeAnim->mRotationKeys[s].mValue.y, nodeAnim->mRotationKeys[s].mValue.z);
+                    
+                    at->rotations.push_back(rc);
+                }
+                
+                animation->transforms[nodeName] = at;
             }
         }
     }
-    
+
     aiReleaseImport(scene);
     
     return(mesh);

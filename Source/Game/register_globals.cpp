@@ -20,4 +20,5 @@ void RegisterGlobals() {
     scriptingSystem->SetGlobal("KEY_DOWN", new Variant(KEY_DOWN));
     scriptingSystem->SetGlobal("KEY_LEFT", new Variant(KEY_LEFT));
     scriptingSystem->SetGlobal("KEY_RIGHT", new Variant(KEY_RIGHT));
+    scriptingSystem->SetGlobal("KEY_SPACE", new Variant(KEY_SPACE));
 }

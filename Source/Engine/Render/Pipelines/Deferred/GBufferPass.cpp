@@ -84,6 +84,15 @@ void GBufferPass::Render(Scene* scene) {
         
         if(mc->applyLighting == false) continue;
         
+        // Load bones
+        if(mc->animation) {
+            auto bi = mc->animation->bones.begin();
+            for(; bi != mc->animation->bones.end(); bi++) {
+                int index = std::distance(mc->animation->bones.begin(), bi);
+                m_program->Set("boneMatrix[" + std::to_string(index) + "]", bi->second);
+            }
+        }
+        
         RecursiveRender(mc, view, matrix4(1.0));
     }
     

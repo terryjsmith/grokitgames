@@ -27,6 +27,7 @@
 #include <Scripting/ScriptingSystem.h>
 #include <Network/NetworkSystem.h>
 #include <Audio/AudioSystem.h>
+#include <Render/AnimationSystem.h>
 #include "register_globals.h"
 
 Resource* m_errorLog = 0;
@@ -100,6 +101,7 @@ int main(int argc, const char * argv[]) {
     ScriptingSystem* scriptingSystem = app->CreateSystem<ScriptingSystem>();
     NetworkSystem* networkSystem = app->CreateSystem<NetworkSystem>();
     AudioSystem* audioSystem = app->CreateSystem<AudioSystem>();
+    AnimationSystem* animationSystem = app->CreateSystem<AnimationSystem>();
     
     errorSystem->RegisterErrorHandler(Error::ERROR_DEBUG, HandleError);
     errorSystem->RegisterErrorHandler(Error::ERROR_INFO, HandleError);
@@ -157,8 +159,8 @@ int main(int argc, const char * argv[]) {
     Entity* playerEntity = world->CreateEntity();
     CameraComponent* camera = playerEntity->CreateComponent<CameraComponent>();
     
-    camera->transform->SetWorldPosition(vector3(5, 10.0f, 5));
-    camera->transform->Rotate(vector3(0, 1, 0), -80);
+    camera->transform->SetWorldPosition(vector3(0, 2.0f, 10.0f));
+    //camera->transform->Rotate(vector3(0, 1, 0), -80);
     Scene* scene = renderSystem->GetScene();
     
     scene->camera = camera;
@@ -191,11 +193,15 @@ int main(int argc, const char * argv[]) {
     gameTimer->Start();
     
     AssimpImporter* importer = new AssimpImporter();
-    std::string crateFilename = resourceSystem->FindResourcePath("Cow.fbx");
+    std::string crateFilename = resourceSystem->FindResourcePath("Samba.fbx");
     Mesh* mesh = importer->LoadFromFile(crateFilename);
     
     Entity* crateEntity = world->CreateEntity();
+    crateEntity->name = "Crate";
     MeshComponent* mc = crateEntity->CreateComponent<MeshComponent>();
+    //mc->transform->Rotate(vector3(1, 0, 0), -90);
+    //mc->transform->Rotate(vector3(0, 1, 0), 180);
+    mc->transform->Scale(vector3(0.003f));
     mc->Initialize(mesh);
     
     ScriptComponent* sc = playerEntity->CreateComponent<ScriptComponent>();
@@ -208,6 +214,7 @@ int main(int argc, const char * argv[]) {
     
     MeshComponent* fmc = floor->CreateComponent<MeshComponent>();
     fmc->Initialize(floorMesh);
+    fmc->transform->Rotate(vector3(1, 0, 0), -90);
     
     /*Entity* light = world->CreateEntity();
     PointLightComponent* plc = light->CreateComponent<PointLightComponent>();
@@ -226,9 +233,9 @@ int main(int argc, const char * argv[]) {
     
     renderSystem->SetAmbientLighting(vector3(0.7f, 0.7f, 0.7f));
     
-    Entity* terrain = world->CreateEntity();
+    /*Entity* terrain = world->CreateEntity();
     TerrainComponent* tc = terrain->CreateComponent<TerrainComponent>();
-    tc->Load("terrain1.json", vector3(0));
+    tc->Load("terrain1.json", vector3(0));*/
     
     Entity* skybox = world->CreateEntity();
     Skybox* sb = skybox->CreateComponent<Skybox>();

@@ -41,6 +41,12 @@ Variant& ScriptVariant::operator =(v8::Local<v8::Value> rhs) {
         strcpy(m_data.str, *name);
         return *this;
     }
+    
+    if (rhs->IsBoolean()) {
+        m_type = VAR_BOOL;
+        m_data.f1 = rhs->BooleanValue();
+        return *this;
+    }
 
     if (rhs->IsObject() && (rhs->IsFunction() == false)) {
         v8::Local<v8::Object> val = rhs->ToObject();
@@ -97,6 +103,9 @@ v8::Local<v8::Value> ScriptVariant::GetValue() {
         GigaObject* obj = AsObject();
         //printf("Returning object of type %s.\n", obj->GetGigaName().c_str());
         ret = thread->GetJSObject(obj);
+    }
+    if (IsBool()) {
+        ret = v8::Boolean::New(isolate, AsBool());
     }
     if (IsVector3()) {
         Vector3* vec = new Vector3(AsVector3());

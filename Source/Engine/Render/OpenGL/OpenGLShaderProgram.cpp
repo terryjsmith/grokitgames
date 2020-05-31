@@ -287,5 +287,5 @@ void OpenGLShaderProgram::Set(std::string name, matrix4 value) {
         return;
     }
     
-    GL_CHECK(glUniformMatrix4fv(location, 1, GL_FALSE, &(value)[0][0]));
+    GL_CHECK(glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]));
 }

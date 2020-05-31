@@ -17,6 +17,7 @@ void World::Initialize() {
 World* World::GetInstance() {
     if(m_instance == 0) {
         m_instance = new World();
+        m_instance->Initialize();
     }
     
     return(m_instance);

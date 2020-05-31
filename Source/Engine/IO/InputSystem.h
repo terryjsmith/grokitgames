@@ -7,6 +7,7 @@
 
 class Command;
 
+
 GIGA_CLASS(Singleton)
 class GIGA_API InputSystem : public System {
 public:
