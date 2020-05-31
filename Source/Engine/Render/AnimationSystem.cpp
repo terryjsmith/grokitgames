@@ -80,7 +80,7 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
         // Find translation
         vector3 translate;
         if(ni->second->translations.size() > 1) {
-            int index = 0;
+            int index = -1;
         
             for(size_t ti = 0; ti < ni->second->translations.size() - 1; ti++) {
                 if(frame < ni->second->translations[ti + 1]->time) {
@@ -89,15 +89,22 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
                 }
             }
         
-            // Compute delta
-            float delta = ni->second->translations[index + 1]->time - ni->second->translations[index]->time;
-            float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->translations[index]->time) / delta;
-            assert(factor >= 0.0f && factor <= 1.0f);
+            if(index >= 0) {
+                // Compute delta
+                float delta = ni->second->translations[index + 1]->time - ni->second->translations[index]->time;
+                float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->translations[index]->time) / delta;
+                assert(factor >= 0.0f && factor <= 1.0f);
 
-            vector3 startT = ni->second->translations[index]->translation;
-            vector3 endT = ni->second->translations[index + 1]->translation;
-            vector3 differenceT = endT - startT;
-            translate = startT + differenceT * factor;
+                vector3 startT = ni->second->translations[index]->translation;
+                vector3 endT = ni->second->translations[index + 1]->translation;
+                vector3 differenceT = endT - startT;
+                translate = startT + differenceT * factor;
+            }
+            else {
+                // last frame
+                index = ni->second->translations.size() - 1;
+                translate = ni->second->translations[index]->translation;
+            }
         }
         else {
             translate = ni->second->translations[0]->translation;
@@ -106,7 +113,7 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
         // Scaling
         vector3 scaling;
         if(ni->second->scaling.size() > 1) {
-            int index = 0;
+            int index = -1;
             for(size_t ti = 0; ti < ni->second->scaling.size() - 1; ti++) {
                 if(frame < ni->second->scaling[ti + 1]->time) {
                     index = ti;
@@ -114,16 +121,22 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
                 }
             }
         
-        
-            // Compute delta
-            float delta = ni->second->scaling[index + 1]->time - ni->second->scaling[index]->time;
-            float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->scaling[index]->time) / delta;
-            assert(factor >= 0.0f && factor <= 1.0f);
+            if(index >= 0) {
+                // Compute delta
+                float delta = ni->second->scaling[index + 1]->time - ni->second->scaling[index]->time;
+                float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->scaling[index]->time) / delta;
+                assert(factor >= 0.0f && factor <= 1.0f);
 
-            vector3 startS = ni->second->scaling[index]->scaling;
-            vector3 endS = ni->second->scaling[index + 1]->scaling;
-            vector3 differenceS = endS - startS;
-            scaling = startS + differenceS * factor;
+                vector3 startS = ni->second->scaling[index]->scaling;
+                vector3 endS = ni->second->scaling[index + 1]->scaling;
+                vector3 differenceS = endS - startS;
+                scaling = startS + differenceS * factor;
+            }
+            else {
+                // last frame
+                index = ni->second->scaling.size() - 1;
+                scaling = ni->second->scaling[index]->scaling;
+            }
         }
         else {
             scaling = ni->second->scaling[0]->scaling;
@@ -132,7 +145,7 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
         // Rotation
         quaternion rotation;
         if(ni->second->rotations.size() > 1) {
-            int index = 0;
+            int index = -1;
         
             for(size_t ti = 0; ti < ni->second->rotations.size() - 1; ti++) {
                 if(frame < ni->second->rotations[ti + 1]->time) {
@@ -141,16 +154,22 @@ void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* 
                 }
             }
 
-        
-            // Compute delta
-            float delta = ni->second->rotations[index + 1]->time - ni->second->rotations[index]->time;
-            float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->rotations[index]->time) / delta;
-            assert(factor >= 0.0f && factor <= 1.0f);
-            
-            quaternion startR = ni->second->rotations[index]->rotation;
-            quaternion endR = ni->second->rotations[index + 1]->rotation;
-            rotation = glm::slerp(startR, endR, factor);
-            rotation = glm::normalize(rotation);
+            if(index >= 0) {
+                // Compute delta
+                float delta = ni->second->rotations[index + 1]->time - ni->second->rotations[index]->time;
+                float factor = (instance->currentTime * instance->animation->framesPerSecond - ni->second->rotations[index]->time) / delta;
+                assert(factor >= 0.0f && factor <= 1.0f);
+                
+                quaternion startR = ni->second->rotations[index]->rotation;
+                quaternion endR = ni->second->rotations[index + 1]->rotation;
+                rotation = glm::slerp(startR, endR, factor);
+                rotation = glm::normalize(rotation);
+            }
+            else {
+                // last frame
+                index = ni->second->scaling.size() - 1;
+                rotation = ni->second->rotations[index]->rotation;
+            }
         }
         else {
             rotation = ni->second->rotations[0]->rotation;

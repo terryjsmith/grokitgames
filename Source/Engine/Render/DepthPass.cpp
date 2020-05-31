@@ -84,6 +84,18 @@ void DepthPass::Render(Scene* scene) {
         
         if(rc->applyLighting == false) continue;
         
+        // Load bones
+        MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
+        if(mc) {
+            if(mc->animation) {
+                auto bi = mc->animation->bones.begin();
+                for(; bi != mc->animation->bones.end(); bi++) {
+                    int index = std::distance(mc->animation->bones.begin(), bi);
+                    m_program->Set("boneMatrix[" + std::to_string(index) + "]", bi->second);
+                }
+            }
+        }
+         
         RecursiveRender(rc, view, matrix4(1.0));
     }
     
@@ -129,7 +141,6 @@ void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 paren
         m->indexBuffer->Bind();
     }
     
-    // Enable the attributes we need
     // Enable the attributes we need
     bool enabled = vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
     m_program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
