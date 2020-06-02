@@ -8,7 +8,7 @@
 #include <Render/AnimationInstance.h>
 
 GIGA_CLASS()
-class GIGA_API MeshComponent : public RenderComponent, public Serializable {
+class GIGA_API MeshComponent : public RenderComponent {
 public:
     MeshComponent();
     ~MeshComponent() = default;

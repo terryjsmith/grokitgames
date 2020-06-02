@@ -44,7 +44,7 @@ Variant& ScriptVariant::operator =(v8::Local<v8::Value> rhs) {
     
     if (rhs->IsBoolean()) {
         m_type = VAR_BOOL;
-        m_data.f1 = rhs->BooleanValue();
+        m_data.b = rhs->BooleanValue();
         return *this;
     }
 

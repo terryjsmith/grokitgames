@@ -41,9 +41,9 @@ void AnimationSystem::Update(float delta) {
                 instance->currentTime += delta;
                 //instance->currentTime = 0;
                 float totalTime = (float)instance->animation->duration / (float)instance->animation->framesPerSecond;
-                if(instance->currentTime > totalTime) {
+                if(instance->currentTime >= totalTime) {
                     if(instance->looping) {
-                        instance->currentTime = instance->currentTime - totalTime;
+                        instance->currentTime = fmod(instance->currentTime, totalTime);
                     }
                     else {
                         instance->animation = 0;
@@ -201,8 +201,21 @@ void AnimationSystem::StartAnimation(MeshComponent* mc, std::string animation, b
     auto ai = mc->mesh->animations.find(animation);
     GIGA_ASSERT(ai != mc->mesh->animations.end(), "Animation not found.");
     
+    if(mc->animation == 0) {
+        mc->animation = new AnimationInstance();
+    }
+    
     AnimationInstance* instance = mc->animation;
     instance->looping = loop;
     instance->animation = ai->second;
     instance->currentTime = 0;
+}
+
+void AnimationSystem::StopAnimation(MeshComponent* mc, std::string animation) {
+    mc->animation->animation = 0;
+    
+    auto bi = mc->animation->bones.begin();
+    for(; bi != mc->animation->bones.end(); bi++) {
+        bi->second = matrix4(1.0f);
+    }
 }

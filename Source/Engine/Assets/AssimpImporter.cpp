@@ -48,7 +48,7 @@ Node* GetNode(std::string name, Node* parent) {
     return(0);
 }
 
-Mesh* AssimpImporter::LoadFromFile(std::string filename) {
+Mesh* AssimpImporter::LoadMesh(std::string filename) {
     Mesh* mesh = new Mesh();
     
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
@@ -395,4 +395,66 @@ Mesh* AssimpImporter::LoadFromFile(std::string filename) {
     aiReleaseImport(scene);
     
     return(mesh);
+}
+
+void AssimpImporter::LoadAnimation(std::string filename, std::string animationName, Mesh* mesh) {
+    // Use Assimp to import our scene
+    const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
+    
+    // Load animations
+    if(scene->HasAnimations()) {
+        for(int i = 0; i < scene->mNumAnimations; i++) {
+            // Save the name
+            // Create new animation
+            Animation* animation = new Animation();
+            animation->type = Animation::ANIMATIONTYPE_SKELETAL;
+            animation->duration = scene->mAnimations[i]->mDuration;
+            animation->framesPerSecond = scene->mAnimations[i]->mTicksPerSecond;
+            
+            mesh->animations[animationName] = animation;
+            
+            // Loop over Assimp's "channels" and figure out the discrete frame timestamps
+            std::vector<double> frameTimes;
+            for(int j = 0; j < scene->mAnimations[i]->mDuration; j++) {
+                frameTimes.push_back(j);
+            }
+            
+            // For each channel (bone) in the animation, get the keyframes
+            for(int c = 0; c < scene->mAnimations[i]->mNumChannels; c++) {
+                aiNodeAnim* nodeAnim = scene->mAnimations[i]->mChannels[c];
+                std::string nodeName = nodeAnim->mNodeName.C_Str();
+                
+                AnimationTransforms* at = new AnimationTransforms();
+                at->nodeName = nodeName;
+                
+                for(int s = 0; s < nodeAnim->mNumScalingKeys; s++) {
+                    AnimationTransforms::Scaling* sc = new AnimationTransforms::Scaling();
+                    sc->time = nodeAnim->mScalingKeys[s].mTime;
+                    sc->scaling = vector3(nodeAnim->mScalingKeys[s].mValue.x,nodeAnim->mScalingKeys[s].mValue.y, nodeAnim->mScalingKeys[s].mValue.z);
+                    
+                    at->scaling.push_back(sc);
+                }
+                
+                for(int s = 0; s < nodeAnim->mNumPositionKeys; s++) {
+                    AnimationTransforms::Translation* tc = new AnimationTransforms::Translation();
+                    tc->time = nodeAnim->mPositionKeys[s].mTime;
+                    tc->translation = vector3(nodeAnim->mPositionKeys[s].mValue.x, nodeAnim->mPositionKeys[s].mValue.y, nodeAnim->mPositionKeys[s].mValue.z);
+                    
+                    at->translations.push_back(tc);
+                }
+                
+                for(int s = 0; s < nodeAnim->mNumRotationKeys; s++) {
+                    AnimationTransforms::Rotation* rc = new AnimationTransforms::Rotation();
+                    rc->time = nodeAnim->mRotationKeys[s].mTime;
+                    rc->rotation = quaternion(nodeAnim->mRotationKeys[s].mValue.w, nodeAnim->mRotationKeys[s].mValue.x, nodeAnim->mRotationKeys[s].mValue.y, nodeAnim->mRotationKeys[s].mValue.z);
+                    
+                    at->rotations.push_back(rc);
+                }
+                
+                animation->transforms[nodeName] = at;
+            }
+        }
+    }
+    
+    aiReleaseImport(scene);
 }

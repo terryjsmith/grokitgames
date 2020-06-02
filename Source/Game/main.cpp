@@ -31,15 +31,15 @@
 #include "register_globals.h"
 
 Resource* m_errorLog = 0;
-DirectionalLightComponent* dirLightCo = 0;
 
 void HandleError(Error* err) {
     TimeSystem* timeSystem = GetSystem<TimeSystem>();
-    tm timestamp;
-    timeSystem->GetTime(&timestamp);
+    struct tm* timestamp;
+    timeSystem->GetTime(timestamp);
     
     char timestr[200];
-    strftime(timestr, 200, "%m/%d/%Y %I:%M:%S %p", &timestamp);
+    memset(timestr, 0, 200);
+    strftime(timestr, 200, "%m/%d/%Y %I:%M:%S %p", timestamp);
     
     std::string errstr;
     switch(err->level) {
@@ -63,18 +63,6 @@ void HandleError(Error* err) {
     m_errorLog->WriteLine(output);
     
     // Do other stuff here later, message boxes and stuff
-}
-
-void CommandHandler(GigaObject* obj, Message* message) {
-    Command* cmd = (Command*)message->obj;
-    if(cmd->GetState() == Command::COMMAND_START) {
-        if(cmd->GetType() == 100) {
-            dirLightCo->GetDepthTexture(0)->Save("depth.bmp");
-            dirLightCo->GetDepthTexture(1)->Save("depth1.bmp");
-            dirLightCo->GetDepthTexture(2)->Save("depth2.bmp");
-            dirLightCo->GetDepthTexture(3)->Save("depth3.bmp");
-        }
-    }
 }
 
 int main(int argc, const char * argv[]) {
@@ -177,14 +165,6 @@ int main(int argc, const char * argv[]) {
     
     inputSystem->RegisterInputDevice(keyboard);
     
-    // Register keys
-    Command::RegisterCommandType("TAKE_PICTURE", 100);
-
-    inputSystem->RegisterInputMapping(keyboard, KEY_P, "TAKE_PICTURE");
-    
-    messageSystem->RegisterCallback(0, "COMMAND_START", CommandHandler);
-    messageSystem->RegisterCallback(0, "COMMAND_END", CommandHandler);
-    
     // Set up scripting globals
     RegisterGlobals();
     
@@ -193,11 +173,14 @@ int main(int argc, const char * argv[]) {
     gameTimer->Start();
     
     AssimpImporter* importer = new AssimpImporter();
-    std::string crateFilename = resourceSystem->FindResourcePath("Samba.fbx");
-    Mesh* mesh = importer->LoadFromFile(crateFilename);
+    std::string crateFilename = resourceSystem->FindResourcePath("jasper.fbx");
+    Mesh* mesh = importer->LoadMesh(crateFilename);
+    importer->LoadAnimation(resourceSystem->FindResourcePath("Walking.fbx"), "Walk", mesh);
+    importer->LoadAnimation(resourceSystem->FindResourcePath("BreathingIdle.fbx"), "Idle", mesh);
+    importer->LoadAnimation(resourceSystem->FindResourcePath("Running.fbx"), "Run", mesh);
     
     Entity* crateEntity = world->CreateEntity();
-    crateEntity->name = "Crate";
+    crateEntity->name = "Jasper";
     MeshComponent* mc = crateEntity->CreateComponent<MeshComponent>();
     //mc->transform->Rotate(vector3(1, 0, 0), -90);
     //mc->transform->Rotate(vector3(0, 1, 0), 180);
@@ -210,28 +193,27 @@ int main(int argc, const char * argv[]) {
     
     Entity* floor = world->CreateEntity();
     std::string floorFilename = resourceSystem->FindResourcePath("floor.fbx");
-    Mesh* floorMesh = importer->LoadFromFile(floorFilename);
+    Mesh* floorMesh = importer->LoadMesh(floorFilename);
     
     MeshComponent* fmc = floor->CreateComponent<MeshComponent>();
     fmc->Initialize(floorMesh);
     fmc->transform->Rotate(vector3(1, 0, 0), -90);
     
-    /*Entity* light = world->CreateEntity();
+    Entity* light = world->CreateEntity();
+    light->name = "Light";
     PointLightComponent* plc = light->CreateComponent<PointLightComponent>();
-    plc->transform->SetWorldPosition(vector3(3, 3, 0));
-    plc->SetAttenuation(10.0f);
-    plc->Initialize();*/
+    plc->transform->SetWorldPosition(vector3(3, 3, 3));
+    plc->SetAttenuation(15.0f);
+    plc->Initialize();
     
-    Entity* sun = world->CreateEntity();
+    /*Entity* sun = world->CreateEntity();
     DirectionalLightComponent* dlc = sun->CreateComponent<DirectionalLightComponent>();
     dlc->transform->SetWorldPosition(glm::normalize(vector3(-0.4, -0.7, 0.4)));
-    dlc->Initialize();
-    
-    dirLightCo = dlc;
+    dlc->Initialize();*/
     
     //scene->camera = dlc->GetCamera(2);
     
-    renderSystem->SetAmbientLighting(vector3(0.7f, 0.7f, 0.7f));
+    renderSystem->SetAmbientLighting(vector3(0.3f, 0.3f, 0.3f));
     
     /*Entity* terrain = world->CreateEntity();
     TerrainComponent* tc = terrain->CreateComponent<TerrainComponent>();

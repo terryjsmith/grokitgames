@@ -28,6 +28,11 @@ public:
      */
     GIGA_FUNCTION() void StartAnimation(MeshComponent* mc, std::string animation, bool loop, float weight = 1.0f);
     
+    /**
+     * Stop an animation
+     */
+    GIGA_FUNCTION() void StopAnimation(MeshComponent* mc, std::string animation);
+    
 protected:
     /**
      * Update bone hierarchy
