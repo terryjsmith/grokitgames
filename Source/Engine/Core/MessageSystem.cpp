@@ -15,6 +15,7 @@ MessageSystem::~MessageSystem() {
 }
 
 void MessageSystem::Update(float delta) {
+    
     int count = (int)m_messages.size();
     
     /* Erase old messages

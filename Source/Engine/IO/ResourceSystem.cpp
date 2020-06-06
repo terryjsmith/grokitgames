@@ -46,7 +46,7 @@ ResourceObject* ResourceSystem::LoadResource(std::string filename, std::string t
         std::string fullpath = FindResourcePath(filename);
         if (fullpath.empty()) {
             // Error
-            GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, "Unable to locate resource file", filename));
+            GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, "Unable to locate resource file", filename));
             return(0);
         }
         

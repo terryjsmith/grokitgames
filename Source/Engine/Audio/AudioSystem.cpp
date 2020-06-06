@@ -6,6 +6,7 @@
 #include <Core/Application.h>
 #include <Core/World.h>
 #include <Audio/AudioComponent.h>
+#include <IO/Profiler.h>
 
 void AudioSystem::Initialize() {
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
@@ -14,13 +15,13 @@ void AudioSystem::Initialize() {
 
     result = FMOD::System_Create(&m_system);
     if (result != FMOD_OK) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "FMOD initialization failure", FMOD_ErrorString(result)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "FMOD initialization failure", FMOD_ErrorString(result)));
         GIGA_ASSERT(false, "FMOD error");
     }
 
     result = m_system->init(512, FMOD_INIT_NORMAL, 0);
     if (result != FMOD_OK) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "FMOD initialization failure", FMOD_ErrorString(result)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "FMOD initialization failure", FMOD_ErrorString(result)));
         GIGA_ASSERT(false, "FMOD error");
     }
 }
@@ -32,6 +33,8 @@ void AudioSystem::PlaySound(Sound* sound) {
 }
 
 void AudioSystem::Update(float delta) {
+    PROFILE_START_AREA("AudioSystem");
+    
     // Add to any existing script components
     World* world = World::GetInstance();
     std::vector<AudioComponent*> components = world->FindComponents<AudioComponent>();
@@ -39,4 +42,6 @@ void AudioSystem::Update(float delta) {
     for (; i != components.end(); i++) {
         
     }
+    
+    PROFILE_END_AREA("AudioSystem");
 }

@@ -76,7 +76,7 @@ void OpenGLFramebuffer::AddTexture(Texture2D* texture, int type) {
     
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, "Unable to attach framebuffer."));
+        GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, "Unable to attach framebuffer."));
         assert(false); // Probably don't want to repeat this over and over again
     }
     
@@ -105,7 +105,7 @@ void OpenGLFramebuffer::AddTexture(Texture3D* texture, int type, int slot) {
     
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, "Unable to attach framebuffer."));
+        GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, "Unable to attach framebuffer."));
         assert(false); // Probably don't want to repeat this over and over again
     }
     
@@ -146,7 +146,7 @@ void OpenGLFramebuffer::Bind() {
     if (m_complete == false) {
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-            GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, "Unable to attach framebuffer."));
+            GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, "Unable to attach framebuffer."));
             assert(false); // Probably don't want to repeat this over and over again
         }
         

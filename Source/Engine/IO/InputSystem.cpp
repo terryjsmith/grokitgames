@@ -5,6 +5,7 @@
 #include <Core/MetaSystem.h>
 #include <IO/Keyboard.h>
 #include <IO/Command.h>
+#include <IO/Profiler.h>
 
 InputSystem::~InputSystem() {
     for(size_t i = 0; i < m_mappings.size(); i++) {
@@ -28,9 +29,13 @@ void InputSystem::Initialize() {
 }
 
 void InputSystem::Update(float delta) {
+    PROFILE_START_AREA("InputSystem");
+    
     for(size_t i = 0; i < m_devices.size(); i++) {
         m_devices[i]->Update();
     }
+    
+    PROFILE_END_AREA("InputSystem");
 }
 
 void InputSystem::RegisterInputDevice(InputDevice* device) {

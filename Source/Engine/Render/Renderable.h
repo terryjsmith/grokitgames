@@ -6,6 +6,7 @@
 #include <Render/IndexBuffer.h>
 #include <Render/Texture2D.h>
 #include <Render/Material.h>
+#include <Render/AABB.h>
 
 class GIGA_API Renderable {
 public:
@@ -25,6 +26,8 @@ public:
     Texture2D* emissiveTexture;
     
     Material* material;
+    
+    AABB* aabb;
 };
 
 #endif

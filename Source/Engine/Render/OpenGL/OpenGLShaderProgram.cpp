@@ -50,7 +50,7 @@ void OpenGLShaderProgram::Bind() {
             GL_CHECK(glGetShaderInfoLog(m_vshader, (int)length, (int*)&length, (char*)errstr.c_str()));
             
             // ... and throw an error
-            GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, errstr, m_vertexShader->GetResource()->filename));
+            GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, errstr, m_vertexShader->GetResource()->filename));
             GIGA_ASSERT(false, "Error compiling shader source.");
         }
         
@@ -78,7 +78,7 @@ void OpenGLShaderProgram::Bind() {
             GL_CHECK(glGetShaderInfoLog(m_fshader, (int)length, (int*)&length, (char*)errstr.c_str()));
             
             // ... and throw an error
-            GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, errstr, m_fragmentShader->GetResource()->filename));
+            GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, errstr, m_fragmentShader->GetResource()->filename));
             GIGA_ASSERT(false, "Error compiling shader source.");
         }
         
@@ -99,7 +99,7 @@ void OpenGLShaderProgram::Bind() {
             glGetProgramInfoLog(m_program, length, &length, (char*)errstr.c_str());
             
             // ... and throw an error
-            GetSystem<ErrorSystem>()->HandleError(new Error(Error::ERROR_WARN, errstr));
+            GetSystem<ErrorSystem>()->HandleError(new Error(Error::MSG_WARN, errstr));
             GIGA_ASSERT(false, "Error compiling shader program.");
         }
         

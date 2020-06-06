@@ -17,7 +17,7 @@ void SQLiteDataLoader::Open(std::string location) {
     int result = sqlite3_open(location.c_str(), &m_handle);
     if(result != 0) {
         ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to ope SQLite file.", location));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to ope SQLite file.", location));
         sqlite3_close(m_handle);
         m_handle = 0;
     }
@@ -44,7 +44,7 @@ std::vector<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::ma
     // Get table structure
     std::string query = "PRAGMA table_info(" + table + ")";
     if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
         GIGA_ASSERT(false, "Unable to get SQLite schema.");
         return(m_tempRecords);
     }
@@ -82,7 +82,7 @@ std::vector<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::ma
     
     // Execute
     if(sqlite3_exec(m_handle, query.c_str(), InternalDataCallback, this, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to get record list from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get record list from SQLite.", (char*)sqlite3_errmsg(m_handle)));
         GIGA_ASSERT(false, "Unable to get record list from SQLite.");
         return(m_tempRecords);
     }
@@ -117,7 +117,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     query += ", PRIMARY KEY(" + table + "_id ASC))";
     
     if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to create SQLite table.", (char*)sqlite3_errmsg(m_handle)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to create SQLite table.", (char*)sqlite3_errmsg(m_handle)));
         GIGA_ASSERT(false, "Unable to create SQLite table.");
         return;
     }
@@ -125,7 +125,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     // Add any columns that may not yet exist
     query = "PRAGMA table_info(" + table + ")";
     if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
         GIGA_ASSERT(false, "Unable to get SQLite schema.");
         return;
     }
@@ -156,7 +156,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
             query = "ALTER TABLE " + table + " ADD COLUMN " + (*fi) + " TEXT";
             
             if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to alter SQLite table.",     (char*)sqlite3_errmsg(m_handle)));
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to alter SQLite table.",     (char*)sqlite3_errmsg(m_handle)));
                 GIGA_ASSERT(false, "Unable to alter SQLite DB.");
                 return;
             }
@@ -187,13 +187,13 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
             query += values + ")";
                 
             if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
                 GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
             }
                 
             unsigned int newID = (unsigned int)sqlite3_last_insert_rowid(m_handle);
             if(newID == 0) {
-                errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
                 GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
             }
                 
@@ -212,7 +212,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
             query += primaryKeyID;
                 
             if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to delete object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
                 GIGA_ASSERT(false, "Unable to delete object from SQLite.");
             }
 
@@ -235,7 +235,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
         query += " WHERE " + m_tempPrimaryKey + " = " + primaryKeyID;
             
         if(sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-            errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to update object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to update object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
             GIGA_ASSERT(false, "Unable to update object in SQLite DB.");
         }
     }
@@ -284,7 +284,7 @@ void SQLiteDataLoader::Delete(std::string table, std::map<std::string, std::stri
     
     // Execute
     if(sqlite3_exec(m_handle, query.c_str(), InternalDataCallback, this, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to delete from SQLite.", (char*)sqlite3_errmsg(m_handle)));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete from SQLite.", (char*)sqlite3_errmsg(m_handle)));
         GIGA_ASSERT(false, "Unable to delete from SQLite.");
     }
 }

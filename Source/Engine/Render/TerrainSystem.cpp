@@ -3,6 +3,7 @@
 #include <Render/RenderSystem.h>
 #include <Core/World.h>
 #include <Core/Application.h>
+#include <IO/Profiler.h>
 
 TerrainSystem::TerrainSystem() {
     m_maxQuadSize = 64;
@@ -12,6 +13,8 @@ TerrainSystem::TerrainSystem() {
 }
 
 void TerrainSystem::Update(float delta) {
+    PROFILE_START_AREA("TerrainSystem");
+    
     // Get the scene
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     Scene* scene = renderSystem->GetScene();
@@ -23,4 +26,6 @@ void TerrainSystem::Update(float delta) {
     for(; it != components.end(); it++) {
         (*it)->Update(scene);
     }
+    
+    PROFILE_END_AREA("TerrainSystem");
 }

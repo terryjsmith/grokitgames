@@ -25,11 +25,6 @@ public:
     void Update(Scene* scene);
     
     /**
-     * Get the bounding box of the top-level terrain quad
-     */
-    BoundingBox* GetBoundingBox();
-    
-    /**
      * Get textures
      */
     Texture2D* GetSplatMap() { return m_splat; }

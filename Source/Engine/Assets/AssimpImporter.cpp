@@ -56,7 +56,7 @@ Mesh* AssimpImporter::LoadMesh(std::string filename) {
     MaterialSystem* materialSystem = GetSystem<MaterialSystem>();
     
     // Use Assimp to import our scene
-    const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
+    const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FixInfacingNormals);
     
     std::vector<AssimpMaterial*> materialList;
     
@@ -214,6 +214,11 @@ Mesh* AssimpImporter::LoadMesh(std::string filename) {
         vertex_data.resize(paiMesh->mNumVertices * vertexSize);
         memset(&vertex_data[0], 0, sizeof(float) * paiMesh->mNumVertices * vertexSize);
         
+        // Track min/max for AABB
+        float minX, maxX, minY, maxY, minZ, maxZ;
+        minX = minY = minZ = FLT_MAX;
+        maxX = maxY = maxZ = -FLT_MAX;
+        
         // Load our vertices into our internal format
         for(int i = 0; i < paiMesh->mNumVertices; i++) {
             unsigned int offset = i * vf->GetVertexSize();
@@ -227,6 +232,13 @@ Mesh* AssimpImporter::LoadMesh(std::string filename) {
             vertex_data[offset + 0] = position.x;
             vertex_data[offset + 1] = position.y;
             vertex_data[offset + 2] = position.z;
+            
+            minX = std::min(minX, position.x);
+            maxX = std::max(maxX, position.x);
+            minY = std::min(minY, position.y);
+            maxY = std::max(maxY, position.y);
+            minZ = std::min(minZ, position.z);
+            maxZ = std::max(maxZ, position.z);
             
             offset += 3;
             
@@ -330,6 +342,10 @@ Mesh* AssimpImporter::LoadMesh(std::string filename) {
         
         // Load vertex buffer
         ret->vertexBuffer->Create(vf, vertex_data.size() / vf->GetVertexSize(), &vertex_data[0], false);
+        
+        // Create bounding box
+        ret->aabb = new AABB();
+        ret->aabb->Create(vector3(minX, minY, minZ), vector3(maxX, maxY, maxZ));
     }
     
     // Save the global inverse matrix for later use

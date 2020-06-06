@@ -39,7 +39,7 @@ public:
     void SetTexture(Texture3D* tex, int slot);
     
 protected:
-    void RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent);
+    void RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent, Scene* scene);
     
 protected:
     // Camera component

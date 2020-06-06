@@ -13,11 +13,11 @@ public:
     GIGA_CLASS_NAME("Error");
     
     enum {
-        ERROR_NONE = 0,
-        ERROR_DEBUG,
-        ERROR_INFO,
-        ERROR_WARN,
-        ERROR_FATAL
+        MSG_NONE = 0,
+        MSG_DEBUG,
+        MSG_INFO,
+        MSG_WARN,
+        MSG_FATAL
     };
     
 public:

@@ -2,6 +2,7 @@
 #include <Render/AnimationSystem.h>
 #include <Core/World.h>
 #include <Render/MeshComponent.h>
+#include <IO/Profiler.h>
 
 void AnimationSystem::Initialize() {
     
@@ -10,6 +11,8 @@ void AnimationSystem::Initialize() {
 void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* instance, matrix4 parent);
 
 void AnimationSystem::Update(float delta) {
+    PROFILE_START_AREA("AnimationSystem");
+    
     // Get all render components from scene
     World* world = World::GetInstance();
     std::vector<MeshComponent*> components = world->FindComponents<MeshComponent>();
@@ -68,6 +71,7 @@ void AnimationSystem::Update(float delta) {
             }
         }
     }
+    PROFILE_END_AREA("AnimationSystem");
 }
 
 void ProcessNodeHierarchy(int frame, Mesh* mesh, Node* node, AnimationInstance* instance, matrix4 parent) {

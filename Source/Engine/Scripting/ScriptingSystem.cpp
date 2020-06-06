@@ -5,6 +5,7 @@
 #include <Core/MessageSystem.h>
 #include <Core/World.h>
 #include <IO/ResourceSystem.h>
+#include <IO/Profiler.h>
 
 #ifdef WIN32
 #include <direct.h>
@@ -42,6 +43,7 @@ void ScriptingSystem::SetGlobal(std::string name, Variant* value) {
 }
 
 void ScriptingSystem::Update(float delta) {
+    PROFILE_START_AREA("ScriptingSystem");
     Variant* d = new Variant(delta);
     
     ScriptThread::Lock(this);
@@ -67,6 +69,7 @@ void ScriptingSystem::Update(float delta) {
     
     delete d;
     ScriptThread::Unlock();
+    PROFILE_END_AREA("ScriptingSystem");
 }
 
 void ScriptingSystem::RegisterEventHandler(std::string type, std::string funcName) {

@@ -28,42 +28,9 @@
 #include <Network/NetworkSystem.h>
 #include <Audio/AudioSystem.h>
 #include <Render/AnimationSystem.h>
+#include <IO/LogSystem.h>
+#include <IO/Profiler.h>
 #include "register_globals.h"
-
-Resource* m_errorLog = 0;
-
-void HandleError(Error* err) {
-    TimeSystem* timeSystem = GetSystem<TimeSystem>();
-    struct tm* timestamp;
-    timeSystem->GetTime(timestamp);
-    
-    char timestr[200];
-    memset(timestr, 0, 200);
-    strftime(timestr, 200, "%m/%d/%Y %I:%M:%S %p", timestamp);
-    
-    std::string errstr;
-    switch(err->level) {
-        case Error::ERROR_INFO:
-            errstr = "INFO ";
-            break;
-        case Error::ERROR_DEBUG:
-            errstr = "DEBUG";
-            break;
-        case Error::ERROR_WARN:
-            errstr = "WARN ";
-            break;
-        case Error::ERROR_FATAL:
-            errstr = "FATAL";
-            break;
-        default: break;
-    }
-    
-    char output[1000];
-    sprintf(output, "[%s] [%s] %s %s", timestr, errstr.c_str(), err->message.c_str(), err->detail.c_str());
-    m_errorLog->WriteLine(output);
-    
-    // Do other stuff here later, message boxes and stuff
-}
 
 int main(int argc, const char * argv[]) {
     // insert code here...
@@ -71,10 +38,6 @@ int main(int argc, const char * argv[]) {
 
     // Get application instance
     Application* app = Application::GetInstance();
-    
-    // Error log
-    m_errorLog = new Resource();
-    m_errorLog->Initialize("error.log", Resource::FILEMODE_APPEND);
     
     // Create systems
     MetaSystem* metaSystem = app->CreateSystem<MetaSystem>();
@@ -90,14 +53,13 @@ int main(int argc, const char * argv[]) {
     NetworkSystem* networkSystem = app->CreateSystem<NetworkSystem>();
     AudioSystem* audioSystem = app->CreateSystem<AudioSystem>();
     AnimationSystem* animationSystem = app->CreateSystem<AnimationSystem>();
-    
-    errorSystem->RegisterErrorHandler(Error::ERROR_DEBUG, HandleError);
-    errorSystem->RegisterErrorHandler(Error::ERROR_INFO, HandleError);
-    errorSystem->RegisterErrorHandler(Error::ERROR_WARN, HandleError);
-    errorSystem->RegisterErrorHandler(Error::ERROR_FATAL, HandleError);
+    LogSystem* logSystem = app->CreateSystem<LogSystem>();
     
     // Initialize systems
     app->Initialize();
+    
+    // Open error log
+    logSystem->Open("error.log");
     
     // Create window
     Window* window = Window::GetInstance();
@@ -199,25 +161,25 @@ int main(int argc, const char * argv[]) {
     fmc->Initialize(floorMesh);
     fmc->transform->Rotate(vector3(1, 0, 0), -90);
     
-    Entity* light = world->CreateEntity();
+    /*Entity* light = world->CreateEntity();
     light->name = "Light";
     PointLightComponent* plc = light->CreateComponent<PointLightComponent>();
     plc->transform->SetWorldPosition(vector3(3, 3, 3));
     plc->SetAttenuation(15.0f);
-    plc->Initialize();
+    plc->Initialize();*/
     
-    /*Entity* sun = world->CreateEntity();
+    Entity* sun = world->CreateEntity();
     DirectionalLightComponent* dlc = sun->CreateComponent<DirectionalLightComponent>();
     dlc->transform->SetWorldPosition(glm::normalize(vector3(-0.4, -0.7, 0.4)));
-    dlc->Initialize();*/
+    dlc->Initialize();
     
     //scene->camera = dlc->GetCamera(2);
     
-    renderSystem->SetAmbientLighting(vector3(0.3f, 0.3f, 0.3f));
+    renderSystem->SetAmbientLighting(vector3(0.7f, 0.7f, 0.7f));
     
-    /*Entity* terrain = world->CreateEntity();
+    Entity* terrain = world->CreateEntity();
     TerrainComponent* tc = terrain->CreateComponent<TerrainComponent>();
-    tc->Load("terrain1.json", vector3(0));*/
+    tc->Load("terrain1.json", vector3(0));
     
     Entity* skybox = world->CreateEntity();
     Skybox* sb = skybox->CreateComponent<Skybox>();
@@ -225,14 +187,22 @@ int main(int argc, const char * argv[]) {
     
     // Main loop
     while(window->IsClosing() == false) {
+        PROFILE_START_FRAME();
+        
         float delta = gameTimer->Duration();
         gameTimer->Reset();
         
         app->Update(delta);
         
+        PROFILE_START_AREA("ProcessEvents");
         window->ProcessEvents();
-        window->SwapBuffer();
+        PROFILE_END_AREA("ProcessEvents");
         
+        PROFILE_START_AREA("SwapBuffer");
+        window->SwapBuffer();
+        PROFILE_END_AREA("SwapBuffer");
+        
+        PROFILE_END_FRAME();
         timeSystem->Sleep(1);
     }
     
@@ -240,8 +210,8 @@ int main(int argc, const char * argv[]) {
     delete window;
     
     // Close log
-    m_errorLog->Close();
-    delete m_errorLog;
+    Profiler::GetInstance()->Log();
+    logSystem->Close();
     
     return 0;
 }

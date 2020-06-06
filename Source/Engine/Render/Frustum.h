@@ -5,7 +5,7 @@
 #include <Core/Giga.h>
 #include <Core/MathTypes.h>
 #include <Render/Plane.h>
-#include <Render/BoundingBox.h>
+#include <Render/Sphere.h>
 
 /**
 * Define our viewing frustum for frustum culling
@@ -37,9 +37,9 @@ public:
     int Intersects(vector3& point);
 
     /**
-    * Check a bounding box
+    * Check a bounding sphere
     */
-    int Intersects(BoundingBox& box);
+    bool Intersects(Sphere* s);
 
 public:
     /**

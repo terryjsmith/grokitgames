@@ -15,6 +15,13 @@
 #define SetCurrentDir chdir
 #endif
 
+Directory::~Directory() {
+    auto it = subdirectories.begin();
+    for(; it != subdirectories.end(); it++) {
+        delete(*it);
+    }
+}
+
 std::string Directory::GetCurrent() {
     std::string str;
     char cCurrentPath[FILENAME_MAX];

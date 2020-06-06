@@ -91,6 +91,11 @@ public:
      */
     void Initialize();
     
+    /**
+     * Log something to output file
+     */
+    static void Log(int type, std::string message, std::string details = "");
+    
 protected:
     // Currently registered systems
     std::vector<RegisteredSystem*> m_systems;

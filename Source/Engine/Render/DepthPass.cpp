@@ -95,8 +95,11 @@ void DepthPass::Render(Scene* scene) {
                 }
             }
         }
-         
-        RecursiveRender(rc, view, matrix4(1.0));
+        else {
+            continue;
+        }
+        
+        RecursiveRender(rc, view, matrix4(1.0), scene);
     }
     
     renderSystem->SetDrawBuffer(DRAW_BUFFER_BACK);
@@ -109,7 +112,7 @@ void DepthPass::Render(Scene* scene) {
     m_program->Unbind();
 }
 
-void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent) {
+void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent, Scene* scene) {
     Transform* meshTransform = rc->transform;
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
@@ -117,7 +120,7 @@ void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 paren
     if(rc->children.size()) {
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
-            RecursiveRender((*it), view, model);
+            RecursiveRender((*it), view, model, scene);
         }
         
         return;
@@ -130,6 +133,15 @@ void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 paren
     m_program->Set("modelMatrix", model);
     
     Renderable* m = rc->renderable;
+    CameraComponent* cc = scene->camera;
+    Frustum frustum = cc->GetFrustum();
+    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    Sphere* boundingSphere = rc->GetBoundingSphere(parent);
+    
+    if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {
+        return;
+    }
+    
     VertexBuffer* vertexBuffer = m->vertexBuffer;
     VertexFormat* vertexType = vertexBuffer->GetFormat();
     int vertexCount = vertexBuffer->GetCount();

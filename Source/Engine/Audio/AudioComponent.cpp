@@ -31,7 +31,7 @@ void AudioComponent::Play() {
     
     FMOD_RESULT result = audioSystem->GetSubSystem()->playSound(m_sound->sound, 0, true, &channel);
     if (result != FMOD_OK) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Error initializing sound.", m_sound->GetResource()->filename));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Error initializing sound.", m_sound->GetResource()->filename));
         GIGA_ASSERT(false, "Error initializing sound.");
     }
     

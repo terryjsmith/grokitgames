@@ -6,6 +6,7 @@
 #include <IO/ResourceSystem.h>
 #include <Render/LightComponent.h>
 #include <Render/MaterialSystem.h>
+#include <IO/Profiler.h>
 
 LightingPass::LightingPass() {
     m_windowWidth = m_windowHeight = 0;
@@ -67,6 +68,7 @@ void LightingPass::Initialize(int width, int height) {
 }
 
 void LightingPass::Render(Scene* scene) {
+    PROFILE_START_AREA("DepthPass");
     // First, loop through all lights and render depth from the light's perspective
     auto it = scene->renderables.begin();
     for(; it != scene->renderables.end(); it++) {
@@ -75,6 +77,10 @@ void LightingPass::Render(Scene* scene) {
             lc->GenerateDepthTexture(scene);
         }
     }
+    
+    PROFILE_END_AREA("DepthPass");
+    
+    PROFILE_START_AREA("LightingPass");
     
     // Bind shader program
     m_program->Bind();
@@ -218,9 +224,7 @@ void LightingPass::Render(Scene* scene) {
     m_vertexBuffer->Unbind();
     m_vertexFormat->Unbind();
     
-    //m_blurFilter->Apply();
-    //m_blurFilter->GetOutputTexture()->Save("blur.bmp");
-    //m_framebuffers[0]->GetTexture(0)->Save("lighting.bmp");
+    PROFILE_END_AREA("LightingPass");
 }
 
 Texture2D* LightingPass::GetOutputTexture() {

@@ -1,6 +1,6 @@
 
-#ifndef boundingbox_h
-#define boundingbox_h
+#ifndef aabb_h
+#define aabb_h
 
 #include <Core/Giga.h>
 #include <Core/MathTypes.h>
@@ -8,10 +8,10 @@
 /**
 * An axis-aligned bounding box
 */
-class GIGA_API BoundingBox {
+class GIGA_API AABB {
 public:
-    BoundingBox() = default;
-    ~BoundingBox() = default;
+    AABB() = default;
+    ~AABB() = default;
 
     enum {
         POINT_NEARTOPLEFT = 0,
@@ -28,11 +28,6 @@ public:
     * Create a bounding box from min and max coords
     */
     void Create(vector3 min, vector3 max);
-
-    /**
-    * Check to see if a point is inside the box
-    */
-    bool Inside(vector3 point);
 
 public:
     // The 8 points that make up this box

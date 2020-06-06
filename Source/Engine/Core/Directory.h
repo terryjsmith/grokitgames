@@ -8,7 +8,7 @@ GIGA_CLASS()
 class GIGA_API Directory : public GigaObject {
 public:
     Directory() = default;
-    ~Directory() = default;
+    ~Directory();
     
     GIGA_CLASS_NAME("Directory");
     

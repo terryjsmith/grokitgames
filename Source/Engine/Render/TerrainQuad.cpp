@@ -33,90 +33,101 @@ void TerrainQuad::Unload() {
     }
 }
 
-void TerrainQuad::Load(Texture2D* hmap, Texture2D* nmap, vector2 offset, vector2 quadDimensions) {
+void TerrainQuad::Load(Texture2D* hmap, Texture2D* nmap, vector2 fileOffset, float width) {
     TerrainSystem* terrainSystem = GetSystem<TerrainSystem>();
     uint32_t maxQuadSize = terrainSystem->GetMaxQuadSize();
     uint32_t imageWidth = hmap->GetWidth();
+    int nmapWidth = nmap->GetWidth();
     
-    m_aabb.Create(vector3(offset.x, -256.0f, offset.y), vector3(offset.x + quadDimensions.x, 256.0f, offset.y + quadDimensions.x));
+    unsigned int actualSize = width + 1;
+    int channels = hmap->GetChannels();
+    int nchannels = nmap->GetChannels();
+    
+    // Get terrain scale factor
+    float terrainScale = terrainSystem->GetTerrainScale();
+    
+    if(renderable == 0) {
+        renderable = new Renderable();
+    }
+    
+    // Get min/max Y
+    float minY = FLT_MAX;
+    float maxY = -FLT_MAX;
+    unsigned char* data = (unsigned char*)hmap->GetData();
+    
+    for(int z = 0; z < actualSize; z++) {
+        for(int x = 0; x < actualSize; x++) {
+            int ptr = (((int)((fileOffset.y + z) * imageWidth) + ((int)fileOffset.x + x)) * channels);
+            unsigned char height = data[ptr];
+            
+            minY = std::min(minY, (float)height * terrainScale);
+            maxY = std::max(maxY, (float)height * terrainScale);
+        }
+    }
+    
+    renderable->aabb = new AABB();
+    renderable->aabb->Create(vector3(0.0f), vector3(width * terrainScale, maxY - minY, width * terrainScale));
     
     // If we're not smaller than the max quad size, create children
-    if(quadDimensions.x > maxQuadSize) {
-        uint32_t newWidth = quadDimensions.x / 2.0f;
+    if(width > maxQuadSize) {
+        uint32_t newWidth = width / 2.0f;
         
         // Load quad 0
         TerrainQuad* quad0 = new TerrainQuad();
-        quad0->Load(hmap, nmap, vector2(offset.x, offset.y), vector2(newWidth));
+        quad0->Load(hmap, nmap, vector2(fileOffset.x, fileOffset.y), newWidth);
         children.push_back(quad0);
         
         // Load quad 1
         TerrainQuad* quad1 = new TerrainQuad();
-        quad1->Load(hmap, nmap, vector2(offset.x + newWidth, offset.y), vector2(newWidth));
+        quad1->Load(hmap, nmap, vector2(fileOffset.x + newWidth, fileOffset.y), newWidth);
         children.push_back(quad1);
         
         // Load quad 2
         TerrainQuad* quad2 = new TerrainQuad();
-        quad2->Load(hmap, nmap, vector2(offset.x, offset.y + newWidth), vector2(newWidth));
+        quad2->Load(hmap, nmap, vector2(fileOffset.x, fileOffset.y + newWidth), newWidth);
         children.push_back(quad2);
         
         // Load quad 3
         TerrainQuad* quad3 = new TerrainQuad();
-        quad3->Load(hmap, nmap, vector2(offset.x + newWidth, offset.y + newWidth), vector2(newWidth));
+        quad3->Load(hmap, nmap, vector2(fileOffset.x + newWidth, fileOffset.y + newWidth), newWidth);
         children.push_back(quad3);
         
         return;
     }
     
-    // Get terrain scale factor
-    float terrainScale = terrainSystem->GetTerrainScale();
-    
     // If we get here, load data
-    unsigned int actualSize = quadDimensions.x + 1;
-    int channels = hmap->GetChannels();
-    int nchannels = nmap->GetChannels();
     m_data = (unsigned char*)malloc(actualSize * actualSize);
     m_normals = (float*)malloc(actualSize * actualSize * 3 * sizeof(float));
     
     // Get source data
-    unsigned char* data = (unsigned char*)hmap->GetData();
     unsigned char* ndata = (unsigned char*)nmap->GetData();
-    std::vector<float> heights;
     
-    int nmapWidth = nmap->GetWidth();
-    
-    float mmin = 255;
-    float mmax = 0;
-    
-    for(int y = 0; y < actualSize; y++) {
+    for(int z = 0; z < actualSize; z++) {
         for(int x = 0; x < actualSize; x++) {
-            int ptr = (((int)((offset.y + y) * imageWidth) + ((int)offset.x + x)) * channels);
-            int nptr = (((int)((offset.y + y) * nmapWidth) + ((int)offset.x + x)) * nchannels);
+            int ptr = (((int)((fileOffset.y + z) * imageWidth) + ((int)fileOffset.x + x)) * channels);
+            int nptr = (((int)((fileOffset.y + z) * nmapWidth) + ((int)fileOffset.x + x)) * nchannels);
             unsigned char height = data[ptr];
             
-            m_data[(y * actualSize) + x] = height;
+            m_data[(z * actualSize) + x] = height;
             vector3 normal = vector3((((float)ndata[nptr + 0] / 255.0f) - 0.5) / 0.5f,
                                      (((float)ndata[nptr + 1] / 255.0f) - 0.5) / 0.5f,
                                      (((float)ndata[nptr + 2] / 255.0f) - 0.5) / 0.5f);
             normal = glm::normalize(normal);
             
-            m_normals[(((y * actualSize) + x) * 3) + 0] = normal.x;
-            m_normals[(((y * actualSize) + x) * 3) + 1] = normal.y;
-            m_normals[(((y * actualSize) + x) * 3) + 2] = normal.z;
+            m_normals[(((z * actualSize) + x) * 3) + 0] = normal.x;
+            m_normals[(((z * actualSize) + x) * 3) + 1] = normal.y;
+            m_normals[(((z * actualSize) + x) * 3) + 2] = normal.z;
             
-            mmin = std::min(mmin, (float)height * terrainScale);
-            mmax = std::max(mmax, (float)height * terrainScale);
         }
     }
     
     // Save
-    m_width = quadDimensions.x;
+    m_width = width;
     m_totalWidth = imageWidth;
-    m_offset = offset * terrainScale;
-    
-    m_aabb.Create(vector3(m_offset.x, mmin, m_offset.y), vector3(m_offset.x + quadDimensions.x * terrainScale, mmax, m_offset.y + quadDimensions.x * terrainScale));
+    m_fileOffset = fileOffset;
     
     // Set transform
-    transform->SetWorldPosition(vector3(m_offset.x, 0, m_offset.y));
+    transform->SetWorldPosition(vector3(fileOffset.x * terrainScale, 0, fileOffset.y * terrainScale));
 }
 
 void TerrainQuad::SetLOD(vector3 cameraPosition) {
@@ -141,11 +152,8 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     float terrainScale = terrainSystem->GetTerrainScale();
     
     // Determine the LOD
-    float minDistance = FLT_MAX;
-    
-    for(int i = 0; i < 8; i++) {
-        minDistance = std::min(minDistance, glm::length(cameraPosition - m_aabb.points[i]));
-    }
+    Sphere* boundingSphere = this->GetBoundingSphere();
+    float minDistance = glm::distance(cameraPosition, boundingSphere->center) - boundingSphere->radius;
     
     // If out of distance, set to -1 (don't render)
     uint32_t level = 0;
@@ -199,7 +207,7 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
             vertexData.push_back(z * terrainScale * 0.5);
             
             // Tex coord 1
-            vector2 actualOffset = m_offset / terrainScale;
+            vector2 actualOffset = m_fileOffset / terrainScale;
             vertexData.push_back((actualOffset.x + x) / m_totalWidth);
             vertexData.push_back((actualOffset.y + z) / m_totalWidth);
         }

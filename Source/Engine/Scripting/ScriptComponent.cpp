@@ -73,7 +73,7 @@ void ScriptComponent::Initialize(Script* script) {
     v8::Local<v8::Script> vscript;
     if (v8::Script::Compile(context, scriptSrc).ToLocal(&vscript) == false) {
         v8::String::Utf8Value error(try_catch.Exception());
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to compile script file " + m_scriptSource->GetResource()->filename, *error));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to compile script file " + m_scriptSource->GetResource()->filename, *error));
         GIGA_ASSERT(false, "Unable to compile script function.");
 
         m_thread->SetCurrentScript(0);
@@ -86,7 +86,7 @@ void ScriptComponent::Initialize(Script* script) {
     v8::Local<v8::Value> result;
     if (vscript->Run(context).ToLocal(&result) == false) {
         v8::String::Utf8Value error(try_catch.Exception());
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to execute script file " + m_scriptSource->GetResource()->filename, *error));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to execute script file " + m_scriptSource->GetResource()->filename, *error));
         GIGA_ASSERT(false, "Unable to execute script file.");
 
         m_thread->SetCurrentScript(0);
@@ -110,7 +110,7 @@ void ScriptComponent::Initialize(Script* script) {
         // Attempt to get an error message (need a better way to do this)
         v8::String::Utf8Value error(try_catch.Exception());
         if (*error) {
-            errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to execute init function " + m_scriptSource->GetResource()->filename, *error));
+            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to execute init function " + m_scriptSource->GetResource()->filename, *error));
             GIGA_ASSERT(false, "Unable to execute init function");
         }
     }
@@ -230,12 +230,12 @@ void ScriptComponent::CallFunction(std::string function, int argc, Variant** arg
         // Attempt to get an error message (need a better way to do this)
         v8::String::Utf8Value error(try_catch.Exception());
         if(*error) {
-            errorSystem->HandleError(new Error(Error::ERROR_WARN, "Unable to execute function " + function, *error));
+            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to execute function " + function, *error));
             GIGA_ASSERT(false, *error);
         }
     }
     else {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Invalid function name."));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Invalid function name."));
     }
     
     free(args);

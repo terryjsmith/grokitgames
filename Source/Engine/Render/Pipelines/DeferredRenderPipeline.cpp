@@ -7,6 +7,7 @@
 #include <Render/Pipelines/Deferred/RenderToScreenPass.h>
 #include <Render/Pipelines/Deferred/TerrainPass.h>
 #include <Render/Pipelines/Deferred/SkyboxPass.h>
+#include <IO/Profiler.h>
 
 void DeferredRenderPipeline::Initialize(int width, int height) {
     // Set up render pipeline
@@ -64,7 +65,11 @@ void DeferredRenderPipeline::Initialize(int width, int height) {
 void DeferredRenderPipeline::Render(Scene* scene) {
     auto it = m_renderPasses.begin();
     for(; it != m_renderPasses.end(); it++) {
+        PROFILE_START_AREA((*it)->GetGigaName());
+        
         RenderPass* pass = (*it);
         pass->Render(scene);
+        
+        PROFILE_END_AREA((*it)->GetGigaName());
     }
 }

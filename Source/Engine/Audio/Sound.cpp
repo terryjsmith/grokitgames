@@ -34,7 +34,7 @@ void Sound::ProcessData() {
     
     FMOD_RESULT result = system->createSound((const char*)data, FMOD_OPENMEMORY, &info, &sound);
     if (result != FMOD_OK) {
-        errorSystem->HandleError(new Error(Error::ERROR_WARN, "Error creating sound.", this->m_resource->filename));
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Error creating sound.", this->m_resource->filename));
         GIGA_ASSERT(false, "Error creating sound.");
     }
 }

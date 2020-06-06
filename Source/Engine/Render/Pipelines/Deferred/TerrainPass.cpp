@@ -124,7 +124,7 @@ void TerrainPass::Render(Scene* scene) {
 
 void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, Scene* scene) {
     // Calculate model matrix
-    matrix4 mat = glm::translate(matrix4(1.0f), rc->GetOffset());
+    matrix4 mat = glm::translate(matrix4(1.0f), rc->transform->GetLocalPosition());
     matrix4 model = mat * parent;
     
     if(rc->children.size() > 0) {
@@ -140,9 +140,9 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
     CameraComponent* cc = scene->camera;
     Frustum frustum = cc->GetFrustum();
     vector3 cameraPosition = cc->transform->GetWorldPosition();
-    BoundingBox* aabb = rc->GetBoundingBox();
+    Sphere* boundingSphere = rc->GetBoundingSphere();
     
-    if(frustum.Intersects(*aabb) == false && aabb->Inside(cameraPosition) == false) {
+    if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {
         return;
     }
     

@@ -121,7 +121,7 @@ void TerrainComponent::Load(std::string json, vector3 offset) {
     
     // Create the "root" terrain quad
     TerrainQuad* quad = new TerrainQuad();
-    quad->Load(hmaptex, normaltex, vector2(0), vector2(hmaptex->GetWidth()));
+    quad->Load(hmaptex, normaltex, vector2(0), hmaptex->GetWidth());
     
     // Save
     children.push_back(quad);
@@ -137,11 +137,6 @@ void TerrainComponent::Unload() {
         delete(renderable);
         renderable = 0;
     }
-}
-
-BoundingBox* TerrainComponent::GetBoundingBox() {
-    TerrainQuad* quad = dynamic_cast<TerrainQuad*>(renderable);
-    return(quad->GetBoundingBox());
 }
 
 void TerrainComponent::Update(Scene* scene) {

@@ -93,7 +93,7 @@ void GBufferPass::Render(Scene* scene) {
             }
         }
         
-        RecursiveRender(mc, view, matrix4(1.0));
+        RecursiveRender(mc, view, matrix4(1.0), scene);
     }
     
     //m_framebuffers[0]->GetTexture(0)->Save("diffuse.bmp");
@@ -104,7 +104,7 @@ void GBufferPass::Render(Scene* scene) {
     m_program->Unbind();
 }
 
-void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
+void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene) {
     // Calculate model matrix
     Transform* meshTransform = rc->transform;
     matrix4 mat = meshTransform->GetMatrix();
@@ -118,13 +118,21 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
                 continue;
             }
             
-            RecursiveRender(mc, view, model);
+            RecursiveRender(mc, view, model, scene);
         }
         
         return;
     }
     
     Renderable* m = rc->renderable;
+    CameraComponent* cc = scene->camera;
+    Frustum frustum = cc->GetFrustum();
+    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    Sphere* boundingSphere = rc->GetBoundingSphere(parent);
+    
+    if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {
+        return;
+    }
     
     // Send view/proj matrix to shader
     matrix4 modelviewMatrix = view * model;

@@ -9,25 +9,11 @@ int Frustum::Intersects(vector3& point) {
     return(1);
 }
 
-int Frustum::Intersects(BoundingBox &box) {
+bool Frustum::Intersects(Sphere* s) {
     for (int p = 0; p < 6; p++) {
-        if (planes[p].Distance(box.points[0]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[1]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[2]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[3]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[4]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[5]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[6]) < 0)
-            continue;
-        if (planes[p].Distance(box.points[7]) < 0)
-            continue;
-        return(0);
+        float distance = planes[p].Distance(s->center);
+        if(s->Intersects(&planes[p]) == false && distance > 0)
+            return(false);
     }
     return(1);
 }

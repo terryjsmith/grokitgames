@@ -1,6 +1,7 @@
 
 #include <IO/Window.h>
 #include <Core/ErrorSystem.h>
+#include <IO/LogSystem.h>
 #include <Core/Application.h>
 #include <GLFW/glfw3.h>
 
@@ -39,7 +40,7 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     m_window = glfwCreateWindow(fullscreen ? w : width, fullscreen ? h : height, name.c_str(), fullscreen ? primary : NULL, NULL);
     if (m_window == NULL) {
         glfwTerminate();
-        errorSystem->HandleError(new Error(Error::ERROR_FATAL, "Unable to create window."));
+        errorSystem->HandleError(new Error(Error::MSG_FATAL, "Unable to create window."));
         return;
     }
     
@@ -49,7 +50,11 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     // Get our actual framebuffer size
     glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
 
-    printf("%s\n", glGetString(GL_VERSION));
+    LogSystem* logSystem = GetSystem<LogSystem>();
+    logSystem->Log(Error::MSG_INFO, "Window created @ " + std::to_string(width) + " x " + std::to_string(height));
+    logSystem->Log(Error::MSG_INFO, std::string("GL version: ") + (char*)glGetString(GL_VERSION));
+    logSystem->Log(Error::MSG_INFO, std::string("GL renderer: ") + (char*)glGetString(GL_RENDERER));
+    logSystem->Log(Error::MSG_INFO, std::string("GLSL version: ") + (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
 bool Window::IsClosing() {
