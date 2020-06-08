@@ -107,3 +107,4 @@ void RenderToScreenPass::Render(Scene* scene) {
     m_vertexBuffer->Unbind();
     m_vertexFormat->Unbind();
 }
+
