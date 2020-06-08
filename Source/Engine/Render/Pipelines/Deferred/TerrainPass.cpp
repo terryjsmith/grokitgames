@@ -7,10 +7,31 @@
 #include <Render/MaterialSystem.h>
 #include <Render/TerrainComponent.h>
 
+TerrainPass::~TerrainPass() {
+    if(m_framebuffers.size()) {
+        auto fi = m_framebuffers.begin();
+        for(; fi != m_framebuffers.end(); fi++) {
+            (*fi)->ClearTextures();
+            delete(*fi);
+        }
+    }
+    m_framebuffers.clear();
+}
+
 void TerrainPass::Initialize(int width, int height) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
+    
+    // Reset
+    if(m_framebuffers.size()) {
+        auto fi = m_framebuffers.begin();
+        for(; fi != m_framebuffers.end(); fi++) {
+            (*fi)->ClearTextures();
+            delete(*fi);
+        }
+    }
+    m_framebuffers.clear();
     
     m_framebuffers.push_back(fb);
     

@@ -8,7 +8,7 @@
 class GIGA_API SkyboxPass : public RenderPass {
 public:
     SkyboxPass() = default;
-    ~SkyboxPass() = default;
+    ~SkyboxPass();
     
     GIGA_CLASS_NAME("SkyboxPass");
     

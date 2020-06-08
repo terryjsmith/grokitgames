@@ -58,6 +58,11 @@ public:
     virtual void Bind() { }
     virtual void Unbind() { }
     
+    /**
+     * Clear textures
+     */
+    void ClearTextures();
+    
 protected:
     // The textures attached to this framebuffer
     std::vector<Texture*> m_textures;

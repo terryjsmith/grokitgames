@@ -24,6 +24,25 @@ void LightingPass::Initialize(int width, int height) {
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
     
+    // Reset
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
+    
+    if(m_vertexBuffer) {
+        delete m_vertexBuffer;
+    }
+    
+    if(m_vertexFormat) {
+        delete m_vertexFormat;
+    }
+    
+    if(m_null) {
+        delete m_null;
+    }
+    
     Texture2D* buffer = renderSystem->CreateTexture2D();
     buffer->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
@@ -61,10 +80,6 @@ void LightingPass::Initialize(int width, int height) {
     m_vertexBuffer->Create(m_vertexFormat, 4, box, false);
     
     m_null = renderSystem->CreateTexture3D();
-    
-    m_blurFilter = new GaussianBlur();
-    m_blurFilter->Initialize("gaussian.fs", width, height);
-    m_blurFilter->SetInputTexture(buffer);
 }
 
 void LightingPass::Render(Scene* scene) {
@@ -225,8 +240,4 @@ void LightingPass::Render(Scene* scene) {
     m_vertexFormat->Unbind();
     
     PROFILE_END_AREA("LightingPass");
-}
-
-Texture2D* LightingPass::GetOutputTexture() {
-    return(m_blurFilter->GetOutputTexture());
 }

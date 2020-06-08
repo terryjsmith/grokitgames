@@ -10,6 +10,12 @@
 #include <IO/Profiler.h>
 
 void DeferredRenderPipeline::Initialize(int width, int height) {
+    auto ri = m_renderPasses.begin();
+    for(; ri != m_renderPasses.end(); ri++) {
+        delete(*ri);
+    }
+    m_renderPasses.clear();
+    
     // Set up render pipeline
     GBufferPass* gbuffer = new GBufferPass();
     gbuffer->Initialize(width, height);

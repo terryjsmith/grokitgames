@@ -7,8 +7,8 @@
 
 class GIGA_API ForwardPass : public RenderPass {
 public:
-    ForwardPass() = default;
-    ~ForwardPass() = default;
+    ForwardPass();
+    ~ForwardPass();
     
     GIGA_CLASS_NAME("ForwardPass");
     

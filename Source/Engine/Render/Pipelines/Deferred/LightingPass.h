@@ -29,11 +29,6 @@ public:
     void SetPositionTexture(Texture2D* texture) { m_positionTexture = texture; }
     void SetMaterialTexture(Texture2D* texture) { m_materialTexture = texture; }
     
-    /**
-     * Get output texture
-     */
-    Texture2D* GetOutputTexture();
-    
 protected:
     Texture2D* m_normalTexture;
     Texture2D* m_positionTexture;
@@ -47,9 +42,6 @@ protected:
     // Internal vertex buffer and format for screen pass
     VertexBuffer* m_vertexBuffer;
     VertexFormat* m_vertexFormat;
-    
-    // Gaussian blur filter
-    GaussianBlur* m_blurFilter;
 };
 
 #endif 

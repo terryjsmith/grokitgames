@@ -14,3 +14,7 @@ Framebuffer::~Framebuffer() {
         m_textures.clear();
     }
 }
+
+void Framebuffer::ClearTextures() {
+    m_textures.clear();
+}

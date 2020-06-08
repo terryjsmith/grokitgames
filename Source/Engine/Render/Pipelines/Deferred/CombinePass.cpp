@@ -19,6 +19,22 @@ void CombinePass::Initialize(int width, int height) {
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
     
+    // Reset
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
+    
+    if(m_vertexBuffer) {
+        delete m_vertexBuffer;
+    }
+    
+    if(m_vertexFormat) {
+        delete m_vertexFormat;
+    }
+    
+    // Create
     Texture2D* buffer = renderSystem->CreateTexture2D();
     buffer->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     

@@ -25,10 +25,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        gigaopenglwidget.cpp \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
+        gigaopenglwidget.h \
         mainwindow.h
 
 FORMS += \
@@ -38,3 +40,28 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lcore
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lio
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lrender
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lphysics
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -laudio
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lscripting
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lmeta
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lnetworking
+
+INCLUDEPATH += $$PWD/../../Engine
+DEPENDPATH += $$PWD/../../../Bin
+
+INCLUDEPATH += $$PWD/../../../../ThirdParty/assimp/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/bullet/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/fmod/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/gl3w/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/glm/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/rapidjson/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/libcurl/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/mysql/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/openssl/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/soil/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/sqlite/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/v8/include

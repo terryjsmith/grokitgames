@@ -7,8 +7,8 @@
 
 class GIGA_API Pipeline : public GigaObject {
 public:
-    Pipeline() = default;
-    ~Pipeline() = default;
+    Pipeline();
+    ~Pipeline();
     
     /**
      * Initialize render pipeline

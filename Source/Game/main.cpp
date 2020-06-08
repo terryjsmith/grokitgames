@@ -86,7 +86,7 @@ int main(int argc, const char * argv[]) {
     // Initialize the world
     World* world = World::GetInstance();
     
-    // Create a shape
+    /* Create a shape
     Shape* shape = new Shape();
     
     float vertices[] = {
@@ -103,7 +103,7 @@ int main(int argc, const char * argv[]) {
     shape->SetVertices(fmt, vertices, 3);
     
     Entity* triangle = world->CreateEntity();
-    triangle->AddComponent(shape);
+    triangle->AddComponent(shape);*/
     
     // Set up camera
     Entity* playerEntity = world->CreateEntity();
@@ -134,7 +134,7 @@ int main(int argc, const char * argv[]) {
     Timer* gameTimer = new Timer();
     gameTimer->Start();
     
-    AssimpImporter* importer = new AssimpImporter();
+    /*AssimpImporter* importer = new AssimpImporter();
     std::string crateFilename = resourceSystem->FindResourcePath("jasper.fbx");
     Mesh* mesh = importer->LoadMesh(crateFilename);
     importer->LoadAnimation(resourceSystem->FindResourcePath("Walking.fbx"), "Walk", mesh);
@@ -161,12 +161,12 @@ int main(int argc, const char * argv[]) {
     fmc->Initialize(floorMesh);
     fmc->transform->Rotate(vector3(1, 0, 0), -90);
     
-    /*Entity* light = world->CreateEntity();
+    Entity* light = world->CreateEntity();
     light->name = "Light";
     PointLightComponent* plc = light->CreateComponent<PointLightComponent>();
     plc->transform->SetWorldPosition(vector3(3, 3, 3));
     plc->SetAttenuation(15.0f);
-    plc->Initialize();*/
+    plc->Initialize();
     
     Entity* sun = world->CreateEntity();
     DirectionalLightComponent* dlc = sun->CreateComponent<DirectionalLightComponent>();
@@ -183,7 +183,7 @@ int main(int argc, const char * argv[]) {
     
     Entity* skybox = world->CreateEntity();
     Skybox* sb = skybox->CreateComponent<Skybox>();
-    sb->Initialize("sky");
+    sb->Initialize("sky");*/
     
     // Main loop
     while(window->IsClosing() == false) {

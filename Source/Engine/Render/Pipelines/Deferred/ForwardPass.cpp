@@ -5,10 +5,40 @@
 #include <Render/Defines.h>
 #include <IO/ResourceSystem.h>
 
+ForwardPass::ForwardPass() {
+    m_texture = 0;
+}
+
+ForwardPass::~ForwardPass() {
+    // Reset
+    if(m_texture) {
+        // Add our texture back to vertex buffer to ensure it is deleted, not the one currently attached
+        m_framebuffers[0]->SetTexture(m_texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+    }
+    
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
+}
+
 void ForwardPass::Initialize(int width, int height) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
+    
+    // Reset
+    if(m_texture) {
+        // Add our texture back to vertex buffer to ensure it is deleted, not the one currently attached
+        m_framebuffers[0]->SetTexture(m_texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+    }
+    
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
     
     m_texture = renderSystem->CreateTexture2D();
     m_texture->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);

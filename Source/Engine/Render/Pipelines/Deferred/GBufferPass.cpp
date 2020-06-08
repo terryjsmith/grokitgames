@@ -11,6 +11,13 @@ void GBufferPass::Initialize(int width, int height) {
     Framebuffer* fb = renderSystem->CreateFramebuffer();
     fb->Initialize();
     
+    // Reset
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
+    
     Texture2D* diffuse = renderSystem->CreateTexture2D();
     diffuse->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     fb->AddTexture(diffuse, FRAMEBUFFER_SLOT_0);

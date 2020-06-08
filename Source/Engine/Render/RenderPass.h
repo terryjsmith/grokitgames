@@ -10,7 +10,7 @@
 class GIGA_API RenderPass : public GigaObject {
 public:
     RenderPass();
-    virtual ~RenderPass() = default;
+    virtual ~RenderPass();
     
     /**
      * Initialize render pass (called on window size change, should re-initialize)

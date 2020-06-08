@@ -9,7 +9,7 @@
 class GIGA_API TerrainPass : public RenderPass {
 public:
     TerrainPass() = default;
-    ~TerrainPass() = default;
+    ~TerrainPass();
     
     GIGA_CLASS_NAME("TerrainPass");
     

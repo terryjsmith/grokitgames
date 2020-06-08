@@ -4,6 +4,7 @@
 #include <Core/Application.h>
 #include <Render/Defines.h>
 #include <IO/ResourceSystem.h>
+#include <IO/Profiler.h>
 
 RenderToScreenPass::RenderToScreenPass() {
     m_windowWidth = m_windowHeight = 0;
@@ -15,6 +16,26 @@ RenderToScreenPass::RenderToScreenPass() {
 void RenderToScreenPass::Initialize(int width, int height) {
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
+    
+    // Reset
+    if(m_inputTexture) {
+        // Add our texture back to vertex buffer to ensure it is deleted, not the one currently attached
+        m_framebuffers[0]->SetTexture(m_inputTexture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+    }
+    
+    auto fi = m_framebuffers.begin();
+    for(; fi != m_framebuffers.end(); fi++) {
+        delete(*fi);
+    }
+    m_framebuffers.clear();
+    
+    if(m_vertexBuffer) {
+        delete m_vertexBuffer;
+    }
+    
+    if(m_vertexFormat) {
+        delete m_vertexFormat;
+    }
     
     // Load shaders
     Shader* vshader = dynamic_cast<Shader*>(resourceSystem->LoadResource("ortho.vs", "Shader"));
@@ -79,7 +100,7 @@ void RenderToScreenPass::Render(Scene* scene) {
     m_program->Set("inputTexture", 0);
 
     renderSystem->Draw(DRAW_TRIANGLE_STRIP, vertexCount);
-    
+
     m_inputTexture->Unbind();
     m_program->Unbind();
     
