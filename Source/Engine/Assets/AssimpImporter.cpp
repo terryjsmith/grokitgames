@@ -24,7 +24,7 @@ Node* CreateNodeHeirarchy(const aiNode* pNode) {
     n->name = pNode->mName.C_Str();
     n->transform = mat4_convert(pNode->mTransformation);
     
-    for (uint i = 0 ; i < pNode->mNumChildren ; i++) {
+    for (uint32_t i = 0 ; i < pNode->mNumChildren ; i++) {
         Node* child = CreateNodeHeirarchy(pNode->mChildren[i]);
         child->parent = n;
         n->children.push_back(child);

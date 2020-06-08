@@ -54,7 +54,7 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     logSystem->Log(Error::MSG_INFO, "Window created @ " + std::to_string(width) + " x " + std::to_string(height));
     logSystem->Log(Error::MSG_INFO, std::string("GL version: ") + (char*)glGetString(GL_VERSION));
     logSystem->Log(Error::MSG_INFO, std::string("GL renderer: ") + (char*)glGetString(GL_RENDERER));
-    logSystem->Log(Error::MSG_INFO, std::string("GLSL version: ") + (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+    //logSystem->Log(Error::MSG_INFO, std::string("GLSL version: ") + (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
 bool Window::IsClosing() {
