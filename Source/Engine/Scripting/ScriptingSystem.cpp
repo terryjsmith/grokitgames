@@ -1,31 +1,19 @@
 
 #include <Scripting/ScriptingSystem.h>
-#include <libplatform/libplatform.h>
 #include <Core/Application.h>
 #include <Core/MessageSystem.h>
 #include <Core/World.h>
 #include <IO/ResourceSystem.h>
 #include <IO/Profiler.h>
-
-#ifdef WIN32
-#include <direct.h>
-#define getcwd    _getcwd
-#else
-#include <unistd.h>
-#endif
+#include <Core/Directory.h>
 
 void ScriptingSystem::Initialize() {
-    v8::V8::InitializeICU();
-    v8::V8::Initialize();
+    m_domain = mono_jit_init("grokitgames");
     
-    m_platform = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(m_platform);
-    
-    char cwd[1000];
-    getcwd(cwd, 1000);
-    std::string file = cwd + std::string("/Resources/");
-    
-    v8::V8::InitializeExternalStartupData(file.c_str());
+    std::string cwd = Directory::GetCurrent() + std::string("/Resources/");
+    std::string libDir = cwd + "Scripting/lib";
+    std::string configDir = cwd + "Scripting/etc";
+    mono_set_dirs(libDir.c_str(),configDir.c_str());
     
     ScriptThread::Initialize();
 }

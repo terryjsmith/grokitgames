@@ -8,7 +8,9 @@
 #include <Scripting/ScriptVariant.h>
 #include <Scripting/ScriptThread.h>
 #include <Core/Message.h>
-#include <v8.h>
+
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
 
 GIGA_CLASS(Singleton)
 class ScriptingSystem : public System, public ScriptThread {
@@ -45,8 +47,8 @@ protected:
     // Registered globals
     std::map<std::string, ScriptVariant*> m_globals;
     
-    // V8 stuff
-    v8::Platform* m_platform;
+    // Mono domain
+    MonoDomain* m_domain;
     
     // Registered event handlers
     struct EventHandler {

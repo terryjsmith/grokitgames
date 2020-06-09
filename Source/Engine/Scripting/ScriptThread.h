@@ -2,7 +2,6 @@
 #ifndef scriptthread_h
 #define scriptthread_h
 
-#include <v8.h>
 #include <Core/GigaObject.h>
 
 class ScriptComponent;
@@ -26,11 +25,6 @@ public:
     * Thread shutdown
     */
     void Shutdown();
-
-    /**
-    * Get isolate
-    */
-    v8::Isolate* GetIsolate() { return m_isolate; }
 
     /**
     * Lock thread
