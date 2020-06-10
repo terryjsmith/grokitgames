@@ -24,6 +24,7 @@ public:
     
     // Return type
     int32_t returnType;
+    std::string strReturnType;
     
     // Static / constructor
     bool isStatic;

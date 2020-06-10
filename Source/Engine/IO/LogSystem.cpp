@@ -24,7 +24,7 @@ void LogSystem::Open(std::string filename) {
     }
     
     m_errorLog = new Resource();
-    m_errorLog->Initialize(filename, Resource::FILEMODE_READWRITE | Resource::FILEMODE_APPEND);
+    m_errorLog->Initialize(filename, Resource::FILEMODE_APPEND);
 }
 
 void LogSystem::Close() {

@@ -222,6 +222,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             MetaFunction* func = new MetaFunction();
             func->name = name;
             func->returnType = internalType;
+            func->strReturnType = rettype;
             func->isStatic = isStatic;
             func->isConstructor = (cursor == CXCursor_Constructor);
             
@@ -601,6 +602,7 @@ int main(int argc, char** argv) {
         MetaFunction* fn = new MetaFunction();
         fn->name = (*fnit)->Get("funcName")->AsString();
         fn->returnType = (*fnit)->Get("returnType")->AsInt();
+        fn->strReturnType = (*fnit)->Get("strReturnType")->AsString();
         fn->isStatic = (*fnit)->Get("isStatic")->AsBool();
         fn->isConstructor = (*fnit)->Get("isConstructor")->AsBool();
         
@@ -722,7 +724,7 @@ int main(int argc, char** argv) {
     
         startOffset = output.length();
         
-        // Variables
+        /* Variables
         auto vlist = cl->GetVariables();
         std::cout << "Has " << (int)vlist.size() << " variables." << endl;
         auto vi = vlist.begin();
@@ -746,7 +748,7 @@ int main(int argc, char** argv) {
                 output += "\tcobj->" + mp->name + " = value->As" + functionMappings[mp->type] + "();\n";
                 output += "}\n\n";
             }
-        }
+        }*/
         
         // Constructors
         bool hasConstructor = false;
@@ -760,9 +762,9 @@ int main(int argc, char** argv) {
             break;
         }
         
-        if (hasConstructor) {
+        /*if (hasConstructor) {
             auto f2 = flist.begin();
-            output += "Variant* metaClass_" + cl->name + "_New(GigaObject* obj, int argc, Variant** argv) {\n";
+            output += "* metaClass_" + cl->name + "_New(GigaObject* obj, int argc, Variant** argv) {\n";
             
             for (; f2 != flist.end(); f2++) {
                 MetaFunction* mf2 = (*f2);
@@ -800,34 +802,14 @@ int main(int argc, char** argv) {
             
             output += "\n\tGIGA_ASSERT(false, \"No matching constructor with those arguments.\");\n\treturn(0);";
             output += "\n}\n\n";
-        }
+        }*/
         
         // Functions
         cout << "Has " << (int)flist.size() << " functions." << endl;
-        std::map<std::string, bool> funcNames;
         flist = cl->GetFunctions();
         auto fi = flist.begin();
         for (; fi != flist.end(); fi++) {
             MetaFunction* mf = (*fi);
-            
-            cout << "Checking function " << mf->name << endl;
-            if(funcNames.find(mf->name) != funcNames.end()) {
-                cout << "Skipping function " << mf->name << endl;
-                continue;
-            }
-            
-            funcNames[mf->name] = true;
-            
-            // Look for any other functions with the same name
-            std::vector<MetaFunction*> funcs;
-            funcs.push_back(mf);
-            auto fi2 = flist.begin();
-            for (; fi2 != flist.end(); fi2++) {
-                MetaFunction* mf2 = (*fi2);
-                if(mf2->name == mf->name && mf != mf2) {
-                    funcs.push_back(mf2);
-                }
-            }
             
             // Skip constructors
             if (mf->isConstructor == true) {
@@ -835,88 +817,55 @@ int main(int argc, char** argv) {
                 continue;
             }
             
-            output += "Variant* metaClass_" + cl->name + "_" + mf->name + "(GigaObject* obj, int argc, Variant** argv) {\n";
-            
-            auto fli = funcs.begin();
-            for(; fli != funcs.end(); fli++) {
-                output += "\tif(argc == " + std::to_string((*fli)->params.size()) + ") {\n";
-                auto ai = (*fli)->params.begin();
-                if((*fli)->params.size() > 0) {
-                    output += "\t\tif(true";
-                
-                    int counter = 0;
-                    for(; ai != (*fli)->params.end(); ai++) {
-                        output += " && argv[" + std::to_string(counter) + "]->Is" + functionMappings[(*ai)->type] + "()";
-                        counter++;
-                    }
+            std::string params = "";
+            std::string paramsShort = "";
+            auto pi = mf->params.begin();
+            for (; pi != mf->params.end(); pi++) {
+                if (pi != mf->params.begin()) {
+                    params += ",";
+                    paramsShort += ",";
+                }
 
-                    output += ") { \n";
+                std::string type = (*pi)->typeStr;
+                if (type == "std::string") {
+                    type = "MonoString*";
                 }
-                
-                if ((*fli)->isStatic == false) {
-                    // Cast object
-                    if (cl->singleton == false) {
-                        output += "\t\t\t" + cl->name + "* cobj = dynamic_cast<" + cl->name + "*>(obj);\n";
-                        output += "\t\t\tGIGA_ASSERT(cobj != 0, \"Object is not of the correct type.\");\n";
-                    }
-                    else {
-                        output += "\t\t\tMetaSystem* metaSystem = GetSystem<MetaSystem>();\n";
-                        output += "\t\t\t" + cl->name + "* cobj = dynamic_cast<" + cl->name + "*>(metaSystem->GetSingleton(\"" + cl->name + "\"));\n";
-                        output += "\t\t\tGIGA_ASSERT(cobj != 0, \"Singleton class type not found.\");\n";
-                    }
+                params += type + " " + (*pi)->name;
+                paramsShort += (*pi)->name;
+            }
+
+            std::string returnType = (*fi)->returnType == -1 ? "void" : mf->strReturnType;
+            output += returnType + " metaClass_" + cl->name + "_" + mf->name + "(" + params + ") {\n";
+            
+            if ((*fi)->isStatic == false) {
+                // Cast object
+                if (cl->singleton == true) {
+                    output += "\t\t\tMetaSystem* metaSystem = GetSystem<MetaSystem>();\n";
+                    output += "\t\t\t" + cl->name + "* cobj = dynamic_cast<" + cl->name + "*>(metaSystem->GetSingleton(\"" + cl->name + "\"));\n";
+                    output += "\t\t\tGIGA_ASSERT(cobj != 0, \"Singleton class type not found.\");\n";
+                }
                     
-                    output += "\n";
-                    
-                    if ((*fli)->returnType != -1) {
-                        output += "\t\t\treturn(new Variant(";
-                    }
-                    else {
-                        output += "\t\t\t";
-                    }
-                }
-                else {
-                    if ((*fli)->returnType != -1) {
-                        output += "\t\t\treturn(new Variant(";
-                    }
-                    else {
-                        output += "\t\t\t";
-                    }
-                }
+                output += "\n";
                 
                 // Function call
-                if ((*fli)->isStatic == false) {
-                    output += "cobj->" + (*fli)->name + "(";
+                if ((*fi)->isStatic == false) {
+                    output += "cobj->" + (*fi)->name + "(";
                 }
                 else {
-                    output += "\t\t\t" + cl->name + "::" + (*fli)->name + "(";
+                    output += "\t\t\t" + cl->name + "::" + (*fi)->name + "(";
                 }
-                ai = (*fli)->params.begin();
-                argc = 0;
-                for (; ai != (*fli)->params.end(); ai++) {
-                    output += "argv[" + std::to_string(argc) + "]->As" + functionMappings[(*ai)->type];
-                    if ((*ai)->type== Variant::VAR_OBJECT) {
-                        output += "<" + (*ai)->typeStr + ">";
-                    }
-                    output += "(),";
-                    argc++;
-                }
-                // Trim final comma
-                if (argc > 0) {
-                    output = output.substr(0, output.length() - 1);
-                }
-                else {
-                    //output += ")";
-                }
+
+                output += paramsShort;
                 
                 output += ")";
-                if ((*fli)->returnType == -1) {
-                    output += ";\n\t\t\treturn(new Variant(0));";
+                if ((*fi)->returnType == -1) {
+                    output += ";\n";
                 }
                 else {
-                    if ((*fli)->isStatic == false) {
+                    if ((*fi)->isStatic == false) {
                         output += "));";
                     } else {
-                        if ((*fli)->returnType == -1) {
+                        if ((*fi)->returnType == -1) {
                             output += ";";
                         }
                         else {
@@ -925,7 +874,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 
-                if((*fli)->params.size() > 0) {
+                if((*fi)->params.size() > 0) {
                     output += "\n\t\t}";
                 }
                 

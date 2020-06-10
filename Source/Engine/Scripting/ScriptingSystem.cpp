@@ -7,15 +7,43 @@
 #include <IO/Profiler.h>
 #include <Core/Directory.h>
 
+class MeshComponent {
+
+};
+
+MonoClass* mcClass = 0;
+
+void StartAnimation(MeshComponent* mc, MonoString* animation, bool loop, float weight) {
+    int a = 0;
+}
+
+MonoObject* LoadMeshComponent(MonoString* filename) {
+    char* fname = mono_string_to_utf8(filename);
+    
+    MeshComponent* mc = new MeshComponent();
+    return(mono_value_box(mono_domain_get(), mcClass, (void*)mc));
+}
+
 void ScriptingSystem::Initialize() {
-    m_domain = mono_jit_init("grokitgames");
-    
-    std::string cwd = Directory::GetCurrent() + std::string("/Resources/");
-    std::string libDir = cwd + "Scripting/lib";
-    std::string configDir = cwd + "Scripting/etc";
-    mono_set_dirs(libDir.c_str(),configDir.c_str());
-    
-    ScriptThread::Initialize();
+    std::string cwd = "C:\\Users\\Smith\\Documents\\Projects\\ThirdParty\\mono\\";
+    std::string libDir = cwd + "lib";
+    std::string configDir = cwd + "etc";
+    mono_set_dirs(libDir.c_str(), configDir.c_str());
+
+    m_domain = mono_jit_init("GrokItGames");
+
+    MonoAssembly* assembly = mono_domain_assembly_open(m_domain, "Resources\\Scripts\\ClassLibrary1.dll");
+    mono_add_internal_call("GIGA.AnimationSystem::StartAnimation", StartAnimation);
+    mono_add_internal_call("GIGA.MeshComponent::Create", LoadMeshComponent);
+
+    MonoImage* image = mono_assembly_get_image(assembly);
+    MonoClass* main_class = mono_class_from_name(image, "GIGA", "Engine");
+    mcClass = mono_class_from_name(image, "GIGA", "MeshComponent");
+
+    MonoMethodDesc* entry_point_method_desc = mono_method_desc_new("GIGA.Engine:Startup()", true);
+    MonoMethod* entry_point_method = mono_method_desc_search_in_class(entry_point_method_desc, main_class);
+
+    mono_runtime_invoke(entry_point_method, nullptr, nullptr, nullptr);
 }
 
 void ScriptingSystem::SetGlobal(std::string name, Variant* value) {
@@ -34,11 +62,6 @@ void ScriptingSystem::Update(float delta) {
     PROFILE_START_AREA("ScriptingSystem");
     Variant* d = new Variant(delta);
     
-    ScriptThread::Lock(this);
-    
-    // Update cache
-    ScriptThread::UpdateCache();
-    
     // Add to any existing script components
     World* world = World::GetInstance();
     std::vector<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
@@ -56,15 +79,13 @@ void ScriptingSystem::Update(float delta) {
     }
     
     delete d;
-    ScriptThread::Unlock();
+
     PROFILE_END_AREA("ScriptingSystem");
 }
 
 void ScriptingSystem::RegisterEventHandler(std::string type, std::string funcName) {
     // Get current thread out of isolate
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    ScriptThread* thread = (ScriptThread*)isolate->GetData(0);
-    ScriptComponent* component = thread->GetCurrentScript();
+    ScriptComponent* component = 0;
     
     // Get the registered type ID
     MessageSystem* messageSystem = GetSystem<MessageSystem>();
@@ -85,7 +106,6 @@ void ScriptingSystem::ScriptEventHandler(GigaObject* obj, Message* message) {
     Variant* mv = new Variant(message);
     
     ScriptingSystem* scriptingSystem = (ScriptingSystem*)obj;
-    scriptingSystem->ScriptThread::Lock(scriptingSystem);
     
     std::vector<EventHandler*>::iterator it = scriptingSystem->m_eventHandlers.begin();
     for(; it != scriptingSystem->m_eventHandlers.end(); it++) {
@@ -105,6 +125,5 @@ void ScriptingSystem::ScriptEventHandler(GigaObject* obj, Message* message) {
         }
     }
     
-    scriptingSystem->ScriptThread::Unlock();
     delete mv;
 }

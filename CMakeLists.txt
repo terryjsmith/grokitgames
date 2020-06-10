@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(grokitgames)
+project(grokitgames LANGUAGES C CXX CSharp)
 
 # options
 option(USE_OPENGL "Build the OpenGL renderer" ON)
@@ -19,7 +19,7 @@ find_library(LIBRARY_BULLET_LINEARMATH LinearMath "${DEPENDENCY_PATH}/bullet/lib
 find_library(LIBRARY_LIBCURL curl "${DEPENDENCY_PATH}/libcurl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_SSL ssl "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_CRYPTO crypto "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
-find_library(LIBRARY_ZLIB zlib "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
+find_library(LIBRARY_ZLIB zlib "${DEPENDENCY_PATH}/zip/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_ASSIMP assimp "${DEPENDENCY_PATH}/assimp/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_IRRXML IrrXML "${DEPENDENCY_PATH}/assimp/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_FMOD fmod "${DEPENDENCY_PATH}/fmod/lib" NO_DEFAULT_PATH)
@@ -89,6 +89,7 @@ list (APPEND ENGINE_LIBS ${LIBRARY_ASSIMP})
 list (APPEND ENGINE_LIBS ${LIBRARY_IRRXML})
 list (APPEND ENGINE_LIBS ${LIBRARY_FMOD})
 list (APPEND ENGINE_LIBS ${LIBRARY_MONO})
+list (APPEND ENGINE_LIBS ${LIBRARY_ZLIB})
 
 IF(WIN32)
 	list (APPEND ENGINE_LIBS "legacy_stdio_definitions.lib")
@@ -100,6 +101,8 @@ IF(WIN32)
 	list (APPEND ENGINE_LIBS "Dbghelp.lib")
 	list (APPEND ENGINE_LIBS "ShLwApi.Lib")
 	list (APPEND ENGINE_LIBS "Wldap32.Lib")
+	list (APPEND ENGINE_LIBS "Version.lib")
+	list (APPEND ENGINE_LIBS "Bcrypt.lib")
 ENDIF()
 
 IF(APPLE)
@@ -263,7 +266,7 @@ add_dependencies(meta generator-prebuild)
 ## game client
 ##
 
-add_executable(game Source/Game/main.cpp)
+add_executable(game Source/Game/main.cpp Source/Game/register_globals.cpp)
 
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")

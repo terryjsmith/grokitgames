@@ -4,8 +4,9 @@
 
 #include <Core/Component.h>
 #include <Scripting/Script.h>
-#include <Scripting/ScriptThread.h>
-#include <v8.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/debug-helpers.h>
+
 
 GIGA_CLASS()
 class GIGA_API ScriptComponent : public Component {
@@ -31,7 +32,7 @@ public:
      */
     struct ScriptFunction {
         std::string funcName;
-        v8::Persistent<v8::Function> func;
+        MonoMethod* func;
     };
 
     /**
@@ -42,15 +43,6 @@ public:
 protected:
     // Our script
      Script* m_scriptSource;
-
-    // The thread this script was created on
-    ScriptThread* m_thread;
-
-    // Our internal script object
-    v8::Persistent<v8::Script, v8::CopyablePersistentTraits<v8::Script>> m_script;
-
-    // Our internal context
-    v8::Persistent<v8::Context, v8::CopyablePersistentTraits<v8::Context>> m_context;
 
     // List of functions from inside of the script
     std::vector<ScriptFunction*> m_functions;

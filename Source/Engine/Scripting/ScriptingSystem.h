@@ -4,16 +4,15 @@
 
 #include <Core/System.h>
 #include <Scripting/ScriptComponent.h>
-#include <Scripting/ScriptCallbackHandler.h>
 #include <Scripting/ScriptVariant.h>
-#include <Scripting/ScriptThread.h>
 #include <Core/Message.h>
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
+#include <mono/metadata/debug-helpers.h>
 
 GIGA_CLASS(Singleton)
-class ScriptingSystem : public System, public ScriptThread {
+class GIGA_API ScriptingSystem : public System {
 public:
     ScriptingSystem() = default;
     ~ScriptingSystem() = default;

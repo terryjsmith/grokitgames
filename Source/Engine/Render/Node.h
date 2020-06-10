@@ -4,7 +4,7 @@
 
 #include <Core/Transform.h>
 
-class Node {
+class GIGA_API Node {
 public:
     Node();
     ~Node() = default;
