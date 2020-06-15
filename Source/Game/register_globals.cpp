@@ -8,7 +8,7 @@
 void RegisterGlobals() {
     ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
     
-    // Register keyboard
+    /* Register keyboard
     scriptingSystem->SetGlobal("INPUTDEVICE_KEYBOARD", new Variant(INPUTDEVICE_KEYBOARD));
     
     // Commands
@@ -47,6 +47,6 @@ void RegisterGlobals() {
     scriptingSystem->SetGlobal("KEY_W", new Variant(KEY_W));
     scriptingSystem->SetGlobal("KEY_X", new Variant(KEY_X));
     scriptingSystem->SetGlobal("KEY_Y", new Variant(KEY_Y));
-    scriptingSystem->SetGlobal("KEY_Z", new Variant(KEY_Z));
+    scriptingSystem->SetGlobal("KEY_Z", new Variant(KEY_Z));*/
 
 }

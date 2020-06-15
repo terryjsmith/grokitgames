@@ -1,0 +1,9 @@
+prefix=/Users/terryjsmith/Documents/Projects/ThirdParty/mono
+exec_prefix=${prefix}
+libdir=/Users/terryjsmith/Documents/Projects/ThirdParty/mono/lib
+sourcesdir=${libdir}/monodoc/sources
+
+Name: Monodoc
+Description: Monodoc - Mono Documentation Tools
+Version: 6.8.0.123
+Libs: /r:${prefix}/lib/mono/monodoc/monodoc.dll 

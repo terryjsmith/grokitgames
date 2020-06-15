@@ -5,10 +5,13 @@
 #include <Core/GigaObject.h>
 #include <IO/Resource.h>
 
+GIGA_CLASS()
 class GIGA_API ResourceObject : public GigaObject {
 public:
     ResourceObject() = default;
     virtual ~ResourceObject();
+    
+    GIGA_CLASS_NAME("ResourceObject");
     
     /**
      * Process loaded data

@@ -50,12 +50,20 @@ public:
      */
     void SetSingleton(GigaObject* obj);
     
+    /**
+     * Get next available type ID
+     */
+    uint32_t GetNextTypeID() { m_maxTypeID += 10; return(m_maxTypeID); }
+    
 protected:
     // Class definitions
     std::vector<Meta::Class*> m_definitions;
     
     // Singleton instances
     std::vector<GigaObject*> m_singletons;
+    
+    // Next type ID
+    uint32_t m_maxTypeID;
 };
 
 #endif

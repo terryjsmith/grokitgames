@@ -15,7 +15,7 @@ public:
     /**
      * Express time as string
      */
-    GIGA_FUNCTION() std::string ToString();
+    GIGA_FUNCTION() std::string ToStr();
         
     /**
      * Get current datetime

@@ -9,6 +9,7 @@ class Entity;
 /**
  * Base component class - components are added to Entity objects
  */
+GIGA_CLASS()
 class GIGA_API Component : public GigaObject {
 public:
     virtual ~Component() = default;

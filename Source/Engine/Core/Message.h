@@ -20,7 +20,7 @@ public:
     /**
      * Get details
      */
-    GIGA_FUNCTION() uint32_t GetType() { return type; }
+    GIGA_FUNCTION() uint32_t GetMessageType() { return type; }
     GIGA_FUNCTION() GigaObject* GetObject() { return obj; }
     
 public:
@@ -30,4 +30,6 @@ public:
     GigaObject* obj;
 };
 
+
 #endif
+

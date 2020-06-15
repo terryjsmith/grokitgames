@@ -4,8 +4,6 @@
 
 #include <Core/GigaObject.h>
 
-class ResourceSystem;
-
 GIGA_CLASS() 
 class GIGA_API Resource : public GigaObject {
 public:
@@ -28,7 +26,7 @@ public:
     /**
      * Get raw data
      */
-    GIGA_FUNCTION() unsigned char* GetData();
+    unsigned char* GetData();
     
     /**
      * Get data as string
@@ -84,8 +82,6 @@ public:
      * Go to a specific position in the file
      */
     void SetPosition(unsigned int offset);
-    
-    friend class ResourceSystem;
     
     /**
      * File opening modes (can/should be OR'd together)

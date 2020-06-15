@@ -13,6 +13,7 @@ enum {
 /**
  * Generic input device base class (to be initialized by platform)
  */
+GIGA_CLASS()
 class GIGA_API InputDevice : public GigaObject {
 public:
     ~InputDevice() = default;

@@ -83,10 +83,10 @@ public:
     
 public:
     // Name
-    std::string name;
+    GIGA_VARIABLE(Get, Set) std::string name;
     
     // ID
-    uint32_t entityID;
+    GIGA_VARIABLE(Get, Set) uint32_t entityID;
     
 protected:
     // List of components

@@ -24,7 +24,7 @@ public:
     /**
     * Call a function on this object by passing a variable number of variants
     */
-    Variant* Call(std::string func, int argc, Variant** argv);
+    virtual Variant* Call(std::string func, int argc, Variant** argv);
     
     /**
      * Serialization

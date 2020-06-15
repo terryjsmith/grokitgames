@@ -61,6 +61,24 @@ int main(int argc, const char * argv[]) {
     // Open error log
     logSystem->Open("error.log");
     
+    // Set up resource paths
+    std::string gamePath = "../pokeclone/";
+    resourceSystem->AddSearchPath(gamePath + "Resources/Shaders");
+    resourceSystem->AddSearchPath(gamePath + "Resources/Models");
+    resourceSystem->AddSearchPath(gamePath + "Resources/Textures");
+    resourceSystem->AddSearchPath(gamePath + "Resources/Terrain");
+    resourceSystem->AddSearchPath(gamePath + "Resources/Scripts");
+    resourceSystem->AddSearchPath(gamePath + "Resources/Audio");
+    
+    // Register meta data
+    MetaData::RegisterMetaFunctions();
+    
+    // Initialize the world
+    World* world = World::GetInstance();
+    
+    // Start scripting system
+    scriptingSystem->Start();
+    
     // Create window
     Window* window = Window::GetInstance();
     window->Create("Game", 800, 600, false);
@@ -71,20 +89,6 @@ int main(int argc, const char * argv[]) {
     
     // Initialize render system
     renderSystem->Initialize(framebufferWidth, framebufferHeight, false);
-    
-    // Set up resource paths
-    resourceSystem->AddSearchPath("Resources/Shaders");
-    resourceSystem->AddSearchPath("Resources/Models");
-    resourceSystem->AddSearchPath("Resources/Textures");
-    resourceSystem->AddSearchPath("Resources/Terrain");
-    resourceSystem->AddSearchPath("Resources/Scripts");
-    resourceSystem->AddSearchPath("Resources/Audio");
-    
-    // Register meta data
-    MetaData::RegisterMetaFunctions();
-    
-    // Initialize the world
-    World* world = World::GetInstance();
     
     /* Create a shape
     Shape* shape = new Shape();

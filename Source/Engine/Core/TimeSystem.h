@@ -17,12 +17,12 @@ public:
     /**
      * Get current timestamp (UTC)
      */
-    GIGA_FUNCTION() static void GetTimestamp(struct timespec *ts);
+    static void GetTimestamp(struct timespec *ts);
     
     /**
      * Get difference between two timespecs
      */
-    GIGA_FUNCTION() static timespec Diff(timespec* start, timespec* end);
+    static timespec Diff(timespec* start, timespec* end);
     
     /**
      * Sleep

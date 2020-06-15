@@ -48,7 +48,7 @@ public:
     /**
      * Getters
      */
-    GIGA_FUNCTION() int GetType() { return m_message; }
+    GIGA_FUNCTION() int GetCommandType() { return m_message; }
     GIGA_FUNCTION() int GetState() { return m_state; }
     GIGA_FUNCTION() int GetEntityID() { return m_entityID; }
     GIGA_FUNCTION() int GetCommandID() { return m_commandID; }

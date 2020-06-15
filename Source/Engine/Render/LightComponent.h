@@ -34,7 +34,7 @@ public:
     /**
      * Get light type
      */
-    GIGA_FUNCTION() int GetType() { return m_type; }
+    GIGA_FUNCTION() int GetLightType() { return m_type; }
     
     /**
      * Get/set color

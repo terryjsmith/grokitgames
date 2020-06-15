@@ -32,7 +32,11 @@ void Application::Update(float delta) {
             if ((*i)->accumulator > (1.0f / (*i)->tickRate)) {
                 float theta = (1.0f / (*i)->tickRate);
                 (*i)->accumulator -= theta;
-                (*i)->system->Update(theta);
+                // (*i)->system->Update(theta);
+                
+                Variant* args[1];
+                args[0] = new Variant(theta);
+                (*i)->system->Call("Update", 1, args);
             }
         }
     }

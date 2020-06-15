@@ -166,12 +166,12 @@ void LightingPass::Render(Scene* scene) {
         // Bind vars
         m_program->Set("lightPosition", lc->transform->GetWorldPosition());
         m_program->Set("lightColour", lc->GetColor());
-        m_program->Set("lightType", lc->GetType());
+        m_program->Set("lightType", lc->GetLightType());
         m_program->Set("farPlane", cc->GetFar());
         m_program->Set("nearPlane", cc->GetNear());
         m_program->Set("lightDirection", lc->transform->GetLook());
     
-        if(lc->GetType() == LightComponent::LIGHT_POINT) {
+        if(lc->GetLightType() == LightComponent::LIGHT_POINT) {
             lc->GetDepthTexture(0)->Bind(4);
             m_program->Set("lightShadowMap3D", 4);
             
@@ -179,7 +179,7 @@ void LightingPass::Render(Scene* scene) {
             renderSystem->Draw(DRAW_TRIANGLE_STRIP, 4);
         }
         
-        if(lc->GetType() == LightComponent::LIGHT_SPOT) {
+        if(lc->GetLightType() == LightComponent::LIGHT_SPOT) {
             // Get light "camera"
             CameraComponent* cc = lc->GetCamera(0);
             matrix4 viewproj = cc->GetProjectionMatrix();
@@ -195,7 +195,7 @@ void LightingPass::Render(Scene* scene) {
             renderSystem->Draw(DRAW_TRIANGLE_STRIP, 4);
         }
         
-        if(lc->GetType() == LightComponent::LIGHT_DIRECTIONAL) {
+        if(lc->GetLightType() == LightComponent::LIGHT_DIRECTIONAL) {
             int passes = 4;
             for(int i = 0; i < passes; i++) {
                 lc->GetDepthTexture(i)->Bind(7 + i);

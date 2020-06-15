@@ -62,6 +62,11 @@ public:
         return(components);
     }
     
+    /**
+     * Get next available entity ID
+     */
+    GIGA_FUNCTION() uint32_t GetNextEntityID() { return m_nextEntityID++; }
+    
 protected:
     // All entities in the world
     std::vector<Entity*> m_entities;

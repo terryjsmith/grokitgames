@@ -6,56 +6,230 @@
 #include <IO/ResourceSystem.h>
 #include <IO/Profiler.h>
 #include <Core/Directory.h>
+#include <Scripting/ScriptObject.h>
+#include <Scripting/MonoEntity.h>
+#include <Scripting/MonoComponent.h>
+#include <Scripting/MonoSystem.h>
 
-class MeshComponent {
-
-};
-
-MonoClass* mcClass = 0;
-
-void StartAnimation(MeshComponent* mc, MonoString* animation, bool loop, float weight) {
-    int a = 0;
+GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
+    ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
+    
+    // Search first
+    GigaObject* newobj = 0;
+    auto oi = scriptingSystem->m_objects.begin();
+    for(; oi != scriptingSystem->m_objects.end(); oi++) {
+        if((*oi)->remote == obj) {
+            newobj = (*oi)->local;
+            break;
+        }
+    }
+    
+    if(newobj) {
+        return(newobj);
+    }
+    
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+    
+    // Figure out what type it is
+    MonoClass* _class = mono_object_get_class(obj);
+    
+    // Find the cached class description
+    MonoClassDesc* cl = 0;
+    auto it = scriptingSystem->m_classes.begin();
+    for(; it != scriptingSystem->m_classes.end(); it++) {
+        if(it->second->_class == _class) {
+            cl = it->second;
+            break;
+        }
+    }
+    
+    GIGA_ASSERT(cl != 0, "Class type not found.");
+    
+    Meta::Class* mc = metaSystem->FindClass(cl->name);
+    
+    // Create a new script object
+    newobj = mc->CreateObject();
+    
+    // If this is a remote only object (class doesn't exist locally), set class type
+    ScriptObject* sc = dynamic_cast<ScriptObject*>(newobj);
+    if(sc != 0) {
+        sc->classType = cl;
+    }
+    
+    MonoEntity* me = dynamic_cast<MonoEntity*>(newobj);
+    if(me != 0) {
+        me->classType = cl;
+    }
+    
+    MonoComponent* mcn = dynamic_cast<MonoComponent*>(newobj);
+    if(mcn != 0) {
+        mcn->classType = cl;
+    }
+    
+    MonoSystem* ms = dynamic_cast<MonoSystem*>(newobj);
+    if(ms != 0) {
+        ms->classType = cl;
+    }
+    
+    CachedObject* cobj = new CachedObject();
+    cobj->local = newobj;
+    cobj->remote = obj;
+    
+    scriptingSystem->m_objects.push_back(cobj);
+    
+    return(newobj);
 }
 
-MonoObject* LoadMeshComponent(MonoString* filename) {
-    char* fname = mono_string_to_utf8(filename);
+void ScriptingSystem::Start() {
+    // Load base engine functionality (tie back to engine c++ code)
+    MonoImage* image = this->LoadLibrary("Resources/Scripting/GIGAEngine.dll");
     
-    MeshComponent* mc = new MeshComponent();
-    return(mono_value_box(mono_domain_get(), mcClass, (void*)mc));
+    // Tie our constructor for new objects
+    mono_add_internal_call("GIGA.GigaObject::internal_GigaObject_Ctor", (void*)internal_GigaObject_Ctor);
+    
+    // Register tie back functions
+    RegisterMonoFunctions();
+    
+    m_cachedTypes[Variant::VAR_BOOL] = mono_get_boolean_class();
+    m_cachedTypes[Variant::VAR_INT32] = mono_get_int32_class();
+    m_cachedTypes[Variant::VAR_INT64] = mono_get_int64_class();
+    m_cachedTypes[Variant::VAR_UINT32] = mono_get_uint32_class();
+    m_cachedTypes[Variant::VAR_UINT64] = mono_get_uint64_class();
+    m_cachedTypes[Variant::VAR_FLOAT] = mono_get_double_class();
+    m_cachedTypes[Variant::VAR_STRING] = mono_get_string_class();
+    m_cachedTypes[Variant::VAR_VECTOR2] = mono_class_from_name(image, "GIGA", "Vector2");
+    m_cachedTypes[Variant::VAR_VECTOR3] = mono_class_from_name(image, "GIGA", "Vector3");
+    m_cachedTypes[Variant::VAR_VECTOR4] = mono_class_from_name(image, "GIGA", "Vector4");
+    m_cachedTypes[Variant::VAR_QUATERNION] = mono_class_from_name(image, "GIGA", "Quaternion");
+    
+    this->LoadLibrary("/Users/terryjsmith/Documents/Projects/pokeclone/Resources/Scripts/game.dll");
+    
+    MonoObject* exc = 0;
+    mono_runtime_invoke(m_classes["HelloWorld"]->methods["Hello"]->method, nullptr, nullptr, &exc);
+    if(exc) {
+        mono_print_unhandled_exception(exc);
+        GIGA_ASSERT(false, "Unable to run startup function.");
+    }
 }
 
 void ScriptingSystem::Initialize() {
-    std::string cwd = "C:\\Users\\Smith\\Documents\\Projects\\ThirdParty\\mono\\";
-    std::string libDir = cwd + "lib";
-    std::string configDir = cwd + "etc";
+    std::string cwd = Directory::GetCurrent();
+    std::string libDir = cwd + "/Resources/Scripting/lib";
+    std::string configDir = cwd + "/Resources/Scripting/etc";
     mono_set_dirs(libDir.c_str(), configDir.c_str());
 
     m_domain = mono_jit_init("GrokItGames");
-
-    MonoAssembly* assembly = mono_domain_assembly_open(m_domain, "Resources\\Scripts\\ClassLibrary1.dll");
-    mono_add_internal_call("GIGA.AnimationSystem::StartAnimation", StartAnimation);
-    mono_add_internal_call("GIGA.MeshComponent::Create", LoadMeshComponent);
-
-    MonoImage* image = mono_assembly_get_image(assembly);
-    MonoClass* main_class = mono_class_from_name(image, "GIGA", "Engine");
-    mcClass = mono_class_from_name(image, "GIGA", "MeshComponent");
-
-    MonoMethodDesc* entry_point_method_desc = mono_method_desc_new("GIGA.Engine:Startup()", true);
-    MonoMethod* entry_point_method = mono_method_desc_search_in_class(entry_point_method_desc, main_class);
-
-    mono_runtime_invoke(entry_point_method, nullptr, nullptr, nullptr);
+    
+    // Set up mappings
+    m_variantMappings["Vector2"] = Variant::VAR_VECTOR2;
+    m_variantMappings["Vector3"] = Variant::VAR_VECTOR3;
+    m_variantMappings["Vector4"] = Variant::VAR_VECTOR4;
+    m_variantMappings["Quaterion"] = Variant::VAR_QUATERNION;
 }
 
-void ScriptingSystem::SetGlobal(std::string name, Variant* value) {
-    m_globals[name] = (ScriptVariant*)value;
+MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
     
-    // Add to any existing script components
-    World* world = World::GetInstance();
-    std::vector<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
-    std::vector<ScriptComponent*>::iterator i = components.begin();
-    for (i; i != components.end(); i++) {
-        (*i)->SetGlobal(name, value);
+    // Load assembly
+    MonoAssembly* assembly = mono_domain_assembly_open(m_domain, filename.c_str());
+    MonoImage* image = mono_assembly_get_image(assembly);
+    
+    // Load classes
+    const MonoTableInfo* table_info = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+    
+    int rows = mono_table_info_get_rows(table_info);
+    for (int i = 0; i < rows; i++) {
+        MonoClass* _class = nullptr;
+        uint32_t cols[MONO_TYPEDEF_SIZE];
+        mono_metadata_decode_row(table_info, i, cols, MONO_TYPEDEF_SIZE);
+        const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+        const char* name_space = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+        _class = mono_class_from_name(image, name_space, name);
+        
+        if(strcmp(name, "<Module>") == 0) {
+            continue;
+        }
+        
+        MonoClassDesc* cl = new MonoClassDesc();
+        cl->name = name;
+        cl->_class = _class;
+        
+        m_classes[name] = cl;
+        
+        // Make sure the class name is registered with the meta system
+        if(strcmp(name_space, "GIGA") != 0) {
+            // Get the other class types
+            MonoClassDesc* entityClass = m_classes["GameObject"];
+            MonoClassDesc* componentClass = m_classes["GameComponent"];
+            MonoClassDesc* systemClass = m_classes["GameSystem"];
+            
+            Meta::Class* mcl = metaSystem->FindClass(name);
+            if(mcl == 0) {
+                // Create new meta class
+                mcl = new Meta::Class();
+                mcl->name = name;
+                
+                // Registered, check for special types from ECS model
+                bool registered = false;
+                if(mono_class_is_subclass_of(_class, entityClass->_class, false)) {
+                    mcl->RegisterConstructor<MonoEntity>();
+                    registered = true;
+                }
+                
+                if(mono_class_is_subclass_of(_class, componentClass->_class, false)) {
+                    mcl->RegisterConstructor<MonoComponent>();
+                    registered = true;
+                }
+                
+                if(mono_class_is_subclass_of(_class, systemClass->_class, false)) {
+                    mcl->RegisterConstructor<MonoSystem>();
+                    registered = true;
+                }
+                
+                // All other objects get registered as generic ScriptObjects
+                if(registered == false) {
+                    mcl->RegisterConstructor<ScriptObject>();
+                }
+                
+                mcl->typeID = metaSystem->GetNextTypeID();
+                mcl->singleton = false;
+                
+                metaSystem->AddClass(mcl);
+            }
+        }
+        
+        // Load functions
+        void* iter = NULL;
+        MonoMethod* method = mono_class_get_methods(_class, &iter);
+        while(method != NULL) {
+            std::string funcName = mono_method_full_name(method, 0);
+            funcName = funcName.substr(funcName.find(":") + 1);
+            
+            MonoMethodDesc* fn = new MonoMethodDesc();
+            fn->name = funcName;
+            fn->method = method;
+            cl->methods[fn->name] = fn;
+            
+            method = mono_class_get_methods(_class, &iter);
+        }
+        
+        // Load fields
+        iter = NULL;
+        MonoClassField* field = mono_class_get_fields(_class, &iter);
+        while(field != NULL) {
+            std::string fieldName = mono_field_full_name(field);
+            fieldName = fieldName.substr(fieldName.find(":") + 1);
+            
+            MonoFieldDesc* fd = new MonoFieldDesc();
+            fd->name = fieldName;
+            fd->field = field;
+            cl->fields[fd->name] = fd;
+            
+            field = mono_class_get_fields(_class, &iter);
+        }
     }
+    
+    return(image);
 }
 
 void ScriptingSystem::Update(float delta) {
@@ -67,15 +241,33 @@ void ScriptingSystem::Update(float delta) {
     std::vector<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
     std::vector<ScriptComponent*>::iterator i = components.begin();
     for (; i != components.end(); i++) {
-        Entity* parent = (*i)->GetParent();
-        Variant* p = new Variant(parent);
-        if(parent) {
-            (*i)->SetGlobal("GameObject", p);
+        // Get the class name
+        auto ci = m_classes.find((*i)->className);
+        GIGA_ASSERT(ci != m_classes.end(), "Class name not found.");
+        
+        // Get the update method
+        auto mi = ci->second->methods.find("Update");
+        if(mi == ci->second->methods.end()) {
+            // Does not implement update function
+            continue;
         }
         
-        (*i)->CallFunction("Update", 1, &d);
+        // Get the cached entity
+        CachedObject* cobj = 0;
+        auto obj = m_objects.begin();
+        for(; obj != m_objects.end(); obj++) {
+            if((*obj)->local == (*i)->GetParent()) {
+                cobj = (*obj);
+                break;
+            }
+        }
         
-        delete p;
+        GIGA_ASSERT(cobj != 0, "Cannot find cached object.");
+        
+        void* args[1];
+        double ddelta = delta;
+        args[0] = &ddelta;
+        mono_runtime_invoke(mi->second->method, cobj->remote, args, nullptr);
     }
     
     delete d;
@@ -103,7 +295,7 @@ void ScriptingSystem::RegisterEventHandler(std::string type, std::string funcNam
 }
 
 void ScriptingSystem::ScriptEventHandler(GigaObject* obj, Message* message) {
-    Variant* mv = new Variant(message);
+    /*Variant* mv = new Variant(message);
     
     ScriptingSystem* scriptingSystem = (ScriptingSystem*)obj;
     
@@ -125,5 +317,293 @@ void ScriptingSystem::ScriptEventHandler(GigaObject* obj, Message* message) {
         }
     }
     
-    delete mv;
+    delete mv;*/
+}
+
+MonoObject* ScriptingSystem::GetRemoteObject(GigaObject* obj) {
+    auto it = m_objects.begin();
+    for(; it != m_objects.end(); it++) {
+        if((*it)->local == obj) {
+            return((*it)->remote);
+        }
+    }
+    
+    // If we get here, we need to create a new object
+    auto ci = m_classes.find(obj->GetGigaName());
+    GIGA_ASSERT(ci != m_classes.end(), "Class name not loaded.");
+    
+    // Create object
+    MonoObject* mobj = mono_object_new(mono_domain_get(), ci->second->_class);
+    
+    // Cache object so it doesn't get re-created in constructor
+    CachedObject* cobj = new CachedObject();
+    cobj->local = obj;
+    cobj->remote = mobj;
+    
+    m_objects.push_back(cobj);
+    
+    // Run constructor
+    mono_runtime_invoke(ci->second->methods[".ctor"]->method, mobj, nullptr, nullptr);
+    
+    return(mobj);
+}
+
+GigaObject* ScriptingSystem::GetLocalObject(MonoObject* obj) {
+    auto it = m_objects.begin();
+    for(; it != m_objects.end(); it++) {
+        if((*it)->remote == obj) {
+            return((*it)->local);
+        }
+    }
+    
+    // If we get here, we need to create a new local object
+    MonoClass* _class = mono_object_get_class(obj);
+    std::string className = mono_class_get_name(_class);
+    
+    // Find class in meta system
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+    Meta::Class* cl = metaSystem->FindClass(className);
+    GIGA_ASSERT(cl != 0, "Class type not found.");
+    
+    // Find class in local system
+    auto ci = m_classes.find(className);
+    GIGA_ASSERT(ci != m_classes.end(), "Remote class type not found.");
+    
+    // If this is a singleton, get the singleton
+    if(cl->singleton == true) {
+        GigaObject* si = metaSystem->GetSingleton(className);
+        GIGA_ASSERT(si != 0, "Singleton not found.");
+        
+        return(si);
+    }
+    
+    // Otherwise, create a new object
+    GigaObject* newobj = cl->CreateObject();
+    
+    // If this is a script object (remote only), set the class name
+    ScriptObject* sc = dynamic_cast<ScriptObject*>(newobj);
+    if(sc != 0) {
+        sc->classType = ci->second;
+    }
+    
+    // Cache
+    CachedObject* cobj = new CachedObject();
+    cobj->local = newobj;
+    cobj->remote = obj;
+    
+    m_objects.push_back(cobj);
+    
+    return(newobj);
+}
+
+Variant* ScriptingSystem::MonoObjectToVariant(MonoObject* mobj) {
+    MonoClass* _class = mono_object_get_class(mobj);
+    std::string className = mono_class_get_name(_class);
+    
+    MonoClassDesc* cl = m_classes[className];
+    
+    int variantType = m_variantMappings[className];
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_INT32]) {
+        int32_t* iv = (int32_t*)mono_object_unbox(mobj);
+        return(new Variant(*iv));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_UINT32]) {
+        uint32_t* iv = (uint32_t*)mono_object_unbox(mobj);
+        return(new Variant(*iv));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_INT64]) {
+        int64_t* iv = (int64_t*)mono_object_unbox(mobj);
+        return(new Variant(*iv));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_UINT64]) {
+        uint64_t* iv = (uint64_t*)mono_object_unbox(mobj);
+        return(new Variant(*iv));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_BOOL]) {
+        bool* bv = (bool*)mono_object_unbox(mobj);
+        return(new Variant(*bv));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_STRING]) {
+        MonoString* str = (MonoString*)mobj;
+        char* val = mono_string_to_utf8(str);
+        return(new Variant(val));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_FLOAT]) {
+        double* iv = (double*)mono_object_unbox(mobj);
+        float f = *iv;
+        return(new Variant(f));
+    }
+    
+    if(variantType == Variant::VAR_VECTOR2) {
+        double x, y;
+        mono_field_get_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_get_value(mobj, cl->fields["y"]->field, &y);
+        
+        return(new Variant(vector2(x, y)));
+    }
+    
+    if(variantType == Variant::VAR_VECTOR3) {
+        double x, y, z;
+        mono_field_get_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_get_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_get_value(mobj, cl->fields["z"]->field, &z);
+        
+        return(new Variant(vector3(x, y, z)));
+    }
+    
+    if(variantType == Variant::VAR_VECTOR4) {
+        double x, y, z, w;
+        mono_field_get_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_get_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_get_value(mobj, cl->fields["z"]->field, &z);
+        mono_field_get_value(mobj, cl->fields["w"]->field, &w);
+        
+        return(new Variant(vector4(x, y, z, w)));
+    }
+    
+    if(variantType == Variant::VAR_QUATERNION) {
+        double x, y, z, w;
+        mono_field_get_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_get_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_get_value(mobj, cl->fields["z"]->field, &z);
+        mono_field_get_value(mobj, cl->fields["w"]->field, &w);
+        
+        return(new Variant(quaternion(w, x, y, z)));
+    }
+    
+    if(cl->_class == m_cachedTypes[Variant::VAR_OBJECT]) {
+        GigaObject* gobj = this->GetLocalObject(mobj);
+        return(new Variant(gobj));
+    }
+    
+    return(0);
+}
+
+MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var) {
+    MonoObject* mobj = 0;
+    
+    if(var->IsInt()) {
+        MonoClass* cl = m_cachedTypes[Variant::VAR_INT32];
+        int iv = var->AsInt();
+        mobj = mono_value_box(mono_domain_get(), cl, &iv);
+    }
+    
+    if(var->IsBool()) {
+        MonoClass* cl = m_cachedTypes[Variant::VAR_BOOL];
+        bool bv = var->AsBool();
+        mobj = mono_value_box(mono_domain_get(), cl, &bv);
+    }
+    
+    if(var->IsUInt()) {
+        MonoClass* cl = m_cachedTypes[Variant::VAR_UINT32];
+        unsigned int iv = var->AsUInt();
+        mobj = mono_value_box(mono_domain_get(), cl, &iv);
+    }
+    
+    if(var->IsFloat()) {
+        MonoClass* cl = m_cachedTypes[Variant::VAR_FLOAT];
+        double dv = var->AsFloat();
+        mobj = mono_value_box(mono_domain_get(), cl, &dv);
+    }
+    
+    if(var->IsString()) {
+        mobj = (MonoObject*)mono_string_new(mono_domain_get(), var->AsString().c_str());
+    }
+    
+    if(var->IsObject()) {
+        mobj = this->GetRemoteObject(var->AsObject());
+    }
+    
+    if(var->IsVector2()) {
+        MonoClassDesc* cl = m_classes["Vector2"];
+        mobj = mono_object_new(mono_domain_get(), cl->_class);
+        mono_runtime_object_init(mobj);
+        vector2 vec = var->AsVector2();
+        
+        double x = vec.x;
+        double y = vec.y;
+        mono_field_set_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_set_value(mobj, cl->fields["y"]->field, &y);
+    }
+    
+    if(var->IsVector3()) {
+        MonoClassDesc* cl = m_classes["Vector3"];
+        mobj = mono_object_new(mono_domain_get(), cl->_class);
+        mono_runtime_object_init(mobj);
+        vector3 vec = var->AsVector3();
+        
+        double x = vec.x;
+        double y = vec.y;
+        double z = vec.z;
+        mono_field_set_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_set_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_set_value(mobj, cl->fields["z"]->field, &z);
+    }
+    
+    if(var->IsVector4()) {
+        MonoClassDesc* cl = m_classes["Vector4"];
+        mobj = mono_object_new(mono_domain_get(), cl->_class);
+        mono_runtime_object_init(mobj);
+        vector4 vec = var->AsVector4();
+        
+        double x = vec.x;
+        double y = vec.y;
+        double z = vec.z;
+        double w = vec.w;
+        mono_field_set_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_set_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_set_value(mobj, cl->fields["z"]->field, &z);
+        mono_field_set_value(mobj, cl->fields["w"]->field, &w);
+    }
+    
+    if(var->IsQuaternion()) {
+        MonoClassDesc* cl = m_classes["Quaternion"];
+        mobj = mono_object_new(mono_domain_get(), cl->_class);
+        mono_runtime_object_init(mobj);
+        quaternion q = var->AsQuaternion();
+        
+        double x = q.x;
+        double y = q.y;
+        double z = q.z;
+        double w = q.w;
+        mono_field_set_value(mobj, cl->fields["x"]->field, &x);
+        mono_field_set_value(mobj, cl->fields["y"]->field, &y);
+        mono_field_set_value(mobj, cl->fields["z"]->field, &z);
+        mono_field_set_value(mobj, cl->fields["w"]->field, &w);
+    }
+    
+    return(mobj);
+}
+
+Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int argc, Variant** argv) {
+    // Get the object
+    MonoObject* mobj = this->GetRemoteObject(obj);
+    std::string className = obj->GetGigaName();
+    
+    auto ci = m_classes.find(className);
+    GIGA_ASSERT(ci != m_classes.end(), "Class name not found.");
+    
+    // Get function
+    auto fi = ci->second->methods.find(func);
+    GIGA_ASSERT(fi != ci->second->methods.end(), "Function not found.");
+    
+    // Set params
+    MonoArray *params = mono_array_new(mono_domain_get(), mono_get_object_class(), argc);
+    for(int i = 0; i < argc; i++) {
+        MonoObject *param_obj = this->VariantToMonoObject(argv[i]);
+        mono_array_setref(params, i, param_obj);
+    }
+    
+    // Call
+    MonoObject* exc = 0;
+    MonoObject* retval = mono_runtime_invoke_array(fi->second->method, mobj, params, &exc);
+    
+    return(MonoObjectToVariant(retval));
 }

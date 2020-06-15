@@ -44,7 +44,7 @@ void LogSystem::Log(int type, std::string message, std::string details) {
         
     // Prepend date/time
     DateTime* dt = DateTime::GetCurrent();
-    output += "[" + dt->ToString() + "] ";
+    output += "[" + dt->ToStr() + "] ";
         
     // Prepend some info
     switch(type) {

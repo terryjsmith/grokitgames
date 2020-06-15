@@ -45,6 +45,12 @@ GigaObject* MetaSystem::CreateClass(uint32_t typeID) {
 }
 
 void MetaSystem::AddClass(Meta::Class* cl) {
+    // Check for not already registered
+    Meta::Class* exists = this->FindClass(cl->typeID);
+    GIGA_ASSERT(exists == 0, "Type ID already registered.");
+    
+    m_maxTypeID = std::max(cl->typeID, m_maxTypeID);
+    
     m_definitions.push_back(cl);
 }
 

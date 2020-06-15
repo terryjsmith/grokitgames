@@ -1,7 +1,7 @@
 
 #include <Core/DateTime.h>
 
-std::string DateTime::ToString() {
+std::string DateTime::ToStr() {
     // Prepare output string
     std::string output;
     output.resize(100);
