@@ -5,17 +5,20 @@
 #include <Core/GigaObject.h>
 #include <Core/Variant.h>
 
-class GIGA_API DataRecord {
+GIGA_CLASS()
+class GIGA_API DataRecord : public GigaObject {
 public:
     DataRecord();
     ~DataRecord();
     
+    GIGA_CLASS_NAME("DataRecord");
+    
     /**
      * Set a key/value pair
      */
-    void Set(std::string var, Variant* val);
+    GIGA_FUNCTION() void Set(std::string var, Variant* val);
     void Set(std::string var, std::string val, uint32_t type);
-    Variant* Get(std::string var);
+    GIGA_FUNCTION() Variant* Get(std::string var);
     
     /**
      * Check whether a key exists

@@ -10,6 +10,7 @@
 #include <Scripting/MonoEntity.h>
 #include <Scripting/MonoComponent.h>
 #include <Scripting/MonoSystem.h>
+#include <Core/DataRecord.h>
 
 GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
     ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
@@ -135,6 +136,7 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
     MonoImage* image = mono_assembly_get_image(assembly);
     
     // Load classes
+    std::vector<std::string> classNames;
     const MonoTableInfo* table_info = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
     
     int rows = mono_table_info_get_rows(table_info);
@@ -149,6 +151,8 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
         if(strcmp(name, "<Module>") == 0) {
             continue;
         }
+        
+        classNames.push_back(name);
         
         MonoClassDesc* cl = new MonoClassDesc();
         cl->name = name;
@@ -226,6 +230,40 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
             cl->fields[fd->name] = fd;
             
             field = mono_class_get_fields(_class, &iter);
+        }
+    }
+    
+    // Process inheritance
+    auto cli = classNames.begin();
+    for(; cli != classNames.end(); cli++) {
+        // Get mono class
+        MonoClassDesc* cl = m_classes[*cli];
+        MonoClass* _parent = mono_class_get_parent(cl->_class);
+        while(_parent) {
+            // Add functions
+            std::string parentName = mono_class_get_name(_parent);
+            auto it = m_classes.find(parentName);
+            if(it == m_classes.end()) { _parent = 0; continue; }
+            
+            MonoClassDesc* desc = m_classes[parentName];
+            
+            if(desc == 0) {
+                _parent = 0;
+                continue;
+            }
+            
+            auto fi = desc->methods.begin();
+            for(; fi != desc->methods.end(); fi++) {
+                // Make sure we don't override an override
+                if(cl->methods.find(fi->first) != cl->methods.end()) continue;
+                if(fi->first.length() > 8) {
+                    if(fi->first.substr(0, 8) == "internal") continue;
+                }
+                
+                cl->methods[fi->first] = fi->second;
+            }
+            
+            _parent = mono_class_get_parent(_parent);
         }
     }
     
@@ -343,7 +381,8 @@ MonoObject* ScriptingSystem::GetRemoteObject(GigaObject* obj) {
     m_objects.push_back(cobj);
     
     // Run constructor
-    mono_runtime_invoke(ci->second->methods[".ctor"]->method, mobj, nullptr, nullptr);
+    mono_runtime_object_init(mobj);
+    //mono_runtime_invoke(ci->second->methods[".ctor"]->method, mobj, nullptr, nullptr);
     
     return(mobj);
 }
@@ -397,6 +436,8 @@ GigaObject* ScriptingSystem::GetLocalObject(MonoObject* obj) {
 }
 
 Variant* ScriptingSystem::MonoObjectToVariant(MonoObject* mobj) {
+    if(mobj == 0) return(new Variant(0));
+    
     MonoClass* _class = mono_object_get_class(mobj);
     std::string className = mono_class_get_name(_class);
     
@@ -404,38 +445,38 @@ Variant* ScriptingSystem::MonoObjectToVariant(MonoObject* mobj) {
     
     int variantType = m_variantMappings[className];
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_INT32]) {
+    if(_class == m_cachedTypes[Variant::VAR_INT32]) {
         int32_t* iv = (int32_t*)mono_object_unbox(mobj);
         return(new Variant(*iv));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_UINT32]) {
+    if(_class == m_cachedTypes[Variant::VAR_UINT32]) {
         uint32_t* iv = (uint32_t*)mono_object_unbox(mobj);
         return(new Variant(*iv));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_INT64]) {
+    if(_class == m_cachedTypes[Variant::VAR_INT64]) {
         int64_t* iv = (int64_t*)mono_object_unbox(mobj);
         return(new Variant(*iv));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_UINT64]) {
+    if(_class == m_cachedTypes[Variant::VAR_UINT64]) {
         uint64_t* iv = (uint64_t*)mono_object_unbox(mobj);
         return(new Variant(*iv));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_BOOL]) {
+    if(_class == m_cachedTypes[Variant::VAR_BOOL]) {
         bool* bv = (bool*)mono_object_unbox(mobj);
         return(new Variant(*bv));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_STRING]) {
+    if(_class == m_cachedTypes[Variant::VAR_STRING]) {
         MonoString* str = (MonoString*)mobj;
         char* val = mono_string_to_utf8(str);
         return(new Variant(val));
     }
     
-    if(cl->_class == m_cachedTypes[Variant::VAR_FLOAT]) {
+    if(_class == m_cachedTypes[Variant::VAR_FLOAT]) {
         double* iv = (double*)mono_object_unbox(mobj);
         float f = *iv;
         return(new Variant(f));
@@ -595,7 +636,40 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
     GIGA_ASSERT(fi != ci->second->methods.end(), "Function not found.");
     
     // Set params
-    MonoArray *params = mono_array_new(mono_domain_get(), mono_get_object_class(), argc);
+    void* args[argc];
+    for(int i = 0; i < argc; i++) {
+        int vtype = argv[i]->GetType();
+        switch(vtype) {
+            case Variant::VAR_STRING:
+                args[i] = mono_string_new(mono_domain_get(), argv[i]->AsString().c_str());
+                break;
+            case Variant::VAR_VECTOR2:
+            case Variant::VAR_VECTOR3:
+            case Variant::VAR_VECTOR4:
+            case Variant::VAR_QUATERNION:
+            case Variant::VAR_OBJECT:
+                args[i] = this->VariantToMonoObject(argv[i]);
+                break;
+            default:
+                args[i] = argv[i]->GetPtr();
+                break;
+        };
+    }
+    
+    // Call
+    MonoObject* exc = 0;
+    MonoObject* retval = mono_runtime_invoke(fi->second->method, mobj, args, &exc);
+    if(exc) {
+        mono_print_unhandled_exception(exc);
+        GIGA_ASSERT(false, "Unable to run function.");
+    }
+    
+    /*
+     
+     // You might think you want to use mono_runtime_invoke_array, but it will crash on macOS 10.14+ attempting to
+     // get into GC in the mono internals
+     
+     MonoArray *params = mono_array_new(mono_domain_get(), mono_get_object_class(), argc);
     for(int i = 0; i < argc; i++) {
         MonoObject *param_obj = this->VariantToMonoObject(argv[i]);
         mono_array_setref(params, i, param_obj);
@@ -604,6 +678,10 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
     // Call
     MonoObject* exc = 0;
     MonoObject* retval = mono_runtime_invoke_array(fi->second->method, mobj, params, &exc);
+    if(exc) {
+        mono_print_unhandled_exception(exc);
+        GIGA_ASSERT(false, "Unable to run function.");
+    }*/
     
     return(MonoObjectToVariant(retval));
 }

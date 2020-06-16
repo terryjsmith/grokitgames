@@ -840,6 +840,10 @@ GigaObject* Variant::AsObject() {
     return(0);
 }
 
+Variant* Variant::AsVariant() {
+    return(this);
+}
+
 void Variant::Add(Variant* var) {
     m_type = VAR_ARRAY;
     
@@ -891,4 +895,37 @@ void Variant::Remove(uint32_t index) {
     }
     
     m_array[m_size] = 0;
+}
+
+void* Variant::GetPtr() {
+    switch (m_type) {
+        case VAR_INT32:
+            return(&m_data.i32);
+        case VAR_UINT32:
+            return(&m_data.ui32);
+        case VAR_UINT64:
+            return(&m_data.i64);
+        case VAR_INT64:
+            return(&m_data.i64);
+        case VAR_BOOL:
+            return(&m_data.b);
+        case VAR_FLOAT:
+            return(&m_data.f1);
+        case VAR_VECTOR2:
+            return(&m_data.f1);
+        case VAR_VECTOR3:
+            return(&m_data.f1);
+        case VAR_VECTOR4:
+            return(&m_data.f1);
+        case VAR_QUATERNION:
+            return(&m_data.f1);
+        case VAR_STRING:
+            return(&m_data.str);
+        case VAR_OBJECT:
+            return(&m_data.obj);
+        default:
+            break;
+    }
+                   
+    return(0);
 }

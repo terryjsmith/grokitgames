@@ -124,6 +124,10 @@ int map_internal_type(CXType kind, std::string rettype) {
     if (internalType == 0 && rettype == "int64_t") {
         internalType = Variant::VAR_INT64;
     }
+    
+    if (rettype == "Variant *") {
+        internalType = Variant::VAR_VARIANT;
+    }
 
     return(internalType);
 }
@@ -559,6 +563,8 @@ int main(int argc, char** argv) {
     // Mappings to functions
     functionMappings[Variant::VAR_INT32] = "Int";
     functionMappings[Variant::VAR_UINT32] = "UInt";
+    functionMappings[Variant::VAR_INT64] = "Int64";
+    functionMappings[Variant::VAR_UINT64] = "UInt64";
     functionMappings[Variant::VAR_BOOL] = "Bool";
     functionMappings[Variant::VAR_FLOAT] = "Float";
     functionMappings[Variant::VAR_VECTOR2] = "Vector2";
@@ -567,6 +573,7 @@ int main(int argc, char** argv) {
     functionMappings[Variant::VAR_QUATERNION] = "Quaternion";
     functionMappings[Variant::VAR_STRING] = "String";
     functionMappings[Variant::VAR_OBJECT] = "Object";
+    functionMappings[Variant::VAR_VARIANT] = "Variant";
     
     csharpMappings[Variant::VAR_INT32] = "int";
     csharpMappings[Variant::VAR_UINT32] = "uint";
@@ -577,6 +584,7 @@ int main(int argc, char** argv) {
     csharpMappings[Variant::VAR_VECTOR4] = "Vector4";
     csharpMappings[Variant::VAR_QUATERNION] = "Quaternion";
     csharpMappings[Variant::VAR_STRING] = "string";
+    csharpMappings[Variant::VAR_VARIANT] = "object";
 
     std::string current = Directory::GetCurrent();
 
@@ -881,7 +889,12 @@ int main(int argc, char** argv) {
                     output += "\n";
 
                     if ((*fli)->returnType != -1) {
-                        output += "\t\t\treturn(new Variant(";
+                        if((*fli)->returnType == Variant::VAR_VARIANT) {
+                            output += "\t\t\treturn((";
+                        }
+                        else {
+                            output += "\t\t\treturn(new Variant(";
+                        }
                     }
                     else {
                         output += "\t\t\t";
@@ -889,7 +902,12 @@ int main(int argc, char** argv) {
                 }
                 else {
                     if ((*fli)->returnType != -1) {
-                        output += "\t\t\treturn(new Variant(";
+                        if((*fli)->returnType == Variant::VAR_VARIANT) {
+                            output += "\t\t\treturn((";
+                        }
+                        else {
+                            output += "\t\t\treturn(new Variant(";
+                        }
                     }
                     else {
                         output += "\t\t\t";
@@ -1178,6 +1196,7 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VECTOR3:
                     case Variant::VAR_VECTOR4:
                     case Variant::VAR_QUATERNION:
+                    case Variant::VAR_VARIANT:
                         paramType = "MonoObject*";
                         break;
                     default:
@@ -1200,6 +1219,7 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VECTOR3:
                     case Variant::VAR_VECTOR4:
                     case Variant::VAR_QUATERNION:
+                    case Variant::VAR_VARIANT:
                         output += "\tcobj->" + mp->name + " = scriptingSystem->MonoObjectToVariant(value)->As" + functionMappings[mp->type] + "();\n";
                         break;
                     default:
@@ -1253,6 +1273,7 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VECTOR3:
                     case Variant::VAR_VECTOR4:
                     case Variant::VAR_QUATERNION:
+                    case Variant::VAR_VARIANT:
                         paramType = "MonoObject*";
                         shortType = "scriptingSystem->MonoObjectToVariant(" + (*pi)->name + ")->As" + functionMappings[(*pi)->type] + "()";
                         break;
@@ -1278,6 +1299,7 @@ int main(int argc, char** argv) {
                 case Variant::VAR_VECTOR3:
                 case Variant::VAR_VECTOR4:
                 case Variant::VAR_QUATERNION:
+                case Variant::VAR_VARIANT:
                     returnType = "MonoObject*";
                     break;
                 default:
@@ -1345,6 +1367,9 @@ int main(int argc, char** argv) {
                 case Variant::VAR_VECTOR4:
                 case Variant::VAR_QUATERNION:
                     output += "\treturn(scriptingSystem->VariantToMonoObject(new Variant(retval)));";
+                    break;
+                case Variant::VAR_VARIANT:
+                    output += "\treturn(scriptingSystem->VariantToMonoObject(retval));";
                     break;
                 default:
                     output += "\treturn(retval);";

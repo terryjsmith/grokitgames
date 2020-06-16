@@ -27,6 +27,7 @@ public:
         VAR_STRING,
         VAR_OBJECT,
         VAR_ARRAY,
+        VAR_VARIANT,
         VAR_LASTTYPE
     };
     
@@ -124,6 +125,7 @@ public:
     bool IsObject();
     bool IsNull();
     bool IsArray();
+    bool IsVariant() { return true; }
     
     /**
      * Convert value to string
@@ -157,6 +159,7 @@ public:
     quaternion AsQuaternion();
     std::string AsString();
     GigaObject* AsObject();
+    Variant* AsVariant();
     template<class T> T AsObject() {
         if (m_type == VAR_OBJECT) {
             return(dynamic_cast<T>(m_data.obj));
@@ -164,6 +167,16 @@ public:
         
         return(0);
     }
+    
+    /**
+     * Get raw value
+     */
+    void* GetPtr();
+    
+    /**
+     * Get type
+     */
+    int GetType() { return m_type; }
     
     /**
      * Get binary size
