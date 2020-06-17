@@ -51,6 +51,10 @@ int main(int argc, char *argv[])
     resourceSystem->AddSearchPath("Resources/Shaders");
     resourceSystem->AddSearchPath("Resources/Scripts");
 
+    // Start up scripting system
+    ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
+    scriptingSystem->Start();
+
     // Register meta data
     MetaData::RegisterMetaFunctions();
 
@@ -67,8 +71,8 @@ int main(int argc, char *argv[])
         QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
         QApplication a(argc, argv);
 
-    MainWindow w;
-    w.show();
+    MainWindow* w = MainWindow::getInstance();
+    w->show();
 
     return a.exec();
 }

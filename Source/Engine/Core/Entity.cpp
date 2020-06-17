@@ -2,6 +2,7 @@
 #include <Core/Entity.h>
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
+#include <Core/DataRecord.h>
 
 Entity::Entity() {
     m_transform = new Transform();
@@ -84,4 +85,14 @@ void Entity::RemoveComponent(Component* c) {
             return;
         }
     }
+}
+
+void Entity::Serialize(DataRecord* record) {
+    entityID = record->Get("entityID")->AsInt();
+    name = record->Get("name")->AsString();
+}
+
+void Entity::Deserialize(DataRecord* record) {
+    record->Set("entityID", new Variant(entityID));
+    record->Set("name", new Variant(name));
 }

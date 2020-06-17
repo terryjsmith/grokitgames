@@ -22,7 +22,7 @@ void GigaOpenGLWidget::initializeGL() {
     CameraComponent* camera = playerEntity->CreateComponent<CameraComponent>();
 
     renderSystem->GetScene()->camera = camera;
-    renderSystem->SetClearColor(vector4(1, 0, 1, 1));
+    //renderSystem->SetClearColor(vector4(1, 0, 1, 1));
 
     QOpenGLWidget::initializeGL();
 }

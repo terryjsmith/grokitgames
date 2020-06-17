@@ -81,6 +81,12 @@ public:
      */
     GIGA_FUNCTION() Transform* GetTransform() { return m_transform; }
     
+    /**
+     * Serialize/deserialize entities
+     */
+    void Serialize(DataRecord* record);
+    void Deserialize(DataRecord* record);
+    
 public:
     // Name
     GIGA_VARIABLE(Get, Set) std::string name;

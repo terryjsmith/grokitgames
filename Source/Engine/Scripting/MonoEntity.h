@@ -10,8 +10,10 @@ public:
     MonoEntity() = default;
     ~MonoEntity() = default;
     
+    // Get class name from Mono class desc instead
     virtual std::string GetGigaName() { return classType->name; }
-            
+           
+    // Call a function through our meta API (but via Mono)
     Variant* Call(std::string func, int argc, Variant** argv);
 
 public:

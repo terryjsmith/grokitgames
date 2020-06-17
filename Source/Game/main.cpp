@@ -30,6 +30,7 @@
 #include <Render/AnimationSystem.h>
 #include <IO/LogSystem.h>
 #include <IO/Profiler.h>
+#include <IO/SQLiteDataLoader.h>
 #include "register_globals.h"
 
 int main(int argc, const char * argv[]) {
@@ -62,13 +63,12 @@ int main(int argc, const char * argv[]) {
     logSystem->Open("error.log");
     
     // Set up resource paths
-    std::string gamePath = "../pokeclone/";
-    resourceSystem->AddSearchPath(gamePath + "Resources/Shaders");
-    resourceSystem->AddSearchPath(gamePath + "Resources/Models");
-    resourceSystem->AddSearchPath(gamePath + "Resources/Textures");
-    resourceSystem->AddSearchPath(gamePath + "Resources/Terrain");
-    resourceSystem->AddSearchPath(gamePath + "Resources/Scripts");
-    resourceSystem->AddSearchPath(gamePath + "Resources/Audio");
+    resourceSystem->AddSearchPath("Resources/Shaders");
+    resourceSystem->AddSearchPath("Resources/Models");
+    resourceSystem->AddSearchPath("Resources/Textures");
+    resourceSystem->AddSearchPath("Resources/Terrain");
+    resourceSystem->AddSearchPath("Resources/Scripts");
+    resourceSystem->AddSearchPath("Resources/Audio");
     
     // Register meta data
     MetaData::RegisterMetaFunctions();
@@ -89,6 +89,13 @@ int main(int argc, const char * argv[]) {
     
     // Initialize render system
     renderSystem->Initialize(framebufferWidth, framebufferHeight, false);
+    
+    // Open our game database
+    SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
+    dataLoader->Open("game.db");
+    
+    // Load entities
+    std::vector<DataRecord*> entityDRs = dataLoader->GetRecords("entity");
     
     /* Create a shape
     Shape* shape = new Shape();

@@ -22,19 +22,28 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+CONFIG += c++11 sdk_no_version_check
 
 SOURCES += \
         gigaopenglwidget.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        newentitydialog.cpp \
+        scenetreemodel.cpp \
+        treeitem.cpp \
+        treemodel.cpp
 
 HEADERS += \
         gigaopenglwidget.h \
-        mainwindow.h
+        mainwindow.h \
+        newentitydialog.h \
+        scenetreemodel.h \
+        treeitem.h \
+        treemodel.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+        newentitydialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -64,4 +73,4 @@ INCLUDEPATH += $$PWD/../../../../ThirdParty/mysql/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/openssl/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/soil/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/sqlite/include
-INCLUDEPATH += $$PWD/../../../../ThirdParty/v8/include
+INCLUDEPATH += $$PWD/../../../../ThirdParty/mono/include/mono-2.0

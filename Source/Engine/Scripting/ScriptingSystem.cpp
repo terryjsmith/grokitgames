@@ -57,6 +57,7 @@ GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
         sc->classType = cl;
     }
     
+    // Deal with special inheritance types
     MonoEntity* me = dynamic_cast<MonoEntity*>(newobj);
     if(me != 0) {
         me->classType = cl;
@@ -103,14 +104,14 @@ void ScriptingSystem::Start() {
     m_cachedTypes[Variant::VAR_VECTOR4] = mono_class_from_name(image, "GIGA", "Vector4");
     m_cachedTypes[Variant::VAR_QUATERNION] = mono_class_from_name(image, "GIGA", "Quaternion");
     
-    this->LoadLibrary("/Users/terryjsmith/Documents/Projects/pokeclone/Resources/Scripts/game.dll");
+    /*this->LoadLibrary("game.dll");
     
     MonoObject* exc = 0;
     mono_runtime_invoke(m_classes["HelloWorld"]->methods["Hello"]->method, nullptr, nullptr, &exc);
     if(exc) {
         mono_print_unhandled_exception(exc);
         GIGA_ASSERT(false, "Unable to run startup function.");
-    }
+    }*/
 }
 
 void ScriptingSystem::Initialize() {
