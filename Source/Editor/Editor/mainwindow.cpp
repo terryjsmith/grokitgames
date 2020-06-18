@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "NewEntityDialog.h"
+#include "newentitydialog.h"
+#include "modeltest.h"
 
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -33,8 +34,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget_3->removeTab(1);
 
     // Initialize tree model
-    m_sceneTreeModel = new SceneTreeModel(this);
+    m_sceneTreeModel = new SceneTreeModel(0);
     ui->sceneView->setModel(m_sceneTreeModel);
+
+    ModelTest test(m_sceneTreeModel);
 }
 
 void MainWindow::btnOpenProject_clicked() {

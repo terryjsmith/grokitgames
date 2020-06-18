@@ -552,7 +552,6 @@ std::string Variant::ToString() {
             output = m_data.str;
             break;
         case VAR_OBJECT:
-            // TODO: Add this back in
             break;
         default:
             break;
@@ -606,10 +605,11 @@ void Variant::FromString(std::string value, int type) {
         case VAR_STRING:
             m_data.str = (char*)malloc(value.size() + 1);
             strcpy(m_data.str, value.data());
+            m_data.str[value.size()] = '\0';
             m_type = VAR_STRING;
             break;
         case VAR_OBJECT:
-            // TODO: Add this back in
+            // NOt sure if we'll get back to this
             break;
         default:
             break;

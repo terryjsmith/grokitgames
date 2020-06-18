@@ -58,9 +58,6 @@ protected:
     // Variant variables
     std::map<std::string, Variant*> m_vars;
     
-    // Original reference object
-    GigaObject* m_obj;
-    
     // Updated since last reset
     bool m_updated;
     

@@ -3,13 +3,15 @@
 #include <Audio/AudioSystem.h>
 #include <Core/ErrorSystem.h>
 #include <Core/Application.h>
+#include <Core/TransformComponent.h>
 #include <Core/Entity.h>
 
 AudioComponent::AudioComponent() {
     m_transform = new Transform();
     
-    if(m_parent) {
-        m_transform->SetParent(m_parent->GetTransform());
+    if(m_parent != 0) {
+        TransformComponent* tc = m_parent->GetComponent<TransformComponent>();
+        m_transform->SetParent(tc->GetTransform());
     }
 }
 

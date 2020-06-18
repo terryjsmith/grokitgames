@@ -31,6 +31,11 @@ public:
     GIGA_FUNCTION() Entity* CreateEntity();
     
     /**
+     * Add a new entity to the world
+     */
+    GIGA_FUNCTION() void AddEntity(Entity* entity);
+    
+    /**
      * Find an entity by ID
      */
     GIGA_FUNCTION() Entity* FindEntity(int entityID);
@@ -53,7 +58,7 @@ public:
         auto it = m_entities.begin();
         for(; it != m_entities.end(); it++) {
             Entity* ent = (*it);
-            T* c = ent->FindComponent<T>();
+            T* c = ent->GetComponent<T>();
             if(c) {
                 components.push_back(c);
             }

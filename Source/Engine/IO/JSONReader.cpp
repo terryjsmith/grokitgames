@@ -1,9 +1,9 @@
 
-#include <IO/JSONDataLoader.h>
+#include <IO/JSONReader.h>
 #include <IO/ResourceSystem.h>
 #include <Core/Application.h>
 
-void JSONDataLoader::Open(std::string location) {
+void JSONReader::Open(std::string location) {
     // Load resource
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     Resource* jsonFile = new Resource();
@@ -19,15 +19,19 @@ void JSONDataLoader::Open(std::string location) {
     m_json.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonData.c_str());
 }
 
-void JSONDataLoader::Close() {
+void JSONReader::Close() {
     m_json.Clear();
 }
 
-std::vector<DataRecord*> JSONDataLoader::GetRecords(std::string table, std::map<std::string, std::string> search) {
+GigaObject* JSONReader::GetRecord(std::string table, std::map<std::string, std::string> search) {
+    return(0);
+}
+
+std::vector<GigaObject*> JSONReader::GetRecords(std::string table, std::map<std::string, std::string> search) {
     // Initialize list of records
-    std::vector<DataRecord*> records;
+    std::vector<GigaObject*> records;
     
-    // Get values
+    /* Get values
     bool exists = m_json.HasMember(table.c_str());
     if(m_json[table.c_str()].IsObject()) {
         DataRecord* record = new DataRecord();
@@ -55,20 +59,20 @@ std::vector<DataRecord*> JSONDataLoader::GetRecords(std::string table, std::map<
             
             records.push_back(record);
         }
-    }
+    }*/
     
     return(records);
 }
 
-void JSONDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> records) {
+void JSONReader::SaveRecords(std::string table, std::vector<DataRecord*> records) {
     
 }
 
-void JSONDataLoader::Delete(std::string table, std::map<std::string, std::string> search) {
+void JSONReader::Delete(std::string table, std::map<std::string, std::string> search) {
     
 }
 
-Variant* JSONDataLoader::GetValue(rapidjson::Value& val) {
+Variant* JSONReader::GetValue(rapidjson::Value& val) {
     if(val.IsInt()) {
         return(new Variant(val.GetInt()));
     }

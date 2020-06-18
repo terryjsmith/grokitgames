@@ -52,6 +52,12 @@ public:
     
     GIGA_FUNCTION() void SetRoot(bool root) { m_root = root; }
     
+    /**
+     * Serialize / deserialize
+     */
+    void Serialize(DataRecord* record);
+    void Deserialize(DataRecord* record);
+    
 protected:
     Transform* m_parent;
     std::vector<Transform*> m_children;

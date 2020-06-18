@@ -44,7 +44,7 @@ public:
      * Find component by class type
      */
     template<class T>
-    T* FindComponent() {
+    T* GetComponent() {
         auto it = m_components.begin();
         for(; it != m_components.end(); it++) {
             T* obj = dynamic_cast<T*>(*it);
@@ -59,12 +59,12 @@ public:
     /**
      * Find component by class name
      */
-    GIGA_FUNCTION() Component* FindComponent(std::string className);
+    GIGA_FUNCTION() Component* GetComponent(std::string className);
     
     /**
      * Find component by type ID
      */
-    GIGA_FUNCTION() Component* FindComponent(uint32_t typeID);
+    GIGA_FUNCTION() Component* GetComponent(uint32_t typeID);
     
     /**
      * Add a component
@@ -75,11 +75,6 @@ public:
      * Remove component
      */
     void RemoveComponent(Component* c);
-    
-    /**
-     * Get transform
-     */
-    GIGA_FUNCTION() Transform* GetTransform() { return m_transform; }
     
     /**
      * Serialize/deserialize entities
@@ -97,9 +92,6 @@ public:
 protected:
     // List of components
     std::vector<Component*> m_components;
-    
-    // Transform of entity
-    Transform* m_transform;
 };
 
 #endif

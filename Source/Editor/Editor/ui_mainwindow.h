@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QFormLayout>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -23,10 +24,10 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTabWidget>
-#include <QtWidgets/QTreeView>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "gigaopenglwidget.h"
+#include "scenetreeview.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -56,7 +57,7 @@ public:
     QWidget *tab_3;
     QVBoxLayout *verticalLayout;
     QLineEdit *sceneSearch;
-    QTreeView *sceneView;
+    SceneTreeView *sceneView;
     QWidget *tab_4;
     QVBoxLayout *verticalLayout_3;
     QLineEdit *resourceSearch;
@@ -67,8 +68,8 @@ public:
     QVBoxLayout *verticalLayout_2;
     GigaOpenGLWidget *openGLWidget;
     QWidget *tab_6;
-    QVBoxLayout *propertiesLayout;
-    QFrame *frame;
+    QFormLayout *formLayout;
+    QFrame *propertiesFrame;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -177,8 +178,12 @@ public:
 
         verticalLayout->addWidget(sceneSearch);
 
-        sceneView = new QTreeView(tab_3);
+        sceneView = new SceneTreeView(tab_3);
         sceneView->setObjectName(QString::fromUtf8("sceneView"));
+        sceneView->setFrameShape(QFrame::StyledPanel);
+        sceneView->setAlternatingRowColors(true);
+        sceneView->setHeaderHidden(true);
+        sceneView->header()->setVisible(false);
 
         verticalLayout->addWidget(sceneView);
 
@@ -214,6 +219,7 @@ public:
         tabWidget_3 = new QTabWidget(centralWidget);
         tabWidget_3->setObjectName(QString::fromUtf8("tabWidget_3"));
         tabWidget_3->setAutoFillBackground(false);
+        tabWidget_3->setUsesScrollButtons(false);
         tabWidget_3->setDocumentMode(true);
         tabWidget_3->setTabsClosable(true);
         tab_5 = new QWidget();
@@ -241,19 +247,19 @@ public:
 
         horizontalLayout->addLayout(openGLlayout);
 
-        propertiesLayout = new QVBoxLayout();
-        propertiesLayout->setSpacing(6);
-        propertiesLayout->setObjectName(QString::fromUtf8("propertiesLayout"));
-        frame = new QFrame(centralWidget);
-        frame->setObjectName(QString::fromUtf8("frame"));
-        frame->setMinimumSize(QSize(200, 0));
-        frame->setFrameShape(QFrame::StyledPanel);
-        frame->setFrameShadow(QFrame::Raised);
+        formLayout = new QFormLayout();
+        formLayout->setSpacing(6);
+        formLayout->setObjectName(QString::fromUtf8("formLayout"));
+        propertiesFrame = new QFrame(centralWidget);
+        propertiesFrame->setObjectName(QString::fromUtf8("propertiesFrame"));
+        propertiesFrame->setMinimumSize(QSize(200, 0));
+        propertiesFrame->setFrameShape(QFrame::StyledPanel);
+        propertiesFrame->setFrameShadow(QFrame::Raised);
 
-        propertiesLayout->addWidget(frame);
+        formLayout->setWidget(0, QFormLayout::LabelRole, propertiesFrame);
 
 
-        horizontalLayout->addLayout(propertiesLayout);
+        horizontalLayout->addLayout(formLayout);
 
         horizontalLayout->setStretch(1, 1);
 

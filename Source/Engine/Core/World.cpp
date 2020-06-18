@@ -31,6 +31,18 @@ Entity* World::CreateEntity() {
     return(e);
 }
 
+void World::AddEntity(Entity* entity) {
+    if(entity->entityID == 0) {
+        entity->entityID = m_nextEntityID++;
+    }
+    else {
+        m_nextEntityID = std::max((uint32_t)m_nextEntityID, entity->entityID);
+        m_nextEntityID++;
+    }
+    
+    m_entities.push_back(entity);
+}
+
 Entity* World::FindEntity(int entityID) {
     auto it = m_entities.begin();
     for(; it != m_entities.end(); it++) {

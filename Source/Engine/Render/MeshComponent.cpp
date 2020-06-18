@@ -28,19 +28,23 @@ void MeshComponent::Initialize(Mesh* mesh) {
 }
 
 void MeshComponent::Serialize(DataRecord* record) {
+    Component::Serialize(record);
+    
     record->Set("filename", new Variant(mesh->GetResource()->filename));
-    record->Set("position", new Variant(transform->GetWorldPosition()));
-    record->Set("rotation", new Variant(transform->GetWorldRotation()));
-    record->Set("scaling", new Variant(transform->GetWorldScaling()));
+    record->Set("transform", new Variant(transform));
+    record->Set("applyLighting", new Variant(applyLighting));
 }
 
 void MeshComponent::Deserialize(DataRecord* record) {
+    Component::Deserialize(record);
+    
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+
     Mesh* mesh = dynamic_cast<Mesh*>(resourceSystem->LoadResource(record->Get("filename")->AsString(), "Mesh"));
     if(mesh != this->mesh) {
         this->mesh = mesh;
     }
-    transform->SetWorldPosition(record->Get("position")->AsVector3());
-    transform->SetWorldRotation(record->Get("rotation")->AsQuaternion());
-    transform->SetWorldScaling(record->Get("scaling")->AsVector3());
+    
+    this->applyLighting = record->Get("applyLighting")->AsBool();
+    this->transform = record->Get("transform")->AsObject<Transform*>();
 }

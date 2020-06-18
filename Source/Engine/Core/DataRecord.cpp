@@ -2,7 +2,6 @@
 #include <Core/DataRecord.h>
 
 DataRecord::DataRecord() {
-    m_obj = 0;
     m_updated = false;
     m_primaryKey = 0;
 }

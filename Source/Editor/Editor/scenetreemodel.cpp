@@ -14,7 +14,7 @@ void SceneTreeModel::addItem(Entity* entity) {
     item->SetInternalPointer((void*)entity);
     item->SetEditable(true);
 
-    beginInsertRows(QModelIndex(), m_rootItem->childCount(), m_rootItem->childCount() + 1);
+    beginInsertRows(index(0, 0), m_rootItem->childCount(), m_rootItem->childCount() + 1);
     m_rootItem->appendChild(item);
     endInsertRows();
 }

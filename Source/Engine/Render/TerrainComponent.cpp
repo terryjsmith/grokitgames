@@ -1,6 +1,6 @@
 
 #include <Render/TerrainComponent.h>
-#include <IO/JSONDataLoader.h>
+#include <IO/JSONReader.h>
 #include <IO/ResourceSystem.h>
 #include <Render/RenderSystem.h>
 #include <Core/Application.h>
@@ -13,31 +13,23 @@ TerrainComponent::TerrainComponent() {
     applyLighting = true;
 }
 
-void TerrainComponent::Load(std::string json, vector3 offset) {
+void TerrainComponent::Load(std::string hmapFile, std::string nmapFile, std::string splatFile, std::vector<std::string> textureFiles, vector3 offset) {
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
-    
-    // Load JSON
-    JSONDataLoader* loader = new JSONDataLoader();
-    loader->Open(json);
-    std::vector<DataRecord*> records = loader->GetRecords("terrains");
-    
+
     // Load the heightmap texture
-    Texture2D* hmaptex = (Texture2D*)resourceSystem->LoadResource(records[0]->Get("heightmap")->AsString(), "Texture2D");
+    Texture2D* hmaptex = dynamic_cast<Texture2D*>(resourceSystem->LoadResource(hmapFile, "Texture2D"));
     unsigned char* data = (unsigned char*)hmaptex->GetData();
     
     // Load splat map
-    Variant* splat = records[0]->Get("splatmap");
-    if(splat != 0) {
-        m_splat = (Texture2D*)resourceSystem->LoadResource(splat->AsString(), "Texture2D");
+    if(splatFile.length() != 0) {
+        m_splat = dynamic_cast<Texture2D*>(resourceSystem->LoadResource(splatFile, "Texture2D"));
     }
     
     // Load textures
-    m_numTextures = records[0]->Get("textures")->Size();
+    m_numTextures = textureFiles.size();
     for(int i = 0; i < m_numTextures; i++) {
-        Variant* textures = records[0]->Get("textures");
-        Variant* v = (*textures)[i];
-        std::string filename = v->AsString();
+        std::string filename = textureFiles[i];
         m_textures[i] = (Texture2D*)resourceSystem->LoadResource(filename, "Texture2D");
         
         m_textures[i]->SetTextureFilter(FILTER_LINEAR);
@@ -46,7 +38,7 @@ void TerrainComponent::Load(std::string json, vector3 offset) {
     }
     
     Texture2D* normaltex = 0;
-    if(records[0]->Get("normalmap") == 0) {
+    if(nmapFile.length() == 0) {
         normaltex = renderSystem->CreateTexture2D();
         
         // Generate normal map
@@ -116,7 +108,7 @@ void TerrainComponent::Load(std::string json, vector3 offset) {
         free(normalData);
     }
     else {
-        normaltex = (Texture2D*)resourceSystem->LoadResource(records[0]->Get("normalmap")->AsString(), "Texture2D");
+        normaltex = dynamic_cast<Texture2D*>(resourceSystem->LoadResource(nmapFile, "Texture2D"));
     }
     
     // Create the "root" terrain quad
@@ -129,7 +121,6 @@ void TerrainComponent::Load(std::string json, vector3 offset) {
     
     free(data);
     delete hmaptex;
-    delete loader;
 }
 
 void TerrainComponent::Unload() {

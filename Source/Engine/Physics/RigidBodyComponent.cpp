@@ -1,12 +1,14 @@
 
 #include <Physics/RigidBodyComponent.h>
+#include <Core/TransformComponent.h>
 #include <Core/Entity.h>
 
 RigidBodyComponent::RigidBodyComponent() {
     m_transform = new Transform();
     
-    if(m_parent) {
-        m_transform->SetParent(m_parent->GetTransform());
+    if(m_parent != 0) {
+        TransformComponent* tc = m_parent->GetComponent<TransformComponent>();
+        m_transform->SetParent(tc->GetTransform());
     }
 }
 

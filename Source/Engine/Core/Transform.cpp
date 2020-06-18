@@ -1,5 +1,6 @@
 
 #include <Core/Transform.h>
+#include <Core/DataRecord.h>
 #include <glm/gtx/transform.hpp>
 
 Transform::Transform() {
@@ -7,6 +8,7 @@ Transform::Transform() {
     m_scaling = vector3(1, 1, 1);
     m_rotation = quaternion(1, 0, 0, 0);
     
+    // Initialize to zero so we know if we're using them (length = 0)
     m_up = vector3(0, 0, 0);
     m_right = vector3(0, 0, 0);
     m_look = vector3(0, 0, 0);
@@ -172,4 +174,16 @@ void Transform::RemoveChild(Transform* transform) {
     if(index != m_children.end()) {
         m_children.erase(index);
     }
+}
+
+void Transform::Serialize(DataRecord* record) {
+    record->Set("position", new Variant(m_position));
+    record->Set("scaling", new Variant(m_scaling));
+    record->Set("rotation", new Variant(m_rotation));
+}
+
+void Transform::Deserialize(DataRecord* record) {
+    m_position = record->Get("position")->AsVector3();
+    m_scaling = record->Get("scaling")->AsVector3();
+    m_rotation = record->Get("rotation")->AsQuaternion();
 }

@@ -48,3 +48,16 @@ void Application::Update(float delta) {
         }
     }
 }
+
+DataLoader* Application::GetDataLoader(std::string name) {
+    auto di = m_dataLoaders.find(name);
+    if(di != m_dataLoaders.end()) {
+        return di->second;
+    }
+    
+    return(0);
+}
+
+void Application::RegisterDataLoader(std::string name, DataLoader* loader) {
+    m_dataLoaders[name] = loader;
+}

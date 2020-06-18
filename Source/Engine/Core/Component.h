@@ -19,6 +19,12 @@ public:
      */
     Entity* GetParent() { return m_parent; }
     
+    /**
+     * Serialization
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
+    
     friend class Entity;
     
 protected:

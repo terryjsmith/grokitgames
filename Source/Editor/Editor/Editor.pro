@@ -28,16 +28,20 @@ SOURCES += \
         gigaopenglwidget.cpp \
         main.cpp \
         mainwindow.cpp \
+        modeltest.cpp \
         newentitydialog.cpp \
         scenetreemodel.cpp \
+        scenetreeview.cpp \
         treeitem.cpp \
         treemodel.cpp
 
 HEADERS += \
         gigaopenglwidget.h \
         mainwindow.h \
+        modeltest.h \
         newentitydialog.h \
         scenetreemodel.h \
+        scenetreeview.h \
         treeitem.h \
         treemodel.h
 

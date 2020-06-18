@@ -3,6 +3,7 @@
 #define application_h
 
 #include <Core/System.h>
+#include <Core/DataLoader.h>
 #include <Core/MetaSystem.h>
 
 class Window;
@@ -61,6 +62,16 @@ public:
         
         return(0);
     }
+    
+    /**
+     * Find a data loader by class type
+     */
+    DataLoader* GetDataLoader(std::string name);
+    
+    /**
+     * Register a data loader
+     */
+    void RegisterDataLoader(std::string name, DataLoader* loader);
 
     /**
      * Get application main window
@@ -99,6 +110,9 @@ public:
 protected:
     // Currently registered systems
     std::vector<RegisteredSystem*> m_systems;
+    
+    // Registered data loaders
+    std::map<std::string, DataLoader*> m_dataLoaders;
     
     // Singleton application instance
     static Application *m_instance;

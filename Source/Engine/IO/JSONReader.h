@@ -1,15 +1,14 @@
 
-#ifndef jsondataloader_h
-#define jsondataloader_h
+#ifndef jsonreader_h
+#define jsonreader_h
 
-#include <IO/DataLoader.h>
 #include <IO/Resource.h>
 #include <rapidjson/document.h>
 
-class GIGA_API JSONDataLoader : public DataLoader {
+class GIGA_API JSONReader {
 public:
-    JSONDataLoader() = default;
-    ~JSONDataLoader() = default;
+    JSONReader() = default;
+    ~JSONReader() = default;
     
     /**
      * Open a connection
@@ -24,7 +23,9 @@ public:
     /**
      * Query for records
      */
-    virtual std::vector<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
+    std::vector<GigaObject*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
+    
+    GigaObject* GetRecord(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
     
     /**
      * Save records

@@ -22,12 +22,16 @@ public:
     /**
      * Query for records
      */
+    virtual std::vector<GigaObject*> GetObjects(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
+    virtual GigaObject* GetObject(std::string table, int primaryKey) = 0;
+    
     virtual std::vector<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
     
     /**
      * Save records
      */
     virtual void SaveRecords(std::string table, std::vector<DataRecord*> records) = 0;
+    virtual void SaveObjects(std::string table, std::vector<GigaObject*> records) = 0;
     
     /**
      * Truncate a table/data source

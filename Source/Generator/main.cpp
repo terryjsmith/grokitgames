@@ -634,11 +634,11 @@ int main(int argc, char** argv) {
         MetaClass* mcl = classes[className];
 
         std::string funcName = (*pmit)->Get("funcName")->AsString();
-        MetaFunction* mfc = mcl->FindFunction(funcName, (*pmit)->Get("offset")->AsInt());
+        MetaFunction* mfc = mcl->FindFunction(funcName, (*pmit)->Get("offset")->AsUInt());
 
         MetaFunction::Parameter* p = new MetaFunction::Parameter();
         p->name = (*pmit)->Get("paramName")->AsString();
-        p->type = (*pmit)->Get("type")->AsInt();
+        p->type = (*pmit)->Get("type")->AsUInt();
         p->typeStr = (*pmit)->Get("typeStr")->AsString();
 
         mfc->params.push_back(p);
@@ -651,7 +651,7 @@ int main(int argc, char** argv) {
 
         MetaVariable* fn = new MetaVariable();
         fn->name = (*vit)->Get("varName")->AsString();
-        fn->type = (*vit)->Get("type")->AsInt();
+        fn->type = (*vit)->Get("type")->AsUInt();
         fn->typeStr = (*vit)->Get("typeStr")->AsString();
         fn->getter = (*vit)->Get("getter")->AsBool() ? DummyGetter : 0;
         fn->setter = (*vit)->Get("setter")->AsBool() ? DummySetter : 0;

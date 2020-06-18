@@ -16,7 +16,7 @@ public:
     /**
      * Load a terrain component from a heightmap
      */
-    void Load(std::string json, vector3 offset);
+    void Load(std::string hmapFile, std::string nmapFile, std::string splatFile, std::vector<std::string> textureFiles, vector3 offset);
     void Unload();
     
     /**

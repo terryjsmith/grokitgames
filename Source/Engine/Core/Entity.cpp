@@ -3,16 +3,19 @@
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
 #include <Core/DataRecord.h>
+#include <Core/TransformComponent.h>
 
 Entity::Entity() {
-    m_transform = new Transform();
+    //this->CreateComponent<TransformComponent>();
 }
 
 Entity::~Entity() {
-    if(m_transform) {
-        delete m_transform;
-        m_transform = 0;
+    auto ci = m_components.begin();
+    for(; ci != m_components.end(); ci++) {
+        delete(*ci);
     }
+    
+    m_components.clear();
 }
 
 Component* Entity::CreateComponent(std::string className) {
@@ -35,7 +38,7 @@ Component* Entity::CreateComponent(uint32_t typeID) {
     return(component);
 }
 
-Component* Entity::FindComponent(std::string className) {
+Component* Entity::GetComponent(std::string className) {
     auto it = m_components.begin();
     for(; it != m_components.end(); it++) {
         Component* c = (*it);
@@ -49,7 +52,7 @@ Component* Entity::FindComponent(std::string className) {
     return(0);
 }
 
-Component* Entity::FindComponent(uint32_t typeID) {
+Component* Entity::GetComponent(uint32_t typeID) {
     auto it = m_components.begin();
     for(; it != m_components.end(); it++) {
         Component* c = (*it);
@@ -88,11 +91,11 @@ void Entity::RemoveComponent(Component* c) {
 }
 
 void Entity::Serialize(DataRecord* record) {
-    entityID = record->Get("entityID")->AsInt();
-    name = record->Get("name")->AsString();
+    record->Set("entityID", new Variant(entityID));
+    record->Set("name", new Variant(name));
 }
 
 void Entity::Deserialize(DataRecord* record) {
-    record->Set("entityID", new Variant(entityID));
-    record->Set("name", new Variant(name));
+    entityID = record->Get("entityID")->AsUInt();
+    name = record->Get("name")->AsString();
 }

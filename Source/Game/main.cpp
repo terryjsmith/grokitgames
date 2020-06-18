@@ -31,6 +31,7 @@
 #include <IO/LogSystem.h>
 #include <IO/Profiler.h>
 #include <IO/SQLiteDataLoader.h>
+#include <Core/TransformComponent.h>
 #include "register_globals.h"
 
 int main(int argc, const char * argv[]) {
@@ -94,8 +95,31 @@ int main(int argc, const char * argv[]) {
     SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
     dataLoader->Open("game.db");
     
+    /*Entity* newent = world->CreateEntity();
+    newent->name = "Jasper";
+    
+    TransformComponent* tc = newent->CreateComponent<TransformComponent>();
+    tc->GetTransform()->SetWorldPosition(vector3(1, 1, 1));
+    
+    std::vector<GigaObject*> entities;
+    entities.push_back(newent);
+    
+    std::vector<GigaObject*> components;
+    components.push_back(tc);*/
+    
     // Load entities
-    std::vector<DataRecord*> entityDRs = dataLoader->GetRecords("entity");
+    std::vector<GigaObject*> entities = dataLoader->GetObjects("Entity");
+    
+    // Add entities to world
+    auto it = entities.begin();
+    for(; it != entities.end(); it++) {
+        world->AddEntity(dynamic_cast<Entity*>(*it));
+    }
+    
+    std::vector<GigaObject*> components = dataLoader->GetObjects("TransformComponent");
+    
+    dataLoader->SaveObjects("Entity", entities);
+    dataLoader->SaveObjects("TransformComponent", components);
     
     /* Create a shape
     Shape* shape = new Shape();
