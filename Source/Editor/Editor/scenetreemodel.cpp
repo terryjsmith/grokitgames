@@ -1,10 +1,7 @@
 #include "scenetreemodel.h"
 
 SceneTreeModel::SceneTreeModel(QObject *parent) : QStandardItemModel(parent) {
-    QList<QVariant> rootData;
-    rootData << "Entities";
 
-    QStandardItem *parentItem = invisibleRootItem();
 }
 
 QStandardItem* SceneTreeModel::findItem(Entity* entity) {

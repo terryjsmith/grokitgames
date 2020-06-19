@@ -68,6 +68,11 @@ public:
     }
     
     /**
+     * Find all components by type name (will not do intermediate types)
+     */
+    std::vector<Component*> FindComponents(std::string type);
+    
+    /**
      * Get next available entity ID
      */
     GIGA_FUNCTION() uint32_t GetNextEntityID() { return m_nextEntityID++; }

@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include "scenetreemodel.h"
 
+#include <Core/DataLoader.h>
+
 namespace Ui {
 class MainWindow;
 }
@@ -17,6 +19,7 @@ public:
     ~MainWindow();
 
     void btnOpenProject_clicked();
+    void btnSaveProject_clicked();
     void btnCreateEntity_clicked();
     void btnCreateComponent_clicked();
 
@@ -34,6 +37,9 @@ private:
 
     // Singleton
     static MainWindow* m_instance;
+
+    // Data loader
+    DataLoader* m_dataLoader;
 };
 
 #endif // MAINWINDOW_H

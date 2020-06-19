@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowState(Qt::WindowMaximized);
 
     connect(ui->actionOpen_Project, &QAction::triggered, this, &MainWindow::btnOpenProject_clicked);
+    connect(ui->actionSave_Project, &QAction::triggered, this, &MainWindow::btnSaveProject_clicked);
     connect(ui->actionEntity, &QAction::triggered, this, &MainWindow::btnCreateEntity_clicked);
     connect(ui->actionComponent, &QAction::triggered, this, &MainWindow::btnCreateComponent_clicked);
 
@@ -76,18 +77,17 @@ void MainWindow::btnOpenProject_clicked() {
         scriptingSystem->LoadLibrary(gameDllFile.toStdString());
     }
 
-    SQLiteDataLoader* dataLoader =  new SQLiteDataLoader();
+    m_dataLoader =  new SQLiteDataLoader();
 
     // Look for a game.db file
     QString gamedbFile = directory + "/game.db";
+    m_dataLoader->Open(gamedbFile.toStdString());
     if(QFile::exists(gamedbFile)) {
         World* world = World::GetInstance();
         MetaSystem* metaSystem = GetSystem<MetaSystem>();
 
-        dataLoader->Open(gamedbFile.toStdString());
-
         // Load entities
-        std::vector<GigaObject*> entities = dataLoader->GetObjects("Entity");
+        std::vector<GigaObject*> entities = m_dataLoader->GetObjects("Entity");
 
         // Add entities to world
         auto it = entities.begin();
@@ -104,7 +104,7 @@ void MainWindow::btnOpenProject_clicked() {
         std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
         auto cti = componentTypes.begin();
         for(; cti != componentTypes.end(); cti++) {
-            std::vector<GigaObject*> components = dataLoader->GetObjects(*cti);
+            std::vector<GigaObject*> components = m_dataLoader->GetObjects(*cti);
             auto ci = components.begin();
             for(; ci != components.end(); ci++) {
                 // Check whether this is attached to an entity
@@ -126,6 +126,39 @@ void MainWindow::btnOpenProject_clicked() {
     ui->actionNew_Scene->setEnabled(true);
     ui->actionOpen_Scene->setEnabled(true);
     ui->actionSave_Project->setEnabled(true);
+}
+
+void MainWindow::btnSaveProject_clicked() {
+    World* world = World::GetInstance();
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+
+    // Save entities
+    std::vector<Entity*> entities = world->GetEntities();
+
+    std::vector<GigaObject*> objs;
+    auto it = entities.begin();
+    for(; it != entities.end(); it++) {
+        objs.push_back(*it);
+    }
+
+    m_dataLoader->SaveObjects("Entity", objs);
+    objs.clear();
+
+    // Save components
+    std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
+    auto cti = componentTypes.begin();
+    for(; cti != componentTypes.end(); cti++) {
+        std::vector<Component*> components = world->FindComponents(*cti);
+
+        auto it = components.begin();
+        for(; it != components.end(); it++) {
+            objs.push_back(*it);
+        }
+
+        m_dataLoader->SaveObjects(*cti, objs);
+
+        objs.clear();
+    }
 }
 
 void MainWindow::btnCreateEntity_clicked() {
