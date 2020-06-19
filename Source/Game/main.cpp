@@ -91,22 +91,22 @@ int main(int argc, const char * argv[]) {
     // Initialize render system
     renderSystem->Initialize(framebufferWidth, framebufferHeight, false);
     
+    // Register built-in component types
+    metaSystem->RegisterComponentType("TransformComponent");
+    metaSystem->RegisterComponentType("AudioComponent");
+    metaSystem->RegisterComponentType("RigidBodyComponent");
+    metaSystem->RegisterComponentType("CameraComponent");
+    metaSystem->RegisterComponentType("DirectionalLightComponent");
+    metaSystem->RegisterComponentType("MeshComponent");
+    metaSystem->RegisterComponentType("PointLightComponent");
+    metaSystem->RegisterComponentType("Skybox");
+    metaSystem->RegisterComponentType("TerrainComponent");
+    metaSystem->RegisterComponentType("ScriptComponent");
+    
     // Open our game database
     SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
     dataLoader->Open("game.db");
-    
-    /*Entity* newent = world->CreateEntity();
-    newent->name = "Jasper";
-    
-    TransformComponent* tc = newent->CreateComponent<TransformComponent>();
-    tc->GetTransform()->SetWorldPosition(vector3(1, 1, 1));
-    
-    std::vector<GigaObject*> entities;
-    entities.push_back(newent);
-    
-    std::vector<GigaObject*> components;
-    components.push_back(tc);*/
-    
+
     // Load entities
     std::vector<GigaObject*> entities = dataLoader->GetObjects("Entity");
     

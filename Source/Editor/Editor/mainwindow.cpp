@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "newentitydialog.h"
+#include "newcomponentdialog.h"
 #include "modeltest.h"
 
 #include <QFileDialog>
@@ -10,6 +11,7 @@
 #include <Scripting/ScriptingSystem.h>
 #include <IO/SQLiteDataLoader.h>
 #include <Core/Application.h>
+#include <Core/World.h>
 
 MainWindow* MainWindow::m_instance = 0;
 
@@ -30,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionOpen_Project, &QAction::triggered, this, &MainWindow::btnOpenProject_clicked);
     connect(ui->actionEntity, &QAction::triggered, this, &MainWindow::btnCreateEntity_clicked);
+    connect(ui->actionComponent, &QAction::triggered, this, &MainWindow::btnCreateComponent_clicked);
 
     ui->tabWidget_3->removeTab(1);
 
@@ -73,12 +76,49 @@ void MainWindow::btnOpenProject_clicked() {
         scriptingSystem->LoadLibrary(gameDllFile.toStdString());
     }
 
-    SQLiteDataLoader* dataloader =  new SQLiteDataLoader();
+    SQLiteDataLoader* dataLoader =  new SQLiteDataLoader();
 
     // Look for a game.db file
     QString gamedbFile = directory + "/game.db";
     if(QFile::exists(gamedbFile)) {
-        dataloader->Open(gamedbFile.toStdString());
+        World* world = World::GetInstance();
+        MetaSystem* metaSystem = GetSystem<MetaSystem>();
+
+        dataLoader->Open(gamedbFile.toStdString());
+
+        // Load entities
+        std::vector<GigaObject*> entities = dataLoader->GetObjects("Entity");
+
+        // Add entities to world
+        auto it = entities.begin();
+        for(; it != entities.end(); it++) {
+            Entity* entity = dynamic_cast<Entity*>(*it);
+            world->AddEntity(entity);
+            QStandardItem* item = new QStandardItem(entity->name.c_str());
+            QVariant value = qVariantFromValue((void*)entity);
+            item->setData(value);
+            m_sceneTreeModel->appendRow(item);
+        }
+
+        // Load components
+        std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
+        auto cti = componentTypes.begin();
+        for(; cti != componentTypes.end(); cti++) {
+            std::vector<GigaObject*> components = dataLoader->GetObjects(*cti);
+            auto ci = components.begin();
+            for(; ci != components.end(); ci++) {
+                // Check whether this is attached to an entity
+                Component* component = dynamic_cast<Component*>(*ci);
+                Entity* entity = component->GetParent();
+                if(entity != 0) {
+                    QStandardItem* item = m_sceneTreeModel->findItem(entity);
+
+                    QStandardItem* newItem = new QStandardItem((*cti).c_str());
+                    newItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+                    item->appendRow(newItem);
+                }
+            }
+        }
     }
 
     // Enable menu items
@@ -90,6 +130,12 @@ void MainWindow::btnOpenProject_clicked() {
 
 void MainWindow::btnCreateEntity_clicked() {
     NewEntityDialog* dlg = new NewEntityDialog(this);
+    dlg->setModal(true);
+    dlg->show();
+}
+
+void MainWindow::btnCreateComponent_clicked() {
+    NewComponentDialog* dlg = new NewComponentDialog(this);
     dlg->setModal(true);
     dlg->show();
 }

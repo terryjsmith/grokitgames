@@ -51,6 +51,19 @@ int main(int argc, char *argv[])
     resourceSystem->AddSearchPath("Resources/Shaders");
     resourceSystem->AddSearchPath("Resources/Scripts");
 
+    // Register built-in component types
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+    metaSystem->RegisterComponentType("TransformComponent");
+    metaSystem->RegisterComponentType("AudioComponent");
+    metaSystem->RegisterComponentType("RigidBodyComponent");
+    metaSystem->RegisterComponentType("CameraComponent");
+    metaSystem->RegisterComponentType("DirectionalLightComponent");
+    metaSystem->RegisterComponentType("MeshComponent");
+    metaSystem->RegisterComponentType("PointLightComponent");
+    metaSystem->RegisterComponentType("Skybox");
+    metaSystem->RegisterComponentType("TerrainComponent");
+    metaSystem->RegisterComponentType("ScriptComponent");
+
     // Start up scripting system
     ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
     scriptingSystem->Start();
@@ -59,17 +72,17 @@ int main(int argc, char *argv[])
     MetaData::RegisterMetaFunctions();
 
     QSurfaceFormat glFormat;
-        glFormat.setVersion(4, 0);
-        glFormat.setSamples(4);
-        glFormat.setDepthBufferSize(24);
-        glFormat.setStencilBufferSize(8);
-        glFormat.setSwapInterval(0);
-        glFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-        glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
-        QSurfaceFormat::setDefaultFormat(glFormat);
+    glFormat.setVersion(4, 0);
+    glFormat.setSamples(4);
+    glFormat.setDepthBufferSize(24);
+    glFormat.setStencilBufferSize(8);
+    glFormat.setSwapInterval(0);
+    glFormat.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    glFormat.setProfile( QSurfaceFormat::CoreProfile ); // Requires >=Qt-4.8.0
+    QSurfaceFormat::setDefaultFormat(glFormat);
 
-        QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
-        QApplication a(argc, argv);
+    QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
+    QApplication a(argc, argv);
 
     MainWindow* w = MainWindow::getInstance();
     w->show();

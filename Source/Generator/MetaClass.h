@@ -17,6 +17,7 @@ public:
         std::string name;
         uint32_t type;
         std::string typeStr;
+        bool found;
     };
     
     // Parameter types and type names
@@ -32,6 +33,8 @@ public:
     
     // Actual callable function
     CallableFunction func;
+    
+    bool found;
 };
 
 struct MetaVariable {
@@ -45,6 +48,8 @@ struct MetaVariable {
     // Getter / setter functions
     GetterFunction getter;
     SetterFunction setter;
+    
+    bool found;
 };
 
 /**
@@ -118,6 +123,8 @@ public:
     
     // Public constructor?
     bool hasPublicConstructor;
+    
+    bool found;
     
 protected:
     // Create a new component from a class type

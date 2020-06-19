@@ -312,7 +312,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
                 Variant* v = dr->Get(*f);
                 std::string value = std::to_string(v->GetType()) + ":" + dr->Get(field)->ToString();
                 
-                if(f != field.begin()) query += ",";
+                if(f != fields.begin()) query += ",";
                 query += field + " = '" + value + "'";
             }
         }

@@ -55,6 +55,16 @@ public:
      */
     uint32_t GetNextTypeID() { m_maxTypeID += 10; return(m_maxTypeID); }
     
+    /**
+     * Register a component type
+     */
+    GIGA_FUNCTION() void RegisterComponentType(std::string type);
+    
+    /**
+     * Get component types
+     */
+    std::vector<std::string>& GetComponentTypes() { return m_componentTypes; }
+    
 protected:
     // Class definitions
     std::vector<Meta::Class*> m_definitions;
@@ -64,6 +74,9 @@ protected:
     
     // Next type ID
     uint32_t m_maxTypeID;
+    
+    // Registered component types
+    std::vector<std::string> m_componentTypes;
 };
 
 #endif

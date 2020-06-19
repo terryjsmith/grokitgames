@@ -76,3 +76,10 @@ void MetaSystem::SetSingleton(GigaObject* obj) {
     
     m_singletons.push_back(obj);
 }
+
+void MetaSystem::RegisterComponentType(std::string type) {
+    auto it = std::find(m_componentTypes.begin(), m_componentTypes.end(), type);
+    if(it == m_componentTypes.end()) {
+        m_componentTypes.push_back(type);
+    }
+}

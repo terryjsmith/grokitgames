@@ -25,11 +25,17 @@ void NewEntityDialog::accept() {
 
     MainWindow* w = MainWindow::getInstance();
     SceneTreeModel* model = w->GetSceneModel();
-    model->addItem(ent);
+
+    QStandardItem* item = new QStandardItem(ent->name.c_str());
+    QVariant value = qVariantFromValue((void*)ent);
+    item->setData(value);
+    model->appendRow(item);
 
     // Create transform component and add as child
     TransformComponent* tc = ent->CreateComponent<TransformComponent>();
-    model->addChildItem(ent, tc);
+    QStandardItem* child = new QStandardItem(tc->GetGigaName().c_str());
+    child->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    item->appendRow(child);
 
     QDialog::accept();
 }

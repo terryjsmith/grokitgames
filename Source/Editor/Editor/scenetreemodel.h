@@ -1,19 +1,21 @@
 #ifndef SCENETREEMODEL_H
 #define SCENETREEMODEL_H
 
-#include "treemodel.h"
+#include <QStandardItemModel>
+
 #include <Core/Entity.h>
 #include <Core/Component.h>
 
-class SceneTreeModel : public TreeModel
+class SceneTreeModel : public QStandardItemModel
 {
 public:
     SceneTreeModel(QObject *parent);
 
-    void addItem(Entity* entity);
-    void addChildItem(Entity* entity, Component* component);
+    // Find an entity
+    QStandardItem* findItem(Entity* entity);
+
+    // Override setData to update entity names
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
-    int getRowNumber(Entity* entity);
 };
 
 #endif // SCENETREEMODEL_H

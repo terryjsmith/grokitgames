@@ -29,24 +29,23 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         modeltest.cpp \
+        newcomponentdialog.cpp \
         newentitydialog.cpp \
         scenetreemodel.cpp \
-        scenetreeview.cpp \
-        treeitem.cpp \
-        treemodel.cpp
+        scenetreeview.cpp
 
 HEADERS += \
         gigaopenglwidget.h \
         mainwindow.h \
         modeltest.h \
+        newcomponentdialog.h \
         newentitydialog.h \
         scenetreemodel.h \
-        scenetreeview.h \
-        treeitem.h \
-        treemodel.h
+        scenetreeview.h
 
 FORMS += \
         mainwindow.ui \
+        newcomponentdialog.ui \
         newentitydialog.ui
 
 # Default rules for deployment.

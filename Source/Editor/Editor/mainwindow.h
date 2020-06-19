@@ -18,6 +18,7 @@ public:
 
     void btnOpenProject_clicked();
     void btnCreateEntity_clicked();
+    void btnCreateComponent_clicked();
 
     // Get instance/singleton
     static MainWindow* getInstance();

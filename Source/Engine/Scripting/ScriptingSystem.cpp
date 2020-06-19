@@ -103,15 +103,6 @@ void ScriptingSystem::Start() {
     m_cachedTypes[Variant::VAR_VECTOR3] = mono_class_from_name(image, "GIGA", "Vector3");
     m_cachedTypes[Variant::VAR_VECTOR4] = mono_class_from_name(image, "GIGA", "Vector4");
     m_cachedTypes[Variant::VAR_QUATERNION] = mono_class_from_name(image, "GIGA", "Quaternion");
-    
-    /*this->LoadLibrary("game.dll");
-    
-    MonoObject* exc = 0;
-    mono_runtime_invoke(m_classes["HelloWorld"]->methods["Hello"]->method, nullptr, nullptr, &exc);
-    if(exc) {
-        mono_print_unhandled_exception(exc);
-        GIGA_ASSERT(false, "Unable to run startup function.");
-    }*/
 }
 
 void ScriptingSystem::Initialize() {
@@ -135,6 +126,9 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
     // Load assembly
     MonoAssembly* assembly = mono_domain_assembly_open(m_domain, filename.c_str());
     MonoImage* image = mono_assembly_get_image(assembly);
+    
+    // Load library function, called at end
+    MonoMethod* loadLibrary = 0;
     
     // Load classes
     std::vector<std::string> classNames;
@@ -210,6 +204,10 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
             std::string funcName = mono_method_full_name(method, 0);
             funcName = funcName.substr(funcName.find(":") + 1);
             
+            if(funcName == "LoadLibrary") {
+                loadLibrary = method;
+            }
+            
             MonoMethodDesc* fn = new MonoMethodDesc();
             fn->name = funcName;
             fn->method = method;
@@ -265,6 +263,16 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
             }
             
             _parent = mono_class_get_parent(_parent);
+        }
+    }
+    
+    // Run load function if it exists
+    if(loadLibrary != 0) {
+        MonoObject* exc = 0;
+        mono_runtime_invoke(loadLibrary, nullptr, nullptr, &exc);
+        if(exc) {
+            mono_print_unhandled_exception(exc);
+            GIGA_ASSERT(false, "Unable to run LoadLibrary function.");
         }
     }
     
