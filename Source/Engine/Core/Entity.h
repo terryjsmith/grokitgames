@@ -67,6 +67,11 @@ public:
     GIGA_FUNCTION() Component* GetComponent(uint32_t typeID);
     
     /**
+     * Get all components
+     */
+    std::vector<Component*> GetComponents() { return m_components; }
+    
+    /**
      * Add a component
      */
     void AddComponent(Component* c);

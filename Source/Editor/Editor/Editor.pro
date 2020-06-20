@@ -31,6 +31,7 @@ SOURCES += \
         modeltest.cpp \
         newcomponentdialog.cpp \
         newentitydialog.cpp \
+        propertyformbuilder.cpp \
         scenetreemodel.cpp \
         scenetreeview.cpp
 
@@ -40,6 +41,7 @@ HEADERS += \
         modeltest.h \
         newcomponentdialog.h \
         newentitydialog.h \
+        propertyformbuilder.h \
         scenetreemodel.h \
         scenetreeview.h
 

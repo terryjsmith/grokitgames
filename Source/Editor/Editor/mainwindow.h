@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QVBoxLayout>
 #include "scenetreemodel.h"
 
 #include <Core/DataLoader.h>
@@ -26,8 +27,9 @@ public:
     // Get instance/singleton
     static MainWindow* getInstance();
 
-    // Get scene view
+    // Getters
     SceneTreeModel* GetSceneModel() { return m_sceneTreeModel; }
+    QVBoxLayout* GetPropertyLayout();
 
 private:
     Ui::MainWindow *ui;

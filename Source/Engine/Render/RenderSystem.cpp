@@ -4,11 +4,14 @@
 #include <Core/Application.h>
 #include <Core/World.h>
 #include <Render/RenderComponent.h>
+#include <Render/CameraComponent.h>
 #include <IO/Profiler.h>
 
 RenderSystem::RenderSystem() {
     m_fullscreen = false;
     m_scene = new Scene();
+    m_scene->camera = new CameraComponent(); // Create a default camera
+    
     m_ambient = vector3(0.25f, 0.25f, 0.25f);
     m_triCount = 0;
 }

@@ -9,16 +9,16 @@ Component::Component() {
 }
 
 void Component::Serialize(DataRecord* record) {
-    int entityID = 0;
+    uint32_t entityID = 0;
     if(m_parent) {
         entityID = m_parent->entityID;
     }
     
-    record->Set("entityID", new Variant(entityID));
+    record->Set("entityID", new Variant((uint32_t)entityID));
 }
 
 void Component::Deserialize(DataRecord* record) {
-    int entityID = record->Get("entityID")->AsInt();
+    uint32_t entityID = record->Get("entityID")->AsUInt();
     if(entityID) {
         Entity* ent = World::GetInstance()->FindEntity(entityID);
         

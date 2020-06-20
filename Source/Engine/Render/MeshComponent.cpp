@@ -30,7 +30,13 @@ void MeshComponent::Initialize(Mesh* mesh) {
 void MeshComponent::Serialize(DataRecord* record) {
     Component::Serialize(record);
     
-    record->Set("filename", new Variant(mesh->GetResource()->filename));
+    if(mesh) {
+        record->Set("filename", new Variant(mesh->GetResource()->filename));
+    }
+    else {
+        record->Set("filename", new Variant(std::string("")));
+    }
+
     record->Set("transform", new Variant(transform));
     record->Set("applyLighting", new Variant(applyLighting));
 }
@@ -40,9 +46,12 @@ void MeshComponent::Deserialize(DataRecord* record) {
     
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
 
-    Mesh* mesh = dynamic_cast<Mesh*>(resourceSystem->LoadResource(record->Get("filename")->AsString(), "Mesh"));
-    if(mesh != this->mesh) {
-        this->mesh = mesh;
+    std::string filename = record->Get("filename")->AsString();
+    if(filename.length()) {
+        Mesh* mesh = dynamic_cast<Mesh*>(resourceSystem->LoadResource(filename, "Mesh"));
+        if(mesh != this->mesh) {
+            this->mesh = mesh;
+        }
     }
     
     this->applyLighting = record->Get("applyLighting")->AsBool();

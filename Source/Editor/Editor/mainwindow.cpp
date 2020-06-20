@@ -42,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->sceneView->setModel(m_sceneTreeModel);
 
     ModelTest test(m_sceneTreeModel);
+
+    ui->sceneView->initialized = true;
 }
 
 void MainWindow::btnOpenProject_clicked() {
@@ -89,6 +91,8 @@ void MainWindow::btnOpenProject_clicked() {
         // Load entities
         std::vector<GigaObject*> entities = m_dataLoader->GetObjects("Entity");
 
+        QStandardItem* rootItem = m_sceneTreeModel->invisibleRootItem();
+
         // Add entities to world
         auto it = entities.begin();
         for(; it != entities.end(); it++) {
@@ -97,7 +101,7 @@ void MainWindow::btnOpenProject_clicked() {
             QStandardItem* item = new QStandardItem(entity->name.c_str());
             QVariant value = qVariantFromValue((void*)entity);
             item->setData(value);
-            m_sceneTreeModel->appendRow(item);
+            rootItem->appendRow(item);
         }
 
         // Load components
@@ -111,7 +115,7 @@ void MainWindow::btnOpenProject_clicked() {
                 Component* component = dynamic_cast<Component*>(*ci);
                 Entity* entity = component->GetParent();
                 if(entity != 0) {
-                    QStandardItem* item = m_sceneTreeModel->findItem(entity);
+                    QStandardItem* item = m_sceneTreeModel->findItem(entity->entityID);
 
                     QStandardItem* newItem = new QStandardItem((*cti).c_str());
                     newItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
@@ -171,6 +175,10 @@ void MainWindow::btnCreateComponent_clicked() {
     NewComponentDialog* dlg = new NewComponentDialog(this);
     dlg->setModal(true);
     dlg->show();
+}
+
+QVBoxLayout* MainWindow::GetPropertyLayout() {
+    return(ui->propertiesLayout);
 }
 
 MainWindow::~MainWindow()

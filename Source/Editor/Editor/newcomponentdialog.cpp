@@ -44,7 +44,7 @@ void NewComponentDialog::accept() {
     SceneTreeModel* model = MainWindow::getInstance()->GetSceneModel();
 
     // Get the entity
-    QStandardItem* item = model->findItem(entity);
+    QStandardItem* item = model->findItem(entity->entityID);
 
     assert(item != 0);
 

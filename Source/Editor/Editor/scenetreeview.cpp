@@ -1,27 +1,41 @@
 #include "scenetreeview.h"
 #include "mainwindow.h"
+#include "propertyformbuilder.h"
+
+#include <QLabel>
 
 SceneTreeView::SceneTreeView(QWidget* parent) : QTreeView(parent) {
-
+    initialized = false;
 }
 
-/*void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {
-    //MainWindow* window = MainWindow::getInstance();
+void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {
+    if(initialized == false) return;
 
-    QGroupBox* propertiesWidget = window->GetPropertiesWidget();
+    MainWindow* window = MainWindow::getInstance();
+
+    QVBoxLayout* propertyFrame = window->GetPropertyLayout();
 
     // Clear properties window
-    for (auto widget: propertiesWidget->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly))
-      delete widget;
+    PropertyFormBuilder::clearLayout(propertyFrame);
 
-    EntityTreeModel* model = (EntityTreeModel*)current.model();
-    TreeItem* item = model->getItem(current);
-    GigaObject* obj = (GigaObject*)item->GetInternalPointer();
+    SceneTreeModel* model = (SceneTreeModel*)current.model();
+    QStandardItem* item = model->itemFromIndex(current);
+    Entity* ent = (Entity*)item->data().value<void*>();
 
-    Component* c = dynamic_cast<Component*>(obj);
-    if(c) {
-        QFormLayout* layout = window->GetFormLayout(obj->GetGigaName(), obj, 0);
-        delete propertiesWidget->layout();
-        propertiesWidget->setLayout(layout);
+    std::vector<Component*> components = ent->GetComponents();
+    auto it = components.begin();
+    for(; it != components.end(); it++) {
+        DataRecord* dr = new DataRecord();
+        (*it)->Serialize(dr);
+
+        QFormLayout* layout = PropertyFormBuilder::GetFormLayout(dr, 0);
+
+        QVBoxLayout* newLayout = new QVBoxLayout();
+        QLabel* label = new QLabel(QString::fromStdString(((*it)->GetGigaName())));
+        label->setStyleSheet("font-weight: bold; background: #888; padding-left: 10px;");
+        newLayout->addWidget(label);
+        newLayout->addLayout(layout);
+
+        propertyFrame->addLayout(newLayout);
     }
-}*/
+}

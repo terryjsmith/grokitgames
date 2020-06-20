@@ -25,6 +25,8 @@ Component* Entity::CreateComponent(std::string className) {
     Component* component = dynamic_cast<Component*>(mc->CreateObject());
     GIGA_ASSERT(component != 0, "Must be derived from Component class.");
     
+    component->m_parent = this;
+    m_components.push_back(component);
     return(component);
 }
 
@@ -35,6 +37,8 @@ Component* Entity::CreateComponent(uint32_t typeID) {
     Component* component = dynamic_cast<Component*>(mc->CreateObject());
     GIGA_ASSERT(component != 0, "Must be derived from Component class.");
     
+    component->m_parent = this;
+    m_components.push_back(component);
     return(component);
 }
 
@@ -76,6 +80,7 @@ void Entity::AddComponent(Component* c) {
         }
     }
     
+    c->m_parent = this;
     m_components.push_back(c);
 }
 

@@ -412,12 +412,13 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
         auto di = m_recordCache.find(*ri);
         if(di == m_recordCache.end()) {
             dr = new DataRecord();
-            (*ri)->Serialize(dr);
             m_recordCache[*ri] = dr;
         }
         else {
             dr = di->second;
         }
+
+        (*ri)->Serialize(dr);
         
         // Process new record
         if(dr->GetID() == 0) {
@@ -435,7 +436,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                         auto oi = m_recordCache.find(v->AsObject());
                         if(oi != m_recordCache.end()) {
                             // Update the cached object ID
-                            value = std::to_string(v->GetType()) + ":" + std::to_string(oi->second->GetID());
+                            value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
                         }
                         else {
                             // Create a new object, save ID
@@ -500,9 +501,6 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
         // Updated record
         query = "UPDATE " + table + " SET ";
         auto f = fields.begin();
-        query += (*f) + " = '" + dr->Get(*f)->ToString() + "'";
-        f++;
-            
         for(; f != fields.end(); f++) {
             std::string field = (*f);
             if(field.compare(primaryKeyCol) != 0) {
@@ -513,7 +511,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                     auto oi = m_recordCache.find(v->AsObject());
                     if(oi != m_recordCache.end()) {
                         // Update the cached object ID
-                        value = std::to_string(v->GetType()) + ":" + std::to_string(oi->second->GetID());
+                        value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
                     }
                     else {
                         // Create a new object, save ID
@@ -530,7 +528,8 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                     }
                 }
                 
-                query += "," + field + " = '" + value + "'";
+                if(f != fields.begin()) query += ",";
+                query += field + " = '" + value + "'";
             }
         }
             

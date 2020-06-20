@@ -12,7 +12,6 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QFormLayout>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -68,8 +67,10 @@ public:
     QVBoxLayout *verticalLayout_2;
     GigaOpenGLWidget *openGLWidget;
     QWidget *tab_6;
-    QFormLayout *formLayout;
+    QVBoxLayout *verticalLayout_4;
     QFrame *propertiesFrame;
+    QVBoxLayout *verticalLayout_6;
+    QVBoxLayout *propertiesLayout;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
     QMenu *menuFile;
@@ -247,19 +248,30 @@ public:
 
         horizontalLayout->addLayout(openGLlayout);
 
-        formLayout = new QFormLayout();
-        formLayout->setSpacing(6);
-        formLayout->setObjectName(QString::fromUtf8("formLayout"));
+        verticalLayout_4 = new QVBoxLayout();
+        verticalLayout_4->setSpacing(6);
+        verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         propertiesFrame = new QFrame(centralWidget);
         propertiesFrame->setObjectName(QString::fromUtf8("propertiesFrame"));
         propertiesFrame->setMinimumSize(QSize(200, 0));
-        propertiesFrame->setFrameShape(QFrame::StyledPanel);
+        propertiesFrame->setFrameShape(QFrame::NoFrame);
         propertiesFrame->setFrameShadow(QFrame::Raised);
+        verticalLayout_6 = new QVBoxLayout(propertiesFrame);
+        verticalLayout_6->setSpacing(6);
+        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
+        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
+        propertiesLayout = new QVBoxLayout();
+        propertiesLayout->setSpacing(6);
+        propertiesLayout->setObjectName(QString::fromUtf8("propertiesLayout"));
 
-        formLayout->setWidget(0, QFormLayout::LabelRole, propertiesFrame);
+        verticalLayout_6->addLayout(propertiesLayout);
 
 
-        horizontalLayout->addLayout(formLayout);
+        verticalLayout_4->addWidget(propertiesFrame);
+
+
+        horizontalLayout->addLayout(verticalLayout_4);
 
         horizontalLayout->setStretch(1, 1);
 

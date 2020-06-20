@@ -4,6 +4,7 @@
 DataRecord::DataRecord() {
     m_updated = false;
     m_primaryKey = 0;
+    m_deleted = false;
 }
 
 DataRecord::~DataRecord() {

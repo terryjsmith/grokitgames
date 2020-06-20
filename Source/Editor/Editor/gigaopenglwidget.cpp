@@ -15,13 +15,7 @@ GigaOpenGLWidget::GigaOpenGLWidget(QWidget *parent) : QOpenGLWidget(parent) {
 
 void GigaOpenGLWidget::initializeGL() {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
-    World* world = World::GetInstance();
 
-    // Set up camera
-    Entity* playerEntity = world->CreateEntity();
-    CameraComponent* camera = playerEntity->CreateComponent<CameraComponent>();
-
-    renderSystem->GetScene()->camera = camera;
     //renderSystem->SetClearColor(vector4(1, 0, 1, 1));
 
     QOpenGLWidget::initializeGL();

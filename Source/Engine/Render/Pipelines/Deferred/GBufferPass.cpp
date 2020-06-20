@@ -132,6 +132,8 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     }
     
     Renderable* m = rc->renderable;
+    if(m == 0) return;
+    
     CameraComponent* cc = scene->camera;
     Frustum frustum = cc->GetFrustum();
     vector3 cameraPosition = cc->transform->GetWorldPosition();

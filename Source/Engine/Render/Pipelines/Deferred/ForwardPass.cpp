@@ -133,6 +133,8 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     m_program->Set("modelviewMatrix", modelviewMatrix);
     
     Renderable* m = rc->renderable;
+    if(m == 0) return;
+
     VertexBuffer* vertexBuffer = m->vertexBuffer;
     VertexFormat* vertexType = vertexBuffer->GetFormat();
     int vertexCount = vertexBuffer->GetCount();

@@ -4,19 +4,17 @@ SceneTreeModel::SceneTreeModel(QObject *parent) : QStandardItemModel(parent) {
 
 }
 
-QStandardItem* SceneTreeModel::findItem(Entity* entity) {
+QStandardItem* SceneTreeModel::findItem(uint32_t entityID) {
     // Get the entity
-    QStandardItem* item = 0;
-    QList<QStandardItem* > items = findItems(entity->name.c_str());
-    for(int i = 0; i < items.size(); i++) {
-        Entity* e = (Entity*)items[i]->data().value<void*>();
-        if(e == entity) {
-            item = items[i];
-            break;
+    for(int i = 0; i < this->rowCount(); i++) {
+        QStandardItem* it = item(i, 0);
+        Entity* e = (Entity*)it->data().value<void*>();
+        if(e->entityID == entityID) {
+            return(it);
         }
     }
 
-    return(item);
+    return(0);
 }
 
 bool SceneTreeModel::setData(const QModelIndex &index, const QVariant &value, int role) {
