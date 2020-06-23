@@ -126,6 +126,8 @@ public:
     
     bool found;
     
+    std::vector<std::string> inheritsFrom;
+    
 protected:
     // Create a new component from a class type
     template<typename T> static GigaObject* InternalCreateObject() { return new T; }

@@ -29,6 +29,16 @@ public:
     GIGA_FUNCTION() ResourceObject* LoadResource(std::string filename, std::string type);
     
     /**
+     * Create resource object from resource
+     */
+    GIGA_FUNCTION() ResourceObject* CreateResourceObject(Resource* resource, std::string type);
+    
+    /**
+     * Add  an already loaded resource object
+     */
+    void AddResourceObject(ResourceObject* resource);
+    
+    /**
      * Add a directory/path to search to find files
      */
     GIGA_FUNCTION() void AddSearchPath(std::string path);

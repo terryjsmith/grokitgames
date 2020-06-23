@@ -31,24 +31,26 @@ SOURCES += \
         modeltest.cpp \
         newcomponentdialog.cpp \
         newentitydialog.cpp \
-        propertyformbuilder.cpp \
+        objectselectdialog.cpp \
         scenetreemodel.cpp \
         scenetreeview.cpp
 
 HEADERS += \
         gigaopenglwidget.h \
         mainwindow.h \
+        metatypes.h \
         modeltest.h \
         newcomponentdialog.h \
         newentitydialog.h \
-        propertyformbuilder.h \
+        objectselectdialog.h \
         scenetreemodel.h \
         scenetreeview.h
 
 FORMS += \
         mainwindow.ui \
         newcomponentdialog.ui \
-        newentitydialog.ui
+        newentitydialog.ui \
+        objectselectdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -63,6 +65,7 @@ unix|win32: LIBS += -L$$PWD/../../../Bin/ -laudio
 unix|win32: LIBS += -L$$PWD/../../../Bin/ -lscripting
 unix|win32: LIBS += -L$$PWD/../../../Bin/ -lmeta
 unix|win32: LIBS += -L$$PWD/../../../Bin/ -lnetworking
+unix|win32: LIBS += -L$$PWD/../../../Bin/ -lgui
 
 INCLUDEPATH += $$PWD/../../Engine
 DEPENDPATH += $$PWD/../../../Bin

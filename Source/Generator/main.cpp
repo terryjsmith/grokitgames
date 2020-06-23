@@ -50,6 +50,7 @@ std::vector<std::string> addlIncludes;
 std::map<std::string, std::string> fileHashes;
 std::map<std::string, std::string> functionData;
 std::map<std::string, std::string> registrationData;
+std::map<std::string, std::vector<std::string>> inheritances;
 SQLiteDataLoader* dataLoader = 0;
 MetaSystem* metaSystem = 0;
 bool addedData = false;
@@ -388,8 +389,44 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
     if (cursor == CXCursor_ClassDecl || cursor == CXCursor_ClassTemplate) {
         return CXChildVisit_Recurse;
     }
+    
+    if (cursor == CXCursor_CXXBaseSpecifier) {
+        auto it = inheritances.find(currentClassName);
+        if(it != inheritances.end()) {
+            auto ii = std::find(inheritances[currentClassName].begin(), inheritances[currentClassName].end(), name);
+            if(ii == inheritances[currentClassName].end()) inheritances[currentClassName].push_back(name);
+        }
+        else {
+            inheritances[currentClassName] = std::vector<std::string>();
+            inheritances[currentClassName].push_back(name);
+        }
+    }
 
     return CXChildVisit_Continue;
+}
+
+std::vector<std::string> ProcessInheritance(std::string className) {
+    std::vector<std::string> addlClasses;
+    
+    if(inheritances.find(className) == inheritances.end()) {
+        return(addlClasses);
+    }
+    
+    auto it = inheritances[className].begin();
+    for(; it != inheritances[className].end(); it++) {
+        addlClasses.push_back(*it);
+        std::vector<std::string> deeper = ProcessInheritance(*it);
+        
+        auto itt = deeper.begin();
+        for(; itt != deeper.end(); itt++) {
+            auto ii = std::find(addlClasses.begin(), addlClasses.end(), *itt);
+            if(ii == addlClasses.end()) {
+                addlClasses.push_back(*itt);
+            }
+        }
+    }
+    
+    return(addlClasses);
 }
 
 void ProcessDirectory(Directory* dir) {
@@ -596,6 +633,7 @@ int main(int argc, char** argv) {
     std::vector<DataRecord*> clrecords = dataLoader->GetRecords("classes");
     std::vector<DataRecord*> fnrecords = dataLoader->GetRecords("functions");
     std::vector<DataRecord*> pmrecords = dataLoader->GetRecords("params");
+    std::vector<DataRecord*> inhrecords = dataLoader->GetRecords("inheritance");
     std::vector<DataRecord*> varrecords = dataLoader->GetRecords("variables");
     std::vector<DataRecord*> filerecords = dataLoader->GetRecords("files");
 
@@ -610,6 +648,22 @@ int main(int argc, char** argv) {
         exportGigaClasses[mc->name] = (*clit)->Get("exported")->AsBool();
         if (mc->singleton) {
             singletonClasses[mc->name] = true;
+        }
+    }
+    
+    auto ii = inhrecords.begin();
+    for(; ii != inhrecords.end(); ii++) {
+        std::string className = (*ii)->Get("className")->AsString();
+        std::string inheritsFrom = (*ii)->Get("inheritsFrom")->AsString();
+        
+        auto it = inheritances.find(className);
+        if(it != inheritances.end()) {
+            auto ii = std::find(inheritances[className].begin(), inheritances[className].end(), inheritsFrom);
+            if(ii == inheritances[className].end()) inheritances[className].push_back(inheritsFrom);
+        }
+        else {
+            inheritances[className] = std::vector<std::string>();
+            inheritances[className].push_back(inheritsFrom);
         }
     }
 
@@ -740,6 +794,7 @@ int main(int argc, char** argv) {
 
         // Process inheritance
         AddInheritedClasses(cl, cl->name);
+        cl->inheritsFrom = ProcessInheritance(cl->name);
 
         startOffset = output.length();
 
@@ -994,11 +1049,14 @@ int main(int argc, char** argv) {
         }
         output += "\tmetaClass" + cl->name + "->name = \"" + cl->name + "\";\n";
         output += "\tmetaClass" + cl->name + "->typeID = " + std::to_string(typeID) + ";\n";
-        output += "\tmetaClass" + cl->name + "->singleton = " + (cl->singleton == true ? "true" : "false") + ";\n\n";
+        output += "\tmetaClass" + cl->name + "->singleton = " + (cl->singleton == true ? "true" : "false") + ";\n";
+        
+        auto pci = cl->inheritsFrom.begin();
+        for(; pci != cl->inheritsFrom.end(); pci++) {
+            output += "\tmetaClass" + cl->name + "->inheritsFrom.push_back(\"" + *pci + "\");\n";
+        }
 
-        /*if(cl->singleton) {
-            output += "\tmetaSystem->SetSingleton(GetSystem<" + cl->name + ">());\n\n";
-        }*/
+        output += "\n";
 
         auto flist = cl->GetFunctions();
         auto fi = flist.begin();
@@ -1540,6 +1598,7 @@ int main(int argc, char** argv) {
             output += "\t\t[MethodImplAttribute(MethodImplOptions.InternalCall)]\n";
             output += "\t\tpublic extern ";
             if(cl->singleton || (*fi)->isStatic) output += "static ";
+            else output += "virtual ";
     
             std::string returnType = "void";
             auto mi = csharpMappings.find((*fi)->returnType);
@@ -1584,6 +1643,7 @@ int main(int argc, char** argv) {
     dataLoader->Delete("classes");
     dataLoader->Delete("functions");
     dataLoader->Delete("params");
+    dataLoader->Delete("inheritance");
     dataLoader->Delete("files");
     dataLoader->Delete("variables");
 
@@ -1592,6 +1652,7 @@ int main(int argc, char** argv) {
     std::vector<DataRecord*> cldrs;
     std::vector<DataRecord*> fndrs;
     std::vector<DataRecord*> pmdrs;
+    std::vector<DataRecord*> inhdrs;
     std::vector<DataRecord*> vardrs;
     for (; cli != classes.end(); cli++) {
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cli->second->name);
@@ -1606,7 +1667,7 @@ int main(int argc, char** argv) {
         dr->Set("hasPublicConstructor", new Variant(cli->second->hasPublicConstructor));
         dr->Set("exported", new Variant((bool)exportGigaClasses[cli->first]));
         cldrs.push_back(dr);
-
+        
         auto fns = cli->second->GetFunctions();
         auto fni = fns.begin();
         std::map<std::string, int> offsets;
@@ -1660,10 +1721,25 @@ int main(int argc, char** argv) {
             vardrs.push_back(fdr);
         }
     }
+    
+    // Inheritance (global)
+    auto inhi = inheritances.begin();
+    for(; inhi != inheritances.end(); inhi++) {
+        auto ii2 = inhi->second.begin();
+        for(; ii2 != inhi->second.end(); ii2++) {
+            DataRecord* dr2 = new DataRecord();
+            dr2->Set("className", new Variant(inhi->first));
+            dr2->Set("inheritsFrom", new Variant(*ii2));
+            
+            inhdrs.push_back(dr2);
+        }
+    }
+
 
     dataLoader->SaveRecords("classes", cldrs);
     dataLoader->SaveRecords("functions", fndrs);
     dataLoader->SaveRecords("params", pmdrs);
+    dataLoader->SaveRecords("inheritance", inhdrs);
     dataLoader->SaveRecords("variables", vardrs);
 
     auto fili = fileHashes.begin();

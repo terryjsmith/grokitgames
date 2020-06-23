@@ -1,6 +1,5 @@
 #include "scenetreeview.h"
 #include "mainwindow.h"
-#include "propertyformbuilder.h"
 
 #include <QLabel>
 
@@ -16,7 +15,7 @@ void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex
     QVBoxLayout* propertyFrame = window->GetPropertyLayout();
 
     // Clear properties window
-    PropertyFormBuilder::clearLayout(propertyFrame);
+    window->clearLayout(propertyFrame);
 
     SceneTreeModel* model = (SceneTreeModel*)current.model();
     QStandardItem* item = model->itemFromIndex(current);
@@ -28,14 +27,21 @@ void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex
         DataRecord* dr = new DataRecord();
         (*it)->Serialize(dr);
 
-        QFormLayout* layout = PropertyFormBuilder::GetFormLayout(dr, 0);
+        QFormLayout* layout = window->GetFormLayout(dr, *it, 0);
+        layout->setLabelAlignment(Qt::AlignLeft);
 
         QVBoxLayout* newLayout = new QVBoxLayout();
+
         QLabel* label = new QLabel(QString::fromStdString(((*it)->GetGigaName())));
-        label->setStyleSheet("font-weight: bold; background: #888; padding-left: 10px;");
+        label->setStyleSheet("font-weight: bold; background: #999; padding: 5px; color: #fff;");
         newLayout->addWidget(label);
         newLayout->addLayout(layout);
 
         propertyFrame->addLayout(newLayout);
+    }
+
+    propertyFrame->addStretch(1);
+    for(int i = 0; i < (int)components.size(); i++) {
+        propertyFrame->setStretch(i, 0);
     }
 }

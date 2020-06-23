@@ -5,7 +5,8 @@
 #include <Core/GigaObject.h>
 #include <Core/DataRecord.h>
 
-class GIGA_API DataLoader {
+GIGA_CLASS()
+class GIGA_API DataLoader : public GigaObject {
 public:
     virtual ~DataLoader() = default;
     

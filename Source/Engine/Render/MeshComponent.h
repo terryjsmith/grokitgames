@@ -4,7 +4,6 @@
 
 #include <Render/RenderComponent.h>
 #include <Render/Mesh.h>
-#include <Core/Serializable.h>
 #include <Render/AnimationInstance.h>
 
 GIGA_CLASS()

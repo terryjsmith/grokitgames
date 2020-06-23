@@ -81,6 +81,11 @@ public:
         m_ctor = InternalCreateObject<T>;
     }
     
+    /**
+     * Whether this class inherits from another
+     */
+    bool InheritsFrom(std::string className);
+    
 public:
     // Numeric object type ID
     uint32_t typeID;
@@ -93,6 +98,9 @@ public:
 
     // Public constructor?
     bool hasPublicConstructor;
+    
+    // Other classes this class inherits from
+    std::vector<std::string> inheritsFrom;
     
 protected:
     // Create a new component from a class type

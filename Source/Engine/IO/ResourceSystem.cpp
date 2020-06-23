@@ -19,7 +19,7 @@ void ResourceSystem::Initialize() {
 ResourceObject* ResourceSystem::LoadResource(std::string filename, std::string type) {
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
     Resource* resource = 0;
-    
+
     auto ti = m_resourceTypes.find(type);
     if(ti != m_resourceTypes.end()) {
         type = ti->second;
@@ -64,6 +64,28 @@ ResourceObject* ResourceSystem::LoadResource(std::string filename, std::string t
     
     // Create an instance of the Resource into the ResourceObject
     obj->Instantiate(resource);
+    resource->type = type;
+    m_resourceObjects[resource] = obj;
+    
+    return(obj);
+}
+
+ResourceObject* ResourceSystem::CreateResourceObject(Resource* resource, std::string type) {
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+
+    // If we have a resource, we probably also have a resource object to return
+    std::map<Resource*, ResourceObject*>::iterator ri = m_resourceObjects.find(resource);
+    if (ri != m_resourceObjects.end()) {
+        return(ri->second);
+    }
+    
+    // Create a new ResourceObject of the necessary type
+    ResourceObject* obj = dynamic_cast<ResourceObject*>(metaSystem->CreateClass(type));
+    GIGA_ASSERT(obj != 0, "Resource object not found.");
+    
+    // Create an instance of the Resource into the ResourceObject
+    obj->Instantiate(resource);
+    resource->type = type;
     m_resourceObjects[resource] = obj;
     
     return(obj);
@@ -108,4 +130,8 @@ void ResourceSystem::Shutdown() {
 
 void ResourceSystem::RegisterResourceType(std::string alias, std::string type) {
     m_resourceTypes[alias] = type;
+}
+
+void ResourceSystem::AddResourceObject(ResourceObject* resource) {
+    
 }

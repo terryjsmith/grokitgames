@@ -103,6 +103,11 @@ int main(int argc, const char * argv[]) {
     metaSystem->RegisterComponentType("TerrainComponent");
     metaSystem->RegisterComponentType("ScriptComponent");
     
+    // Load game code
+    if(Resource::Exists("game.dll")) {
+        scriptingSystem->LoadLibrary("game.dll");
+    }
+    
     // Open our game database
     SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
     dataLoader->Open("game.db");

@@ -82,6 +82,10 @@ GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
     return(newobj);
 }
 
+void ScriptingSystem::AddInternalCall(std::string definition, void* func) {
+    mono_add_internal_call(definition.c_str(), (void*)func);
+}
+
 void ScriptingSystem::Start() {
     // Load base engine functionality (tie back to engine c++ code)
     MonoImage* image = this->LoadLibrary("Resources/Scripting/GIGAEngine.dll");
@@ -237,10 +241,21 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
     for(; cli != classNames.end(); cli++) {
         // Get mono class
         MonoClassDesc* cl = m_classes[*cli];
+        Meta::Class* mcl = metaSystem->FindClass(*cli);
         MonoClass* _parent = mono_class_get_parent(cl->_class);
         while(_parent) {
-            // Add functions
+            // Add to inheritance list
             std::string parentName = mono_class_get_name(_parent);
+            if(parentName.compare("Object") == 0) { _parent = 0; continue; }
+            
+            if(mcl) {
+                auto ii = std::find(mcl->inheritsFrom.begin(), mcl->inheritsFrom.end(), parentName);
+                if(ii == mcl->inheritsFrom.end()) {
+                    mcl->inheritsFrom.push_back(parentName);
+                }
+            }
+            
+            // Add functions
             auto it = m_classes.find(parentName);
             if(it == m_classes.end()) { _parent = 0; continue; }
             

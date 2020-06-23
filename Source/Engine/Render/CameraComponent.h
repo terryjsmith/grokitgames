@@ -49,6 +49,12 @@ public:
     */
     Frustum CalculateFrustum(float fnear, float ffar);
     Frustum GetFrustum();
+    
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
 
 protected:
     float m_fnear, m_ffar;

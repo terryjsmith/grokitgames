@@ -31,6 +31,10 @@ void Meta::Class::AddVariable(Meta::Variable* fn) {
     m_variables.push_back(fn);
 }
 
+bool Meta::Class::InheritsFrom(std::string className) {
+    return(std::find(inheritsFrom.begin(), inheritsFrom.end(), className) == inheritsFrom.end());
+}
+
 Meta::Variable* Meta::Class::FindVariable(std::string name) {
     auto it = m_variables.begin();
     for(; it != m_variables.end(); it++) {

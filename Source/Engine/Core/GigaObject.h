@@ -13,7 +13,7 @@ class DataRecord;
  */
 class GIGA_API GigaObject {
 public:
-    virtual ~GigaObject() = default;
+    virtual ~GigaObject();
     
     /**
      * Pure virtual function that specifies string version of class name
@@ -43,6 +43,16 @@ public:
     void Lock();
     void Unlock();
     
+    /**
+     * Get list of all objects by type
+     */
+    static std::vector<GigaObject*> GetObjects(std::string className);
+    
+    /**
+     * Show a string representation of an object (defaults to giga name)
+     */
+    virtual std::string ToString();
+    
 protected:
     GigaObject();
     
@@ -51,6 +61,9 @@ protected:
     
     // Mutex
     std::mutex* m_mutex;
+    
+    // A list of objects
+    static std::vector<GigaObject*> m_objects;
 };
 
 #endif

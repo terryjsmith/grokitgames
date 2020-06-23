@@ -3,7 +3,10 @@
 
 #include <QMainWindow>
 #include <QVBoxLayout>
+#include <QFormLayout>
+
 #include "scenetreemodel.h"
+#include "metatypes.h"
 
 #include <Core/DataLoader.h>
 
@@ -19,17 +22,30 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void btnOpenProject_clicked();
-    void btnSaveProject_clicked();
-    void btnCreateEntity_clicked();
-    void btnCreateComponent_clicked();
-
     // Get instance/singleton
     static MainWindow* getInstance();
 
     // Getters
     SceneTreeModel* GetSceneModel() { return m_sceneTreeModel; }
     QVBoxLayout* GetPropertyLayout();
+
+    // Form generator
+    QFormLayout* GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent);
+    void clearLayout(QLayout *layout);
+
+    // Add override
+    void AddOverride(std::string field, std::string type);
+
+public slots:
+    // Property callbacks
+    void cbTextEditFinished();
+
+    void btnOpenProject_clicked();
+    void btnSaveProject_clicked();
+    void btnCreateEntity_clicked();
+    void btnCreateComponent_clicked();
+    void btnCreateScript_clicked();
+    void objectBrowser();
 
 private:
     Ui::MainWindow *ui;
@@ -42,6 +58,9 @@ private:
 
     // Data loader
     DataLoader* m_dataLoader;
+
+    // Custom object types
+    std::map<std::string, std::string> m_overrides;
 };
 
 #endif // MAINWINDOW_H

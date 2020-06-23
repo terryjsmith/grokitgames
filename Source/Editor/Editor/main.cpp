@@ -87,5 +87,8 @@ int main(int argc, char *argv[])
     MainWindow* w = MainWindow::getInstance();
     w->show();
 
+    // Load editor files
+    scriptingSystem->LoadLibrary("Resources/Scripting/GIGAEditor.dll");
+
     return a.exec();
 }

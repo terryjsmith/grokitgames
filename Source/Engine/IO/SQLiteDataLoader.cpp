@@ -432,25 +432,31 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                     Variant* v = dr->Get(field);
                     std::string value = std::to_string(v->GetType()) + ":" + dr->Get(field)->ToString();
                     if(v->IsObject()) {
-                        // Look for a cached object
-                        auto oi = m_recordCache.find(v->AsObject());
-                        if(oi != m_recordCache.end()) {
-                            // Update the cached object ID
-                            value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
+                        if(v->AsObject() == 0) {
+                            DataRecord::TypeHint* hint = dr->GetTypeHint(*f);
+                            std::string value = std::to_string(v->GetType()) + ":" + hint->type + ":0";
                         }
                         else {
-                            // Create a new object, save ID
-                            GigaObject* obj = v->AsObject();
-                            std::vector<GigaObject*> newRecord;
-                            newRecord.push_back(obj);
-                            
-                            this->SaveObjects(obj->GetGigaName(), newRecord);
-                            
-                            // Get the new object from the cache
-                            DataRecord* newDR = m_recordCache[obj];
-                            
-                            // Get ID
-                            value = std::to_string(v->GetType()) + ":" + obj->GetGigaName() + ":" + std::to_string(newDR->GetID());
+                            // Look for a cached object
+                            auto oi = m_recordCache.find(v->AsObject());
+                            if(oi != m_recordCache.end()) {
+                                // Update the cached object ID
+                                value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
+                            }
+                            else {
+                                // Create a new object, save ID
+                                GigaObject* obj = v->AsObject();
+                                std::vector<GigaObject*> newRecord;
+                                newRecord.push_back(obj);
+                                
+                                this->SaveObjects(obj->GetGigaName(), newRecord);
+                                
+                                // Get the new object from the cache
+                                DataRecord* newDR = m_recordCache[obj];
+                                
+                                // Get ID
+                                value = std::to_string(v->GetType()) + ":" + obj->GetGigaName() + ":" + std::to_string(newDR->GetID());
+                            }
                         }
                     }
                     
@@ -507,24 +513,22 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                 Variant* v = dr->Get(field);
                 std::string value = std::to_string(v->GetType()) + ":" + dr->Get(field)->ToString();
                 if(v->IsObject()) {
-                    // Look for a cached object
-                    auto oi = m_recordCache.find(v->AsObject());
-                    if(oi != m_recordCache.end()) {
-                        // Update the cached object ID
-                        value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
+                    if(v->AsObject() == 0) {
+                        DataRecord::TypeHint* hint = dr->GetTypeHint(*f);
+                        std::string value = std::to_string(v->GetType()) + ":" + hint->type + ":0";
                     }
                     else {
-                        // Create a new object, save ID
+                        // Save / update
                         GigaObject* obj = v->AsObject();
                         std::vector<GigaObject*> newRecord;
-                        newRecord.push_back(dr);
-                        
+                        newRecord.push_back(obj);
+
+                        // Save
                         this->SaveObjects(obj->GetGigaName(), newRecord);
-                        
-                        m_recordCache[obj] = dr;
-                        
-                        // Get ID
-                        value = std::to_string(v->GetType()) + ":" + obj->GetGigaName() + ":" + std::to_string(dr->GetID());
+
+                        // Look for a cached object
+                        auto oi = m_recordCache.find(v->AsObject());
+                        value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
                     }
                 }
                 
@@ -606,7 +610,10 @@ int SQLiteDataLoader::InternalDataCallback(void* instance, int count, char** dat
             std::string lookup = value.substr(value.find(":") + 1);
             std::string className = value.substr(0, value.find(":"));
             
-            GigaObject* obj = loader->GetObject(className, atoi(lookup.c_str()));
+            GigaObject* obj = 0;
+            if(lookup != "0") {
+                obj = loader->GetObject(className, atoi(lookup.c_str()));
+            }
             v = new Variant(obj);
         }
         else {

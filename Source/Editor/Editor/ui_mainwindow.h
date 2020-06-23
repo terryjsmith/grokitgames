@@ -10,6 +10,7 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
+#include <QtGui/QIcon>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
@@ -21,8 +22,10 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTabWidget>
+#include <QtWidgets/QToolButton>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "gigaopenglwidget.h"
@@ -43,6 +46,10 @@ public:
     QAction *actionEntity;
     QAction *actionComponent;
     QAction *actionSave_Project;
+    QAction *actionScript;
+    QAction *actionBuild;
+    QAction *actionRun;
+    QAction *actionDeploy;
     QWidget *centralWidget;
     QHBoxLayout *horizontalLayout_2;
     QHBoxLayout *horizontalLayout;
@@ -51,11 +58,17 @@ public:
     QWidget *tab;
     QGridLayout *gridLayout;
     QFrame *frame_2;
+    QGridLayout *gridLayout_3;
+    QGridLayout *gridLayout_2;
+    QToolButton *toolButton;
+    QToolButton *toolButton_2;
     QWidget *tab_2;
     QTabWidget *tabWidget_2;
     QWidget *tab_3;
     QVBoxLayout *verticalLayout;
+    QHBoxLayout *horizontalLayout_3;
     QLineEdit *sceneSearch;
+    QToolButton *btnNewEntity;
     SceneTreeView *sceneView;
     QWidget *tab_4;
     QVBoxLayout *verticalLayout_3;
@@ -67,6 +80,8 @@ public:
     QVBoxLayout *verticalLayout_2;
     GigaOpenGLWidget *openGLWidget;
     QWidget *tab_6;
+    QVBoxLayout *verticalLayout_5;
+    QPlainTextEdit *plainTextEdit;
     QVBoxLayout *verticalLayout_4;
     QFrame *propertiesFrame;
     QVBoxLayout *verticalLayout_6;
@@ -75,12 +90,13 @@ public:
     QMenuBar *menuBar;
     QMenu *menuFile;
     QMenu *menuAdd;
+    QMenu *menuGame;
 
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(673, 375);
+        MainWindow->resize(711, 375);
         QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -111,6 +127,14 @@ public:
         actionSave_Project = new QAction(MainWindow);
         actionSave_Project->setObjectName(QString::fromUtf8("actionSave_Project"));
         actionSave_Project->setEnabled(false);
+        actionScript = new QAction(MainWindow);
+        actionScript->setObjectName(QString::fromUtf8("actionScript"));
+        actionBuild = new QAction(MainWindow);
+        actionBuild->setObjectName(QString::fromUtf8("actionBuild"));
+        actionRun = new QAction(MainWindow);
+        actionRun->setObjectName(QString::fromUtf8("actionRun"));
+        actionDeploy = new QAction(MainWindow);
+        actionDeploy->setObjectName(QString::fromUtf8("actionDeploy"));
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         centralWidget->setEnabled(true);
@@ -152,6 +176,31 @@ public:
         frame_2->setMaximumSize(QSize(16777215, 200));
         frame_2->setFrameShape(QFrame::StyledPanel);
         frame_2->setFrameShadow(QFrame::Raised);
+        gridLayout_3 = new QGridLayout(frame_2);
+        gridLayout_3->setSpacing(6);
+        gridLayout_3->setContentsMargins(11, 11, 11, 11);
+        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
+        gridLayout_3->setContentsMargins(0, 0, 0, 0);
+        gridLayout_2 = new QGridLayout();
+        gridLayout_2->setSpacing(6);
+        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
+        toolButton = new QToolButton(frame_2);
+        toolButton->setObjectName(QString::fromUtf8("toolButton"));
+        QIcon icon;
+        icon.addFile(QString::fromUtf8("../../../../../../Downloads/565219-av/png/038-play-arrow.png"), QSize(), QIcon::Normal, QIcon::Off);
+        toolButton->setIcon(icon);
+        toolButton->setCheckable(false);
+
+        gridLayout_2->addWidget(toolButton, 0, 0, 1, 1);
+
+        toolButton_2 = new QToolButton(frame_2);
+        toolButton_2->setObjectName(QString::fromUtf8("toolButton_2"));
+
+        gridLayout_2->addWidget(toolButton_2, 0, 1, 1, 1);
+
+
+        gridLayout_3->addLayout(gridLayout_2, 0, 0, 1, 1);
+
 
         gridLayout->addWidget(frame_2, 0, 0, 1, 1);
 
@@ -164,6 +213,7 @@ public:
 
         tabWidget_2 = new QTabWidget(centralWidget);
         tabWidget_2->setObjectName(QString::fromUtf8("tabWidget_2"));
+        tabWidget_2->setStyleSheet(QString::fromUtf8(""));
         tabWidget_2->setTabShape(QTabWidget::Rounded);
         tabWidget_2->setElideMode(Qt::ElideRight);
         tabWidget_2->setDocumentMode(true);
@@ -174,10 +224,22 @@ public:
         verticalLayout->setContentsMargins(11, 11, 11, 11);
         verticalLayout->setObjectName(QString::fromUtf8("verticalLayout"));
         verticalLayout->setContentsMargins(0, -1, 0, 0);
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setSpacing(6);
+        horizontalLayout_3->setObjectName(QString::fromUtf8("horizontalLayout_3"));
+        horizontalLayout_3->setContentsMargins(0, -1, -1, -1);
         sceneSearch = new QLineEdit(tab_3);
         sceneSearch->setObjectName(QString::fromUtf8("sceneSearch"));
 
-        verticalLayout->addWidget(sceneSearch);
+        horizontalLayout_3->addWidget(sceneSearch);
+
+        btnNewEntity = new QToolButton(tab_3);
+        btnNewEntity->setObjectName(QString::fromUtf8("btnNewEntity"));
+
+        horizontalLayout_3->addWidget(btnNewEntity);
+
+
+        verticalLayout->addLayout(horizontalLayout_3);
 
         sceneView = new SceneTreeView(tab_3);
         sceneView->setObjectName(QString::fromUtf8("sceneView"));
@@ -220,6 +282,7 @@ public:
         tabWidget_3 = new QTabWidget(centralWidget);
         tabWidget_3->setObjectName(QString::fromUtf8("tabWidget_3"));
         tabWidget_3->setAutoFillBackground(false);
+        tabWidget_3->setStyleSheet(QString::fromUtf8(""));
         tabWidget_3->setUsesScrollButtons(false);
         tabWidget_3->setDocumentMode(true);
         tabWidget_3->setTabsClosable(true);
@@ -241,6 +304,21 @@ public:
         tabWidget_3->addTab(tab_5, QString());
         tab_6 = new QWidget();
         tab_6->setObjectName(QString::fromUtf8("tab_6"));
+        verticalLayout_5 = new QVBoxLayout(tab_6);
+        verticalLayout_5->setSpacing(6);
+        verticalLayout_5->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_5->setObjectName(QString::fromUtf8("verticalLayout_5"));
+        verticalLayout_5->setContentsMargins(0, 0, 0, 0);
+        plainTextEdit = new QPlainTextEdit(tab_6);
+        plainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
+        QSizePolicy sizePolicy3(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy3.setHorizontalStretch(1);
+        sizePolicy3.setVerticalStretch(1);
+        sizePolicy3.setHeightForWidth(plainTextEdit->sizePolicy().hasHeightForWidth());
+        plainTextEdit->setSizePolicy(sizePolicy3);
+
+        verticalLayout_5->addWidget(plainTextEdit);
+
         tabWidget_3->addTab(tab_6, QString());
 
         openGLlayout->addWidget(tabWidget_3);
@@ -253,7 +331,7 @@ public:
         verticalLayout_4->setObjectName(QString::fromUtf8("verticalLayout_4"));
         propertiesFrame = new QFrame(centralWidget);
         propertiesFrame->setObjectName(QString::fromUtf8("propertiesFrame"));
-        propertiesFrame->setMinimumSize(QSize(200, 0));
+        propertiesFrame->setMinimumSize(QSize(250, 0));
         propertiesFrame->setFrameShape(QFrame::NoFrame);
         propertiesFrame->setFrameShadow(QFrame::Raised);
         verticalLayout_6 = new QVBoxLayout(propertiesFrame);
@@ -283,15 +361,18 @@ public:
         MainWindow->setStatusBar(statusBar);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 673, 22));
+        menuBar->setGeometry(QRect(0, 0, 711, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QString::fromUtf8("menuFile"));
         menuAdd = new QMenu(menuBar);
         menuAdd->setObjectName(QString::fromUtf8("menuAdd"));
+        menuGame = new QMenu(menuBar);
+        menuGame->setObjectName(QString::fromUtf8("menuGame"));
         MainWindow->setMenuBar(menuBar);
 
         menuBar->addAction(menuFile->menuAction());
         menuBar->addAction(menuAdd->menuAction());
+        menuBar->addAction(menuGame->menuAction());
         menuFile->addAction(actionNew_Project);
         menuFile->addAction(actionOpen_Project);
         menuFile->addAction(actionSave_Project);
@@ -304,6 +385,10 @@ public:
         menuFile->addAction(actionExit);
         menuAdd->addAction(actionEntity);
         menuAdd->addAction(actionComponent);
+        menuAdd->addAction(actionScript);
+        menuGame->addAction(actionBuild);
+        menuGame->addAction(actionRun);
+        menuGame->addAction(actionDeploy);
 
         retranslateUi(MainWindow);
 
@@ -328,16 +413,24 @@ public:
         actionEntity->setText(QCoreApplication::translate("MainWindow", "Entity...", nullptr));
         actionComponent->setText(QCoreApplication::translate("MainWindow", "Component...", nullptr));
         actionSave_Project->setText(QCoreApplication::translate("MainWindow", "Save Project", nullptr));
+        actionScript->setText(QCoreApplication::translate("MainWindow", "Script...", nullptr));
+        actionBuild->setText(QCoreApplication::translate("MainWindow", "Build", nullptr));
+        actionRun->setText(QCoreApplication::translate("MainWindow", "Run", nullptr));
+        actionDeploy->setText(QCoreApplication::translate("MainWindow", "Deploy", nullptr));
+        toolButton->setText(QCoreApplication::translate("MainWindow", "Build", nullptr));
+        toolButton_2->setText(QCoreApplication::translate("MainWindow", "Run", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Tools", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Create", nullptr));
         sceneSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search scene...", nullptr));
+        btnNewEntity->setText(QCoreApplication::translate("MainWindow", "+", nullptr));
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_3), QCoreApplication::translate("MainWindow", "Scene", nullptr));
         resourceSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search resources...", nullptr));
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_4), QCoreApplication::translate("MainWindow", "Resources", nullptr));
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_5), QCoreApplication::translate("MainWindow", "Scene", nullptr));
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_6), QCoreApplication::translate("MainWindow", "Tab 2", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
-        menuAdd->setTitle(QCoreApplication::translate("MainWindow", "Add", nullptr));
+        menuAdd->setTitle(QCoreApplication::translate("MainWindow", "New", nullptr));
+        menuGame->setTitle(QCoreApplication::translate("MainWindow", "Game", nullptr));
     } // retranslateUi
 
 };

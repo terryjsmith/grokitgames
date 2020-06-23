@@ -1,6 +1,7 @@
 
 #include <IO/Resource.h>
 #include <Core/Application.h>
+#include <Core/DataRecord.h>
 
 Resource::Resource() {
     m_data = 0;
@@ -216,4 +217,18 @@ unsigned char* Resource::ReadFile() {
 
 void Resource::SetPosition(unsigned int offset) {
     fseek(m_fp, SEEK_SET, offset);
+}
+
+void Resource::Serialize(DataRecord* record) {
+    record->Set("filename", new Variant(filename));
+    record->Set("type", new Variant(type));
+}
+
+void Resource::Deserialize(DataRecord* record) {
+    std::string filename = record->Get("filename")->AsString();
+    if(filename.compare(this->filename) != 0) {
+        this->Initialize(filename, FILEMODE_READ);
+    }
+    
+    type = record->Get("type")->AsString();
 }

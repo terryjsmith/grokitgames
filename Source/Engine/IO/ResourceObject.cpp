@@ -1,5 +1,6 @@
 
 #include <IO/ResourceObject.h>
+#include <Core/DataRecord.h>
 
 ResourceObject::~ResourceObject() {
     
@@ -22,3 +23,16 @@ Resource* ResourceObject::GetResource() {
     return(m_resource);
 }
 
+void ResourceObject::Serialize(DataRecord* record) {
+    record->SetTypeHint("resource", "Resource");
+    record->Set("resource", new Variant(m_resource));
+}
+
+void ResourceObject::Deserialize(DataRecord* record) {
+    record->SetTypeHint("resource", "Resource");
+    m_resource = record->Get("resource")->AsObject<Resource*>();
+}
+
+std::string ResourceObject::ToString() {
+    return(m_resource->filename);
+}

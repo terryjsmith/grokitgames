@@ -2,6 +2,7 @@
 #define GLM_FORCE_RADIANS
 
 #include <Render/CameraComponent.h>
+#include <Core/DataRecord.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 CameraComponent::CameraComponent() {
@@ -135,4 +136,20 @@ void CameraComponent::SetProjectionMatrix(matrix4 proj) {
 void CameraComponent::SetViewMatrix(matrix4 view) {
     m_customView = true;
     m_view = view;
+}
+
+void CameraComponent::Serialize(DataRecord* record) {
+    Component::Serialize(record);
+    
+    record->Set("fov", new Variant(m_fov));
+    record->Set("fnear", new Variant(m_fnear));
+    record->Set("ffar", new Variant(m_fnear));
+}
+
+void CameraComponent::Deserialize(DataRecord* record) {
+    Component::Deserialize(record);
+    
+    m_fov = record->Get("fov")->AsFloat();
+    m_fnear = record->Get("fnear")->AsFloat();
+    m_ffar = record->Get("ffar")->AsFloat();
 }

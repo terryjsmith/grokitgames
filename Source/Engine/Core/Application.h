@@ -11,10 +11,13 @@ class Window;
 /**
  * Singleton application class
  */
-class GIGA_API Application {
+GIGA_CLASS()
+class GIGA_API Application : public GigaObject {
 public:
     Application();
     ~Application() = default;
+    
+    GIGA_CLASS_NAME("Application");
     
     /**
      * Registered system with update tick rate
@@ -66,12 +69,12 @@ public:
     /**
      * Find a data loader by class type
      */
-    DataLoader* GetDataLoader(std::string name);
+    GIGA_FUNCTION() DataLoader* GetDataLoader(std::string name);
     
     /**
      * Register a data loader
      */
-    void RegisterDataLoader(std::string name, DataLoader* loader);
+    GIGA_FUNCTION() void RegisterDataLoader(std::string name, DataLoader* loader);
 
     /**
      * Get application main window

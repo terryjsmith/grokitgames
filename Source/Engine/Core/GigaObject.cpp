@@ -3,8 +3,18 @@
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
 
+std::vector<GigaObject*> GigaObject::m_objects = std::vector<GigaObject*>();
+
 GigaObject::GigaObject() {
     m_mutex = 0;
+    m_objects.push_back(this);
+}
+
+GigaObject::~GigaObject() {
+    auto it = std::find(m_objects.begin(), m_objects.end(), this);
+    if(it != m_objects.end()) {
+        m_objects.erase(it);
+    }
 }
 
 Meta::Class* GigaObject::GetClass() {
@@ -38,4 +48,24 @@ void GigaObject::Lock() {
 void GigaObject::Unlock() {
     GIGA_ASSERT(m_mutex != 0, "Cannot unlock non-initiated mutex.");
     m_mutex->unlock();
+}
+
+std::vector<GigaObject*> GigaObject::GetObjects(std::string className) {
+    std::vector<GigaObject*> vec;
+    
+    auto it = m_objects.begin();
+    for(; it != m_objects.end(); it++) {
+        GigaObject* obj = dynamic_cast<GigaObject*>(*it);
+        if(obj) {
+            if(obj->GetGigaName() == className) {
+                vec.push_back(*it);
+            }
+        }
+    }
+    
+    return(vec);
+}
+
+std::string GigaObject::ToString() {
+    return(this->GetGigaName());
 }

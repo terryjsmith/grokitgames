@@ -10,6 +10,8 @@ public:
     SQLiteDataLoader();
     ~SQLiteDataLoader();
     
+    GIGA_CLASS_NAME("SQLiteDataLoader");
+    
     /**
      * Open a connection
      */

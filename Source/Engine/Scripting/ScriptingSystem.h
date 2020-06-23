@@ -69,6 +69,11 @@ public:
      * Call a function on a script object
      */
     Variant* CallFunction(GigaObject* obj, std::string func, int argc, Variant** argv);
+    
+    /**
+     * Add manual function call
+     */
+    void AddInternalCall(std::string definition, void* func);
 
 protected:
     // Object cache

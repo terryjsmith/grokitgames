@@ -43,6 +43,7 @@ public:
     void SetID(uint32_t key) { m_primaryKey = key; }
     uint32_t GetID() { return m_primaryKey; }
     
+    
     /**
      * Get keys
      */
@@ -54,9 +55,26 @@ public:
     bool IsDeleted() { return m_deleted; }
     void MarkDeleted(bool deleted) { m_deleted = deleted; }
     
+    /**
+     * Type hint for objects that don't exist yet
+     */
+    struct TypeHint {
+        std::string type;
+        bool single;
+    };
+    
+    /**
+     * Set/get type hints (mostly used in editor)
+     */
+    void SetTypeHint(std::string field, std::string type, bool single = true);
+    TypeHint* GetTypeHint(std::string field);
+    
 protected:
     // Variant variables
     std::map<std::string, Variant*> m_vars;
+    
+    // Type hints
+    std::map<std::string, TypeHint*> m_types;
     
     // Updated since last reset
     bool m_updated;
