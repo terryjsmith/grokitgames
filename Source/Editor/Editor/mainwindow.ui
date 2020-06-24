@@ -399,7 +399,7 @@
    </widget>
    <widget class="QMenu" name="menuAdd">
     <property name="title">
-     <string>New</string>
+     <string>Create</string>
     </property>
     <addaction name="actionEntity"/>
     <addaction name="actionComponent"/>

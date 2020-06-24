@@ -13,12 +13,14 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QIntValidator>
+#include <QShortcut>
 
 #include <Render/RenderSystem.h>
 #include <Scripting/ScriptingSystem.h>
 #include <IO/SQLiteDataLoader.h>
 #include <Core/Application.h>
 #include <Core/World.h>
+#include <IO/ResourceSystem.h>
 
 MainWindow* MainWindow::m_instance = 0;
 
@@ -60,6 +62,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tabWidget_3->removeTab(1);
 
+    // Create short key for saving files
+    new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(trySaveFile()));
+    //QShortcut* shortcut = new QShortcut(QKeySequence(tr("Ctrl+S")), parent);
+    //connect(shortcut, SIGNAL(activated), this, SLOT(trySaveFile));
+
     // Initialize tree model
     m_sceneTreeModel = new SceneTreeModel(0);
     ui->sceneView->setModel(m_sceneTreeModel);
@@ -93,6 +100,13 @@ void MainWindow::btnOpenProject_clicked() {
 
     //m_currentProjectDirectory = directory;
     QDir::setCurrent(directory);
+
+    // Add search paths
+    ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+    resourceSystem->AddSearchPath("Resources/Textures");
+    resourceSystem->AddSearchPath("Resources/Models");
+    resourceSystem->AddSearchPath("Resources/Shaders");
+    resourceSystem->AddSearchPath("Resources/Audio");
 
     // Load a game.dll file if one exists
     QString gameDllFile = directory + "/game.dll";
@@ -203,7 +217,7 @@ void MainWindow::btnCreateComponent_clicked() {
 
 void MainWindow::btnCreateScript_clicked() {
     QPlainTextEdit* editWidget = new QPlainTextEdit(this);
-    int index = ui->tabWidget_3->addTab(editWidget, "Untitled");
+    int index = ui->tabWidget_3->addTab(editWidget, "Untitled *");
     ui->tabWidget_3->setCurrentIndex(index);
 
     // Populate with default script
@@ -258,6 +272,18 @@ void MainWindow::cbTextEditFinished() {
         dr->Set(fieldName, new Variant(fieldValue));
         break;
     default: break;
+    }
+
+    // Special handling for objects
+    if(v->GetType() == Variant::VAR_OBJECT) {
+        // Get results
+        QList<GigaObject*> objects = edit->property("results").value<QList<GigaObject*>>();
+        if(objects.size() == 1) {
+            dr->Set(fieldName, new Variant(objects[0]));
+        }
+        else {
+            assert(false); // Need list handling
+        }
     }
 
     // Special handling for vectors / quaternions
@@ -580,7 +606,8 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
         // Special case for resource objects
         if(variantType == Variant::VAR_OBJECT) {
             GigaObject* obj2 = v->AsObject();
-            if(obj2 != 0) {
+            DataRecord::TypeHint* hint = record->GetTypeHint(*it);
+            if(obj2 != 0 && hint == 0) {
                 // Valid object, serialize into layout
                 QVBoxLayout* vbox = new QVBoxLayout;
 
@@ -601,13 +628,15 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             }
             else {
                 // Invalid object, use type hint to show object selector
-                DataRecord::TypeHint* hint = record->GetTypeHint(*it);
-
                 QHBoxLayout* hbox = new QHBoxLayout();
 
                 QLineEdit* edit = new QLineEdit(parent);
                 edit->setDisabled(true);
                 edit->setObjectName(QString::fromStdString(*it) + "_edit");
+                edit->setProperty("fieldObject", QVariant::fromValue(obj));
+                if(obj2 != 0) edit->setText(QString::fromStdString(obj2->ToString()));
+                edit->setProperty("fieldName", QString::fromStdString(*it));
+                connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
 
                 QPushButton* button = new QPushButton();
                 button->setText("+");
@@ -659,5 +688,62 @@ void MainWindow::objectBrowser() {
     ObjectSelectDialog* dlg = new ObjectSelectDialog(type.toStdString(), this);
     dlg->SetSelectMode(multiselect);
     dlg->setModal(true);
-    dlg->show();
+    int returnCode = dlg->exec();
+
+    if(returnCode == QDialog::Accepted) {
+        QList<GigaObject*> objects = dlg->GetSelectedObjects();
+
+        if(objects.size() == 0) return;
+
+        // Get the object that sent this, update property and send back
+        QString name = button->objectName();
+        QLineEdit* edit = button->parent()->findChild<QLineEdit*>(name + "_edit");
+        edit->setProperty("results", QVariant::fromValue(objects));
+
+        if(objects.size() == 1) {
+            edit->setText(QString::fromStdString(objects[0]->ToString()));
+        }
+        else {
+            edit->setText("[multiple]");
+        }
+    }
+}
+
+void MainWindow::btnGameBuild_clicked() {
+
+}
+
+void MainWindow::trySaveFile() {
+    int currentIndex = ui->tabWidget_3->currentIndex();
+    if(currentIndex == 0) {
+        return;
+    }
+
+    QPlainTextEdit* edit = (QPlainTextEdit*)ui->tabWidget_3->widget(currentIndex);
+
+    // Determine which file is open in the current tab
+    QString filename = ui->tabWidget_3->tabText(currentIndex);
+    if(filename.startsWith("Untitled")) {
+        filename = QFileDialog::getSaveFileName(this);
+        if(filename.isEmpty()) return;
+
+        QString tabText = filename.mid(filename.lastIndexOf("/") + 1);
+        ui->tabWidget_3->setTabText(currentIndex, tabText);
+        edit->setProperty("fullPath", filename);
+    }
+    else {
+        filename = edit->property("fullPath").value<QString>();
+    }
+
+    // Save contents
+    QString contents = edit->toPlainText();
+
+    QFile file(filename);
+    if (!file.open(QIODevice::WriteOnly)) {
+        assert(false);
+    }
+
+    file.write(contents.toUtf8());
+
+    file.close();
 }

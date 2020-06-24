@@ -69,8 +69,8 @@ public:
     /**
      * Get all components
      */
-    std::vector<Component*> GetComponents() { return m_components; }
-    
+    GIGA_FUNCTION() std::vector<Component*> GetComponents() { return m_components; }
+
     /**
      * Add a component
      */

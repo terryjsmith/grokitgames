@@ -429,7 +429,7 @@ public:
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_5), QCoreApplication::translate("MainWindow", "Scene", nullptr));
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_6), QCoreApplication::translate("MainWindow", "Tab 2", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));
-        menuAdd->setTitle(QCoreApplication::translate("MainWindow", "New", nullptr));
+        menuAdd->setTitle(QCoreApplication::translate("MainWindow", "Create", nullptr));
         menuGame->setTitle(QCoreApplication::translate("MainWindow", "Game", nullptr));
     } // retranslateUi
 

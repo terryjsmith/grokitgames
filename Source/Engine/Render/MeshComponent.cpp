@@ -2,6 +2,7 @@
 #include <Render/MeshComponent.h>
 #include <IO/ResourceSystem.h>
 #include <Core/Application.h>
+#include <Render/AssimpImporter.h>
 
 MeshComponent::MeshComponent() {
     mesh = 0;
@@ -10,6 +11,7 @@ MeshComponent::MeshComponent() {
 
 void MeshComponent::Initialize(Mesh* mesh) {
     if(mesh == 0) return;
+    if(this->mesh == mesh) return;
 
     this->renderable = mesh->renderable;
     this->applyLighting = true;
@@ -43,9 +45,9 @@ void MeshComponent::Deserialize(DataRecord* record) {
     Component::Deserialize(record);
     
     record->SetTypeHint("mesh", "Mesh");
-    Mesh* mesh = record->Get("mesh")->AsObject<Mesh*>();
-    this->Initialize(mesh);
-    
+    Mesh* m = record->Get("mesh")->AsObject<Mesh*>();
+    this->Initialize(m);
+
     this->applyLighting = record->Get("applyLighting")->AsBool();
     this->transform = record->Get("transform")->AsObject<Transform*>();
 }

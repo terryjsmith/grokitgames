@@ -9,7 +9,7 @@ public:
     AssimpImporter() = default;
     ~AssimpImporter() = default;
 
-    Mesh* LoadMesh(std::string filename);
+    void LoadMesh(std::string filename, Mesh* mesh);
     void LoadAnimation(std::string filename, std::string animationName, Mesh* mesh);
 };
 

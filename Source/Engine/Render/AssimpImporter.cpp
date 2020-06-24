@@ -1,5 +1,5 @@
 
-#include <Assets/AssimpImporter.h>
+#include <Render/AssimpImporter.h>
 #include <Render/Bone.h>
 #include <IO/ResourceSystem.h>
 #include <Render/RenderSystem.h>
@@ -48,9 +48,7 @@ Node* GetNode(std::string name, Node* parent) {
     return(0);
 }
 
-Mesh* AssimpImporter::LoadMesh(std::string filename) {
-    Mesh* mesh = new Mesh();
-    
+void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     MaterialSystem* materialSystem = GetSystem<MaterialSystem>();

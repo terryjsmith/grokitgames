@@ -45,7 +45,9 @@ public slots:
     void btnCreateEntity_clicked();
     void btnCreateComponent_clicked();
     void btnCreateScript_clicked();
+    void btnGameBuild_clicked();
     void objectBrowser();
+    void trySaveFile();
 
 private:
     Ui::MainWindow *ui;

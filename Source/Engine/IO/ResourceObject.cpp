@@ -31,6 +31,7 @@ void ResourceObject::Serialize(DataRecord* record) {
 void ResourceObject::Deserialize(DataRecord* record) {
     record->SetTypeHint("resource", "Resource");
     m_resource = record->Get("resource")->AsObject<Resource*>();
+    this->ProcessData();
 }
 
 std::string ResourceObject::ToString() {

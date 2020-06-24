@@ -12,6 +12,12 @@ public:
     
     GIGA_CLASS_NAME("ScriptComponent");
     
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
+    
 public:
     // What type of class are we (for lookup)
     std::string className;

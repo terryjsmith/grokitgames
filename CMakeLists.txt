@@ -216,19 +216,6 @@ target_link_libraries(gui "core" "render" "audio" ${ENGINE_LIBS})
 
 clear_source_files()
 
-#
-## engine asset pipeline
-##
-
-list_source_files("Source/Engine/Assets")
-group_source_files("Source" "Source/Engine/Assets")
-add_library(assets SHARED ${ENGINE_SOURCE_FILES})
-target_include_directories(assets PRIVATE ${ENGINE_INCLUDE_DIRS})
-set_property(TARGET assets APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
-target_link_libraries(assets "core" "io" "render" ${LIBRARY_ASSIMP})
-
-clear_source_files()
-
 ##
 ## metacode generator 
 ##
@@ -314,7 +301,7 @@ set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 
-target_link_libraries(game ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "assets" "scripting" "gui")
+target_link_libraries(game ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(game PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(game core networking generator-mono editor-mono)
 

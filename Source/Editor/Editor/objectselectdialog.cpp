@@ -4,8 +4,6 @@
 
 #include <QListWidgetItem>
 
-#include <Core/GigaObject.h>
-
 ObjectSelectDialog::ObjectSelectDialog(std::string filter, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ObjectSelectDialog)
@@ -29,4 +27,15 @@ ObjectSelectDialog::~ObjectSelectDialog()
 
 void ObjectSelectDialog::SetSelectMode(bool multiselect) {
     ui->listWidget->setSelectionMode(multiselect ? QAbstractItemView::MultiSelection : QAbstractItemView::SingleSelection);
+}
+
+QList<GigaObject*> ObjectSelectDialog::GetSelectedObjects() {
+    QList<QListWidgetItem*> items = ui->listWidget->selectedItems();
+    QList<GigaObject*> ret;
+
+    for(int i = 0; i < items.size(); i++) {
+        ret.push_back(items[i]->data(Qt::UserRole).value<GigaObject*>());
+    }
+
+    return(ret);
 }

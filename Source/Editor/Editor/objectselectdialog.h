@@ -3,6 +3,8 @@
 
 #include <QDialog>
 
+#include <Core/GigaObject.h>
+
 namespace Ui {
 class ObjectSelectDialog;
 }
@@ -16,6 +18,7 @@ public:
     ~ObjectSelectDialog();
 
     void SetSelectMode(bool multiselect);
+    QList<GigaObject*> GetSelectedObjects();
 
 private:
     Ui::ObjectSelectDialog *ui;

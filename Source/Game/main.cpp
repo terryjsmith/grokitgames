@@ -17,7 +17,6 @@
 #include <IO/Command.h>
 #include <Core/MessageSystem.h>
 #include <Core/Timer.h>
-#include <Assets/AssimpImporter.h>
 #include <Render/MeshComponent.h>
 #include <Render/PointLightComponent.h>
 #include <Render/DirectionalLightComponent.h>

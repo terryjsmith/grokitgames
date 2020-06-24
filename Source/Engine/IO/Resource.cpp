@@ -2,6 +2,7 @@
 #include <IO/Resource.h>
 #include <Core/Application.h>
 #include <Core/DataRecord.h>
+#include <IO/ResourceSystem.h>
 
 Resource::Resource() {
     m_data = 0;
@@ -59,7 +60,8 @@ void Resource::Initialize(std::string filename, int mode) {
     m_mode = mode;
     
     // Save filename, extension, etc.
-    this->fullPath = filename;
+    ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+    this->fullPath = resourceSystem->FindResourcePath(filename);
     
     // Find just the filename
     size_t pos = filename.find_last_of("\\/");
@@ -226,9 +228,7 @@ void Resource::Serialize(DataRecord* record) {
 
 void Resource::Deserialize(DataRecord* record) {
     std::string filename = record->Get("filename")->AsString();
-    if(filename.compare(this->filename) != 0) {
-        this->Initialize(filename, FILEMODE_READ);
-    }
+    this->Initialize(filename, FILEMODE_READ);
     
     type = record->Get("type")->AsString();
 }

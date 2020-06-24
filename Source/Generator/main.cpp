@@ -585,6 +585,7 @@ int main(int argc, char** argv) {
 #endif
     args.push_back("-x");
     args.push_back("c++");
+    args.push_back("-std=c++11");
 
     // Create type mappings
     typeMappings[CXTypeKind::CXType_Void] = -1;
