@@ -55,10 +55,10 @@ public:
     
 protected:
     // A list of searchable paths
-    std::vector<std::string> m_paths;
+    Array<std::string> m_paths;
     
     // A list of registered resources
-    std::vector<Resource*> m_resources;
+    Array<Resource*> m_resources;
     
     // Loaded resource objects
     std::map<Resource*, ResourceObject*> m_resourceObjects;

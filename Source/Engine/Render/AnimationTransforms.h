@@ -3,6 +3,7 @@
 #define animationtransforms_h
 
 #include <Core/Giga.h>
+#include <Core/Array.h>
 #include <Core/MathTypes.h>
 
 class AnimationTransforms {
@@ -30,9 +31,9 @@ public:
     // Which object this affects
     std::string nodeName;
     
-    std::vector<Translation*> translations;
-    std::vector<Scaling*> scaling;
-    std::vector<Rotation*> rotations;
+    Array<Translation*> translations;
+    Array<Scaling*> scaling;
+    Array<Rotation*> rotations;
 };
 
 #endif

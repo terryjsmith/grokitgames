@@ -14,7 +14,7 @@ public:
     Node* parent;
     
     // Child nodes
-    std::vector<Node*> children;
+    Array<Node*> children;
     
     // Name
     std::string name;

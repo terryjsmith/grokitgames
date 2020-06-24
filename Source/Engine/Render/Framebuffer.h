@@ -65,10 +65,10 @@ public:
     
 protected:
     // The textures attached to this framebuffer
-    std::vector<Texture*> m_textures;
+    Array<Texture*> m_textures;
     
     // The color/output slots this framebuffer draws to
-    std::vector<unsigned int> m_slots;
+    Array<unsigned int> m_slots;
     
     // Whether this framebuffer has been checked for completeness
     bool m_complete;

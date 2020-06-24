@@ -177,7 +177,7 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     unsigned int actualSize = m_width + 1;
     unsigned int vertexSize = 3 /* position */ + 3 /* normal */ + 4 /* tex coords */;
     unsigned int vertexCount = actualSize * actualSize;
-    std::vector<float> vertexData;
+    Array<float> vertexData;
     //vertexData.resize(vertexCount * vertexSize);
     //float* data = (float*)malloc(sizeof(float) * vertexCount * vertexSize);
     //memset(data, 0, sizeof(float) * vertexCount * vertexSize);
@@ -235,7 +235,7 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
     //free(data);
     
     unsigned int indexCount = actualSize * actualSize * 6;
-    std::vector<unsigned int> indexData;
+    Array<unsigned int> indexData;
     //indexData.resize(indexCount);
     
     //unsigned int* indices = (unsigned int*)malloc(sizeof(unsigned int) * indexCount);

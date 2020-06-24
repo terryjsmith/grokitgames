@@ -60,7 +60,7 @@ public:
     
 protected:
     Transform* m_parent;
-    std::vector<Transform*> m_children;
+    Array<Transform*> m_children;
     
     // Whether updating this via Move/Rotate/Scale should also update the root
     bool m_root;

@@ -112,7 +112,7 @@ public:
     
 protected:
     // Currently registered systems
-    std::vector<RegisteredSystem*> m_systems;
+    Array<RegisteredSystem*> m_systems;
     
     // Registered data loaders
     std::map<std::string, DataLoader*> m_dataLoaders;

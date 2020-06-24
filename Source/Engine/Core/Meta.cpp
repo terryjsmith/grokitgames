@@ -32,7 +32,7 @@ void Meta::Class::AddVariable(Meta::Variable* fn) {
 }
 
 bool Meta::Class::InheritsFrom(std::string className) {
-    return(std::find(inheritsFrom.begin(), inheritsFrom.end(), className) == inheritsFrom.end());
+    return(inheritsFrom.find(className) == inheritsFrom.end());
 }
 
 Meta::Variable* Meta::Class::FindVariable(std::string name) {

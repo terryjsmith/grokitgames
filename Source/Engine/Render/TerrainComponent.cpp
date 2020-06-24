@@ -13,7 +13,7 @@ TerrainComponent::TerrainComponent() {
     applyLighting = true;
 }
 
-void TerrainComponent::Load(std::string hmapFile, std::string nmapFile, std::string splatFile, std::vector<std::string> textureFiles, vector3 offset) {
+void TerrainComponent::Load(std::string hmapFile, std::string nmapFile, std::string splatFile, Array<std::string> textureFiles, vector3 offset) {
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
 

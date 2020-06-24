@@ -24,7 +24,8 @@ OpenGLFramebuffer::~OpenGLFramebuffer() {
 }
 
 void OpenGLFramebuffer::Destroy() {
-    for (std::vector<Texture*>::iterator it = m_textures.begin(); it != m_textures.end(); it++) {
+    auto it = m_textures.begin();
+    for (; it != m_textures.end(); it++) {
         delete (*it);
     }
     

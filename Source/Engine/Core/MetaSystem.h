@@ -33,7 +33,7 @@ public:
     /**
      * Get registered classes
      */
-    std::vector<Meta::Class*> GetRegisteredClasses() { return m_definitions; }
+    Array<Meta::Class*> GetRegisteredClasses() { return m_definitions; }
     
     /**
      * Add class definition
@@ -63,20 +63,20 @@ public:
     /**
      * Get component types
      */
-    std::vector<std::string>& GetComponentTypes() { return m_componentTypes; }
+    Array<std::string>& GetComponentTypes() { return m_componentTypes; }
     
 protected:
     // Class definitions
-    std::vector<Meta::Class*> m_definitions;
+    Array<Meta::Class*> m_definitions;
     
     // Singleton instances
-    std::vector<GigaObject*> m_singletons;
+    Array<GigaObject*> m_singletons;
     
     // Next type ID
     uint32_t m_maxTypeID;
     
     // Registered component types
-    std::vector<std::string> m_componentTypes;
+    Array<std::string> m_componentTypes;
 };
 
 #endif

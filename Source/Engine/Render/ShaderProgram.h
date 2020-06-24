@@ -58,10 +58,10 @@ protected:
     Shader* m_fragmentShader;
     
     // Cache of shader locations
-    std::vector<ShaderVariable*> m_vars;
+    Array<ShaderVariable*> m_vars;
     
     // Definitions
-    std::vector<std::string> m_definitions;
+    Array<std::string> m_definitions;
 };
 
 #endif

@@ -28,7 +28,7 @@ public:
     Renderable* renderable;
     
     // Children
-    std::vector<RenderComponent*> children;
+    Array<RenderComponent*> children;
     
     // Transform
     Transform* transform;

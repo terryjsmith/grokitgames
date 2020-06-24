@@ -14,7 +14,7 @@ public:
     GIGA_CLASS_NAME("Scene");
     
 public:
-    std::vector<RenderComponent*> renderables;
+    Array<RenderComponent*> renderables;
     CameraComponent* camera;
 };
 

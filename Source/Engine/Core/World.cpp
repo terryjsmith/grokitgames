@@ -77,8 +77,8 @@ void World::Clear() {
     m_entities.clear();
 }
 
-std::vector<Component*> World::FindComponents(std::string type) {
-    std::vector<Component*> components;
+Array<Component*> World::FindComponents(std::string type) {
+    Array<Component*> components;
     auto it = m_entities.begin();
     for(; it != m_entities.end(); it++) {
         Entity* ent = (*it);

@@ -47,7 +47,7 @@ public:
     /**
      * Get keys
      */
-    std::vector<std::string> GetKeys();
+    Array<std::string> GetKeys();
     
     /**
      * Whether the object is marked for deletion

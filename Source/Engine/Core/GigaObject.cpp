@@ -3,7 +3,7 @@
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
 
-std::vector<GigaObject*> GigaObject::m_objects = std::vector<GigaObject*>();
+Array<GigaObject*> GigaObject::m_objects = Array<GigaObject*>();
 
 GigaObject::GigaObject() {
     m_mutex = 0;
@@ -11,7 +11,7 @@ GigaObject::GigaObject() {
 }
 
 GigaObject::~GigaObject() {
-    auto it = std::find(m_objects.begin(), m_objects.end(), this);
+    auto it = m_objects.find(this);
     if(it != m_objects.end()) {
         m_objects.erase(it);
     }
@@ -50,8 +50,8 @@ void GigaObject::Unlock() {
     m_mutex->unlock();
 }
 
-std::vector<GigaObject*> GigaObject::GetObjects(std::string className) {
-    std::vector<GigaObject*> vec;
+Array<GigaObject*> GigaObject::GetObjects(std::string className) {
+    Array<GigaObject*> vec;
     
     auto it = m_objects.begin();
     for(; it != m_objects.end(); it++) {

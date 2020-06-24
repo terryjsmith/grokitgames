@@ -23,16 +23,16 @@ public:
     /**
      * Query for records
      */
-    virtual std::vector<GigaObject*> GetObjects(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
+    virtual Array<GigaObject*> GetObjects(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
     virtual GigaObject* GetObject(std::string table, int primaryKey) = 0;
     
-    virtual std::vector<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
+    virtual Array<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
     
     /**
      * Save records
      */
-    virtual void SaveRecords(std::string table, std::vector<DataRecord*> records) = 0;
-    virtual void SaveObjects(std::string table, std::vector<GigaObject*> records) = 0;
+    virtual void SaveRecords(std::string table, Array<DataRecord*> records) = 0;
+    virtual void SaveObjects(std::string table, Array<GigaObject*> records) = 0;
     
     /**
      * Truncate a table/data source
@@ -48,7 +48,7 @@ protected:
     std::string m_location;
     
     // Data records
-    std::vector<DataRecord*> m_records;
+    Array<DataRecord*> m_records;
 };
 
 #endif

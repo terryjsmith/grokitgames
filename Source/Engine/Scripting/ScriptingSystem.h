@@ -82,7 +82,7 @@ protected:
         MonoObject* remote;
     };
     
-    std::vector<CachedObject*> m_objects;
+    Array<CachedObject*> m_objects;
     
     // Cache of classes
     std::map<std::string, MonoClassDesc*> m_classes;
@@ -97,7 +97,7 @@ protected:
         std::string funcName;
     };
     
-    std::vector<EventHandler*> m_eventHandlers;
+    Array<EventHandler*> m_eventHandlers;
     
     // Mappings from Mono types to variant types
     std::map<std::string, uint32_t> m_variantMappings;

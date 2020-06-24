@@ -29,7 +29,7 @@ public:
     
 protected:
     // Framebuffers
-    std::vector<Framebuffer*> m_framebuffers;
+    Array<Framebuffer*> m_framebuffers;
     
     // Shader program
     ShaderProgram* m_program;

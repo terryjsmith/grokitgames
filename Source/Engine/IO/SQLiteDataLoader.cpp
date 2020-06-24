@@ -31,8 +31,8 @@ void SQLiteDataLoader::Close() {
     }
 }
 
-std::vector<GigaObject*> SQLiteDataLoader::GetObjects(std::string table, std::map<std::string, std::string> search) {
-    std::vector<GigaObject*> retval;
+Array<GigaObject*> SQLiteDataLoader::GetObjects(std::string table, std::map<std::string, std::string> search) {
+    Array<GigaObject*> retval;
     
     // Store and restore temp table name (nested gets)
     std::string prevTableName = m_tempTableName;
@@ -44,7 +44,7 @@ std::vector<GigaObject*> SQLiteDataLoader::GetObjects(std::string table, std::ma
         ri->second.clear();
     }
     else {
-        m_tempRecords[table] = std::vector<DataRecord*>();
+        m_tempRecords[table] = Array<DataRecord*>();
     }
     
     // Get error system
@@ -119,7 +119,7 @@ std::vector<GigaObject*> SQLiteDataLoader::GetObjects(std::string table, std::ma
 }
 
 
-std::vector<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::map<std::string, std::string> search) {
+Array<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::map<std::string, std::string> search) {
     // Store and restore temp table name (nested gets)
     std::string prevTableName = m_tempTableName;
     m_tempTableName = table;
@@ -130,7 +130,7 @@ std::vector<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::ma
         ri->second.clear();
     }
     else {
-        m_tempRecords[table] = std::vector<DataRecord*>();
+        m_tempRecords[table] = Array<DataRecord*>();
     }
     
     // Get error system
@@ -173,7 +173,7 @@ std::vector<DataRecord*> SQLiteDataLoader::GetRecords(std::string table, std::ma
     return(m_tempRecords[table]);
 }
 
-void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> records) {
+void SQLiteDataLoader::SaveRecords(std::string table, Array<DataRecord*> records) {
     // Get error system
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
     
@@ -191,7 +191,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     
     query += table + "_id INTEGER";
     
-    std::vector<std::string> fields = firstRecord->GetKeys();
+    Array<std::string> fields = firstRecord->GetKeys();
     auto fi = fields.begin();
     for(; fi != fields.end(); fi++) {
         query += "," + (*fi) + " TEXT";
@@ -216,7 +216,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     // Put the column names into a vector
     sqlite3_stmt* stmt = 0;
     int result = 0;
-    std::vector<std::string> existingCols;
+    Array<std::string> existingCols;
     result = sqlite3_prepare(m_handle, query.c_str(), (int)query.length() + 1, &stmt, 0);
     while((result = sqlite3_step(stmt))) {
         if(result != SQLITE_ROW) {
@@ -229,7 +229,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     
     fi = fields.begin();
     for(; fi != fields.end(); fi++) {
-        auto it = std::find(existingCols.begin(), existingCols.end(), (*fi));
+        auto it = existingCols.find((*fi));
         if(it == existingCols.end()) {
             query = "ALTER TABLE " + table + " ADD COLUMN " + (*fi) + " TEXT";
             
@@ -326,7 +326,7 @@ void SQLiteDataLoader::SaveRecords(std::string table, std::vector<DataRecord*> r
     }
 }
 
-void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> records) {
+void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records) {
     // Get error system
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
     
@@ -353,7 +353,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
     
     query += table + "_id INTEGER";
     
-    std::vector<std::string> fields = firstRecord->GetKeys();
+    Array<std::string> fields = firstRecord->GetKeys();
     auto fi = fields.begin();
     for(; fi != fields.end(); fi++) {
         query += "," + (*fi) + " TEXT";
@@ -378,7 +378,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
     // Put the column names into a vector
     sqlite3_stmt* stmt = 0;
     int result = 0;
-    std::vector<std::string> existingCols;
+    Array<std::string> existingCols;
     result = sqlite3_prepare(m_handle, query.c_str(), (int)query.length() + 1, &stmt, 0);
     while((result = sqlite3_step(stmt))) {
         if(result != SQLITE_ROW) {
@@ -391,7 +391,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
     
     fi = fields.begin();
     for(; fi != fields.end(); fi++) {
-        auto it = std::find(existingCols.begin(), existingCols.end(), (*fi));
+        auto it = existingCols.find((*fi));
         if(it == existingCols.end()) {
             query = "ALTER TABLE " + table + " ADD COLUMN " + (*fi) + " TEXT";
             
@@ -446,7 +446,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                             else {
                                 // Create a new object, save ID
                                 GigaObject* obj = v->AsObject();
-                                std::vector<GigaObject*> newRecord;
+                                Array<GigaObject*> newRecord;
                                 newRecord.push_back(obj);
                                 
                                 this->SaveObjects(obj->GetGigaName(), newRecord);
@@ -520,7 +520,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, std::vector<GigaObject*> r
                     else {
                         // Save / update
                         GigaObject* obj = v->AsObject();
-                        std::vector<GigaObject*> newRecord;
+                        Array<GigaObject*> newRecord;
                         newRecord.push_back(obj);
 
                         // Save
@@ -557,7 +557,7 @@ GigaObject* SQLiteDataLoader::GetObject(std::string table, int primaryKey) {
     std::map<std::string, std::string> search;
     search[table + "_id"] = std::to_string(primaryKey);
     
-    std::vector<GigaObject*> records = this->GetObjects(table, search);
+    Array<GigaObject*> records = this->GetObjects(table, search);
     if(records.size()) {
         return(records[0]);
     }

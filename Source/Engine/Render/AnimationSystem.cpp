@@ -15,7 +15,7 @@ void AnimationSystem::Update(float delta) {
     
     // Get all render components from scene
     World* world = World::GetInstance();
-    std::vector<MeshComponent*> components = world->FindComponents<MeshComponent>();
+    Array<MeshComponent*> components = world->FindComponents<MeshComponent>();
     
     auto it = components.begin();
     for(; it != components.end(); it++) {

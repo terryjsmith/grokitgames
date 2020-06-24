@@ -51,7 +51,7 @@ public:
     /**
      * Get all functions
      */
-    std::vector<Meta::Function*> GetFunctions() { return m_functions; }
+    Array<Meta::Function*> GetFunctions() { return m_functions; }
     
     /**
      * Add a variable definition
@@ -66,7 +66,7 @@ public:
     /**
      * Get all variables
      */
-    std::vector<Meta::Variable*> GetVariables() { return m_variables; }
+    Array<Meta::Variable*> GetVariables() { return m_variables; }
 
     /**
      * Create an object of this type
@@ -100,7 +100,7 @@ public:
     bool hasPublicConstructor;
     
     // Other classes this class inherits from
-    std::vector<std::string> inheritsFrom;
+    Array<std::string> inheritsFrom;
     
 protected:
     // Create a new component from a class type
@@ -108,10 +108,10 @@ protected:
     
 protected:
     // List of callable function names
-    std::vector<Meta::Function*> m_functions;
+    Array<Meta::Function*> m_functions;
     
     // List of variables
-    std::vector<Meta::Variable*> m_variables;
+    Array<Meta::Variable*> m_variables;
     
     // Constructor for all meta GigaObject types
     typedef GigaObject* (*MetaConstructor)(void);

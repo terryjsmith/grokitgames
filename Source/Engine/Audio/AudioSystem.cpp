@@ -37,8 +37,8 @@ void AudioSystem::Update(float delta) {
     
     // Add to any existing script components
     World* world = World::GetInstance();
-    std::vector<AudioComponent*> components = world->FindComponents<AudioComponent>();
-    std::vector<AudioComponent*>::iterator i = components.begin();
+    Array<AudioComponent*> components = world->FindComponents<AudioComponent>();
+    auto i = components.begin();
     for (; i != components.end(); i++) {
         
     }

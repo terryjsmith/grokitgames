@@ -36,7 +36,7 @@ public:
     
 protected:
     // Error handlers
-    std::vector<ErrorHandler*> m_handlers;
+    Array<ErrorHandler*> m_handlers;
 };
 
 #endif

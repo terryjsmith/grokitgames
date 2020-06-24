@@ -21,7 +21,7 @@ void TerrainSystem::Update(float delta) {
     
     // Get all render components from scene
     World* world = World::GetInstance();
-    std::vector<TerrainComponent*> components = world->FindComponents<TerrainComponent>();
+    Array<TerrainComponent*> components = world->FindComponents<TerrainComponent>();
     auto it = components.begin();
     for(; it != components.end(); it++) {
         (*it)->Update(scene);

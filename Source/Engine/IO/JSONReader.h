@@ -23,14 +23,14 @@ public:
     /**
      * Query for records
      */
-    std::vector<GigaObject*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
+    Array<GigaObject*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
     
     GigaObject* GetRecord(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
     
     /**
      * Save records
      */
-    virtual void SaveRecords(std::string table, std::vector<DataRecord*> records);
+    virtual void SaveRecords(std::string table, Array<DataRecord*> records);
     
     /**
      * Truncate a table/data source

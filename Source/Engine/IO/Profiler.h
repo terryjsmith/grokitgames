@@ -42,7 +42,7 @@ protected:
     public:
         // The name of the section/area we're profiling
         std::string areaName;
-        std::vector<ProfileArea*> children;
+        Array<ProfileArea*> children;
         
         // The average frame time so far while we've been running
         float avgFrameTime;

@@ -27,7 +27,7 @@ public:
     
 protected:
     // Render passes
-    std::vector<RenderPass*> m_renderPasses;
+    Array<RenderPass*> m_renderPasses;
 };
 
 #endif

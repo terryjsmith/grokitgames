@@ -163,14 +163,14 @@ void Transform::Scale(vector3 amount) {
 }
 
 void Transform::AddChild(Transform* transform) {
-    auto index = std::find(m_children.begin(), m_children.end(), transform);
+    auto index = m_children.find(transform);
     if(index == m_children.end()) {
         m_children.push_back(transform);
     }
 }
 
 void Transform::RemoveChild(Transform* transform) {
-    auto index = std::find(m_children.begin(), m_children.end(), transform);
+    auto index = m_children.find(transform);
     if(index != m_children.end()) {
         m_children.erase(index);
     }

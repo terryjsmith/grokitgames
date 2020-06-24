@@ -69,7 +69,7 @@ public:
     /**
      * Get all components
      */
-    GIGA_FUNCTION() std::vector<Component*> GetComponents() { return m_components; }
+    GIGA_FUNCTION() Array<Component*> GetComponents() { return m_components; }
 
     /**
      * Add a component
@@ -96,7 +96,7 @@ public:
     
 protected:
     // List of components
-    std::vector<Component*> m_components;
+    Array<Component*> m_components;
 };
 
 #endif

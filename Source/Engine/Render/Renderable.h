@@ -14,7 +14,7 @@ public:
     virtual ~Renderable();
     
 public:
-    std::vector<Renderable*> children;
+    Array<Renderable*> children;
     
     VertexBuffer* vertexBuffer;
     IndexBuffer* indexBuffer;

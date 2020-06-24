@@ -57,7 +57,7 @@ protected:
         GigaObject* obj;
     };
     
-    std::vector<MessageHandler*> m_handlers;
+    Array<MessageHandler*> m_handlers;
     
     // Registered message types
     std::map<std::string, uint32_t> m_idMapping;

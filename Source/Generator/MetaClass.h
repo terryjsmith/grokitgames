@@ -4,6 +4,7 @@
 
 #include <Core/GigaObject.h>
 #include <Core/Meta.h>
+#include <Core/Array.h>
 
 /**
  * Definitions of variables and functions
@@ -21,7 +22,7 @@ public:
     };
     
     // Parameter types and type names
-    std::vector<Parameter*> params;
+    Array<Parameter*> params;
     
     // Return type
     int32_t returnType;
@@ -73,7 +74,7 @@ public:
     /**
      * Get all functions
      */
-    std::vector<MetaFunction*> GetFunctions() { return m_functions; }
+    Array<MetaFunction*> GetFunctions() { return m_functions; }
     
     /**
      * Add a property
@@ -88,7 +89,7 @@ public:
     /**
      * Get all variables
      */
-    std::vector<MetaVariable*> GetVariables() { return m_variables; }
+    Array<MetaVariable*> GetVariables() { return m_variables; }
     
     /**
      * Create an object of this type
@@ -126,7 +127,7 @@ public:
     
     bool found;
     
-    std::vector<std::string> inheritsFrom;
+    Array<std::string> inheritsFrom;
     
 protected:
     // Create a new component from a class type
@@ -134,10 +135,10 @@ protected:
     
 protected:
     // List of callable function names
-    std::vector<MetaFunction*> m_functions;
+    Array<MetaFunction*> m_functions;
     
     // List of variables
-    std::vector<MetaVariable*> m_variables;
+    Array<MetaVariable*> m_variables;
     
     // Constructor for all meta GigaObject types
     typedef GigaObject* (*MetaConstructor)(void);

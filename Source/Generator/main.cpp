@@ -31,7 +31,7 @@
 
 using namespace std;
 
-std::vector<const char*> args;
+Array<const char*> args;
 CXIndex cindex = 0;
 CXTranslationUnit unit;
 std::map<std::string, std::string> inheritance;
@@ -46,11 +46,11 @@ std::map<int, int> typeMappings;
 std::map <int, std::string> functionMappings;
 std::map <int, std::string> csharpMappings;
 std::string precompiled_header;
-std::vector<std::string> addlIncludes;
+Array<std::string> addlIncludes;
 std::map<std::string, std::string> fileHashes;
 std::map<std::string, std::string> functionData;
 std::map<std::string, std::string> registrationData;
-std::map<std::string, std::vector<std::string>> inheritances;
+std::map<std::string, Array<std::string>> inheritances;
 SQLiteDataLoader* dataLoader = 0;
 MetaSystem* metaSystem = 0;
 bool addedData = false;
@@ -393,11 +393,11 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
     if (cursor == CXCursor_CXXBaseSpecifier) {
         auto it = inheritances.find(currentClassName);
         if(it != inheritances.end()) {
-            auto ii = std::find(inheritances[currentClassName].begin(), inheritances[currentClassName].end(), name);
+            auto ii = inheritances[currentClassName].find(name);
             if(ii == inheritances[currentClassName].end()) inheritances[currentClassName].push_back(name);
         }
         else {
-            inheritances[currentClassName] = std::vector<std::string>();
+            inheritances[currentClassName] = Array<std::string>();
             inheritances[currentClassName].push_back(name);
         }
     }
@@ -405,8 +405,8 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
     return CXChildVisit_Continue;
 }
 
-std::vector<std::string> ProcessInheritance(std::string className) {
-    std::vector<std::string> addlClasses;
+Array<std::string> ProcessInheritance(std::string className) {
+    Array<std::string> addlClasses;
     
     if(inheritances.find(className) == inheritances.end()) {
         return(addlClasses);
@@ -415,11 +415,11 @@ std::vector<std::string> ProcessInheritance(std::string className) {
     auto it = inheritances[className].begin();
     for(; it != inheritances[className].end(); it++) {
         addlClasses.push_back(*it);
-        std::vector<std::string> deeper = ProcessInheritance(*it);
+        Array<std::string> deeper = ProcessInheritance(*it);
         
         auto itt = deeper.begin();
         for(; itt != deeper.end(); itt++) {
-            auto ii = std::find(addlClasses.begin(), addlClasses.end(), *itt);
+            auto ii = addlClasses.find(*itt);
             if(ii == addlClasses.end()) {
                 addlClasses.push_back(*itt);
             }
@@ -461,7 +461,7 @@ void ProcessDirectory(Directory* dir) {
             sprintf(hashval + (i * 2), "%02x", digest[i]);
         }
 
-        auto ait = std::find(addlIncludes.begin(), addlIncludes.end(), filename);
+        auto ait = addlIncludes.find(filename);
         if (ait == addlIncludes.end()) {
             addlIncludes.push_back(filename);
         }
@@ -498,14 +498,14 @@ void ProcessDirectory(Directory* dir) {
             }
 
             bool success = false;
-            std::vector<const char*>::iterator it = args.begin();
+            auto it = args.begin();
             for (; it != args.end(); it++) {
                 if (strcmp(*it, "-include-pch") == 0)
                     break;
             }
 
             if (it != args.end()) {
-                args.erase(it, it + 2);
+                args.erase(it, it + 1);
 
                 cerr << "Removed arguments " << args.size() << endl;
                 flags = CXTranslationUnit_ForSerialization;
@@ -572,7 +572,7 @@ void AddInheritedClasses(MetaClass* cl, std::string name) {
         AddInheritedClasses(cl, it->second);
     }
 
-    std::vector<int> test;
+    Array<int> test;
 }
 
 int main(int argc, char** argv) {
@@ -631,12 +631,12 @@ int main(int argc, char** argv) {
     dataLoader = new SQLiteDataLoader();
     dataLoader->Open("generator.db");
 
-    std::vector<DataRecord*> clrecords = dataLoader->GetRecords("classes");
-    std::vector<DataRecord*> fnrecords = dataLoader->GetRecords("functions");
-    std::vector<DataRecord*> pmrecords = dataLoader->GetRecords("params");
-    std::vector<DataRecord*> inhrecords = dataLoader->GetRecords("inheritance");
-    std::vector<DataRecord*> varrecords = dataLoader->GetRecords("variables");
-    std::vector<DataRecord*> filerecords = dataLoader->GetRecords("files");
+    Array<DataRecord*> clrecords = dataLoader->GetRecords("classes");
+    Array<DataRecord*> fnrecords = dataLoader->GetRecords("functions");
+    Array<DataRecord*> pmrecords = dataLoader->GetRecords("params");
+    Array<DataRecord*> inhrecords = dataLoader->GetRecords("inheritance");
+    Array<DataRecord*> varrecords = dataLoader->GetRecords("variables");
+    Array<DataRecord*> filerecords = dataLoader->GetRecords("files");
 
     auto clit = clrecords.begin();
     for (; clit != clrecords.end(); clit++) {
@@ -659,11 +659,11 @@ int main(int argc, char** argv) {
         
         auto it = inheritances.find(className);
         if(it != inheritances.end()) {
-            auto ii = std::find(inheritances[className].begin(), inheritances[className].end(), inheritsFrom);
+            auto ii = inheritances[className].find(inheritsFrom);
             if(ii == inheritances[className].end()) inheritances[className].push_back(inheritsFrom);
         }
         else {
-            inheritances[className] = std::vector<std::string>();
+            inheritances[className] = Array<std::string>();
             inheritances[className].push_back(inheritsFrom);
         }
     }
@@ -764,7 +764,7 @@ int main(int argc, char** argv) {
 
     ProcessDirectory(dir);
 
-    std::vector<std::string> classNames;
+    Array<std::string> classNames;
     std::string output = "#include <Core/MetaSystem.h>\n#include <Core/Application.h>\n";
     std::string sourceDir = path + "/Source/Engine/";
     for (size_t i = 0; i < addlIncludes.size(); i++) {
@@ -896,7 +896,7 @@ int main(int argc, char** argv) {
             funcNames[mf->name] = true;
 
             // Look for any other functions with the same name
-            std::vector<MetaFunction*> funcs;
+            Array<MetaFunction*> funcs;
             funcs.push_back(mf);
             auto fi2 = flist.begin();
             for (; fi2 != flist.end(); fi2++) {
@@ -1650,11 +1650,11 @@ int main(int argc, char** argv) {
 
     // Save data
     auto cli = classes.begin();
-    std::vector<DataRecord*> cldrs;
-    std::vector<DataRecord*> fndrs;
-    std::vector<DataRecord*> pmdrs;
-    std::vector<DataRecord*> inhdrs;
-    std::vector<DataRecord*> vardrs;
+    Array<DataRecord*> cldrs;
+    Array<DataRecord*> fndrs;
+    Array<DataRecord*> pmdrs;
+    Array<DataRecord*> inhdrs;
+    Array<DataRecord*> vardrs;
     for (; cli != classes.end(); cli++) {
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cli->second->name);
         if (ei == exportGigaClasses.end()) {
@@ -1744,7 +1744,7 @@ int main(int argc, char** argv) {
     dataLoader->SaveRecords("variables", vardrs);
 
     auto fili = fileHashes.begin();
-    std::vector<DataRecord*> fdrs;
+    Array<DataRecord*> fdrs;
     for (; fili != fileHashes.end(); fili++) {
         DataRecord* dr = new DataRecord();
         dr->Set("filename", new Variant(fili->first));

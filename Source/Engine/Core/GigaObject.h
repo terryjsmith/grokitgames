@@ -3,6 +3,7 @@
 #define gigaobject_h
 
 #include <Core/Variant.h>
+#include <Core/Array.h>
 #include <mutex>
 
 namespace Meta { class Class; }
@@ -46,7 +47,7 @@ public:
     /**
      * Get list of all objects by type
      */
-    static std::vector<GigaObject*> GetObjects(std::string className);
+    static Array<GigaObject*> GetObjects(std::string className);
     
     /**
      * Show a string representation of an object (defaults to giga name)
@@ -63,7 +64,7 @@ protected:
     std::mutex* m_mutex;
     
     // A list of objects
-    static std::vector<GigaObject*> m_objects;
+    static Array<GigaObject*> m_objects;
 };
 
 #endif

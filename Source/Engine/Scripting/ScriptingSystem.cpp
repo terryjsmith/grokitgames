@@ -135,7 +135,7 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
     MonoMethod* loadLibrary = 0;
     
     // Load classes
-    std::vector<std::string> classNames;
+    Array<std::string> classNames;
     const MonoTableInfo* table_info = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
     
     int rows = mono_table_info_get_rows(table_info);
@@ -249,7 +249,7 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
             if(parentName.compare("Object") == 0) { _parent = 0; continue; }
             
             if(mcl) {
-                auto ii = std::find(mcl->inheritsFrom.begin(), mcl->inheritsFrom.end(), parentName);
+                auto ii = mcl->inheritsFrom.find(parentName);
                 if(ii == mcl->inheritsFrom.end()) {
                     mcl->inheritsFrom.push_back(parentName);
                 }
@@ -300,8 +300,8 @@ void ScriptingSystem::Update(float delta) {
     
     // Add to any existing script components
     World* world = World::GetInstance();
-    std::vector<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
-    std::vector<ScriptComponent*>::iterator i = components.begin();
+    Array<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
+    auto i = components.begin();
     for (; i != components.end(); i++) {
         // Get the class name
         auto ci = m_classes.find((*i)->className);
@@ -361,7 +361,7 @@ void ScriptingSystem::ScriptEventHandler(GigaObject* obj, Message* message) {
     
     ScriptingSystem* scriptingSystem = (ScriptingSystem*)obj;
     
-    std::vector<EventHandler*>::iterator it = scriptingSystem->m_eventHandlers.begin();
+    Array<EventHandler*>::iterator it = scriptingSystem->m_eventHandlers.begin();
     for(; it != scriptingSystem->m_eventHandlers.end(); it++) {
         if((*it)->type == message->type) {
             Entity* ent = (*it)->component->GetParent();

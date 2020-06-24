@@ -12,7 +12,7 @@ InputSystem::~InputSystem() {
         delete m_mappings[i];
     }
     
-    std::vector<Command*>::iterator it = m_commands.begin();
+    auto it = m_commands.begin();
     for(; it != m_commands.end(); it++) {
         delete(*it);
     }

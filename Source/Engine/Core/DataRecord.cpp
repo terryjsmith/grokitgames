@@ -51,8 +51,8 @@ void DataRecord::Deserialize(unsigned char* data, int& size) {
     
 }
 
-std::vector<std::string> DataRecord::GetKeys() {
-    std::vector<std::string> keys;
+Array<std::string> DataRecord::GetKeys() {
+    Array<std::string> keys;
     auto it = m_vars.begin();
     for(; it != m_vars.end(); it++) {
         keys.push_back(it->first);

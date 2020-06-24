@@ -26,8 +26,8 @@ public:
     
 public:
     std::string path;
-    std::vector<std::string> files;
-    std::vector<Directory*> subdirectories;
+    Array<std::string> files;
+    Array<Directory*> subdirectories;
 };
 
 #endif

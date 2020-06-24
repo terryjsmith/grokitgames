@@ -112,7 +112,7 @@ int main(int argc, const char * argv[]) {
     dataLoader->Open("game.db");
 
     // Load entities
-    std::vector<GigaObject*> entities = dataLoader->GetObjects("Entity");
+    Array<GigaObject*> entities = dataLoader->GetObjects("Entity");
     
     // Add entities to world
     auto it = entities.begin();
@@ -120,7 +120,7 @@ int main(int argc, const char * argv[]) {
         world->AddEntity(dynamic_cast<Entity*>(*it));
     }
     
-    std::vector<GigaObject*> components = dataLoader->GetObjects("TransformComponent");
+    Array<GigaObject*> components = dataLoader->GetObjects("TransformComponent");
     
     dataLoader->SaveObjects("Entity", entities);
     dataLoader->SaveObjects("TransformComponent", components);

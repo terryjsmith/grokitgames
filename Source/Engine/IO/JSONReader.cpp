@@ -27,9 +27,9 @@ GigaObject* JSONReader::GetRecord(std::string table, std::map<std::string, std::
     return(0);
 }
 
-std::vector<GigaObject*> JSONReader::GetRecords(std::string table, std::map<std::string, std::string> search) {
+Array<GigaObject*> JSONReader::GetRecords(std::string table, std::map<std::string, std::string> search) {
     // Initialize list of records
-    std::vector<GigaObject*> records;
+    Array<GigaObject*> records;
     
     /* Get values
     bool exists = m_json.HasMember(table.c_str());
@@ -64,7 +64,7 @@ std::vector<GigaObject*> JSONReader::GetRecords(std::string table, std::map<std:
     return(records);
 }
 
-void JSONReader::SaveRecords(std::string table, std::vector<DataRecord*> records) {
+void JSONReader::SaveRecords(std::string table, Array<DataRecord*> records) {
     
 }
 

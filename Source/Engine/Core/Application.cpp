@@ -23,7 +23,7 @@ void Application::Initialize() {
 }
 
 void Application::Update(float delta) {
-    std::vector<RegisteredSystem*>::iterator i = m_systems.begin();
+    auto i = m_systems.begin();
     
     for (; i != m_systems.end(); i++) {
         if ((*i)->tickRate > 0) {

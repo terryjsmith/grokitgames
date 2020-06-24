@@ -61,13 +61,13 @@ private:
     
 protected:
     // List of registered input devices (max one per type)
-    std::vector<InputDevice*> m_devices;
+    Array<InputDevice*> m_devices;
     
     // List of registered input mappings
-    std::vector<InputMapping*> m_mappings;
+    Array<InputMapping*> m_mappings;
     
     // History of commands
-    std::vector<Command*> m_commands;
+    Array<Command*> m_commands;
 };
 
 #endif

@@ -56,7 +56,7 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
     // Use Assimp to import our scene
     const struct aiScene* scene = aiImportFile(filename.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_FixInfacingNormals);
     
-    std::vector<AssimpMaterial*> materialList;
+    Array<AssimpMaterial*> materialList;
     
     // Load our textures and materials
     for(int i = 0; i < scene->mNumMaterials; i++) {
@@ -176,8 +176,8 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
         ret->material = materialList[paiMesh->mMaterialIndex]->material;
         
         // Initialize our data
-        std::vector<float> vertex_data;
-        std::vector<unsigned int> index_data;
+        Array<float> vertex_data;
+        Array<unsigned int> index_data;
         
         // Calculate our vertex size
         ret->vertexBuffer = renderSystem->CreateVertexBuffer();
@@ -364,7 +364,7 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
             mesh->animations[animationName] = animation;
             
             // Loop over Assimp's "channels" and figure out the discrete frame timestamps
-            std::vector<double> frameTimes;
+            Array<double> frameTimes;
             for(int j = 0; j < scene->mAnimations[i]->mDuration; j++) {
                 frameTimes.push_back(j);
             }
@@ -428,7 +428,7 @@ void AssimpImporter::LoadAnimation(std::string filename, std::string animationNa
             mesh->animations[animationName] = animation;
             
             // Loop over Assimp's "channels" and figure out the discrete frame timestamps
-            std::vector<double> frameTimes;
+            Array<double> frameTimes;
             for(int j = 0; j < scene->mAnimations[i]->mDuration; j++) {
                 frameTimes.push_back(j);
             }

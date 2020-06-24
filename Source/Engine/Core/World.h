@@ -53,8 +53,8 @@ public:
     /**
      * Find all components by type
      */
-    template<class T> std::vector<T*> FindComponents() {
-        std::vector<T*> components;
+    template<class T> Array<T*> FindComponents() {
+        Array<T*> components;
         auto it = m_entities.begin();
         for(; it != m_entities.end(); it++) {
             Entity* ent = (*it);
@@ -70,7 +70,7 @@ public:
     /**
      * Find all components by type name (will not do intermediate types)
      */
-    std::vector<Component*> FindComponents(std::string type);
+    Array<Component*> FindComponents(std::string type);
     
     /**
      * Get next available entity ID
@@ -80,11 +80,11 @@ public:
     /**
      * Get all entities
      */
-    std::vector<Entity*> GetEntities() { return m_entities; }
+    Array<Entity*> GetEntities() { return m_entities; }
     
 protected:
     // All entities in the world
-    std::vector<Entity*> m_entities;
+    Array<Entity*> m_entities;
     
     // Singleton
     static World* m_instance;
