@@ -58,7 +58,7 @@ public:
      * Variant to MonoObject and vice versa
      */
     Variant* MonoObjectToVariant(MonoObject* mobj);
-    MonoObject* VariantToMonoObject(Variant* var);
+    MonoObject* VariantToMonoObject(Variant* var, std::string classHint = "");
     
     /**
      * Constructor for mapping

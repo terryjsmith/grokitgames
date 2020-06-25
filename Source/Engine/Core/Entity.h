@@ -55,7 +55,7 @@ public:
         
         return(0);
     }
-    
+
     /**
      * Find component by class name
      */

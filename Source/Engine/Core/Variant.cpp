@@ -450,6 +450,14 @@ Variant* Variant::operator[] (int index) {
     return(m_array[index]);
 }
 
+Variant* Variant::At(uint32_t index) {
+    assert(index < m_size);
+    assert(index >= 0);
+    assert(m_type == VAR_ARRAY);
+    
+    return(m_array[index]);
+}
+
 bool Variant::IsInt() {
     return(m_type == VAR_INT32 || m_type == VAR_INT64);
 }
@@ -504,6 +512,10 @@ bool Variant::IsObject() {
 
 bool Variant::IsNull() {
     return(m_type == 0);
+}
+
+bool Variant::IsArray() {
+    return(m_type == VAR_ARRAY);
 }
 
 std::string Variant::ToString() {

@@ -9,7 +9,7 @@ ObjectSelectDialog::ObjectSelectDialog(std::string filter, QWidget *parent) :
     ui(new Ui::ObjectSelectDialog)
 {
     ui->setupUi(this);
-    std::vector<GigaObject*> objects = GigaObject::GetObjects(filter);
+    Array<GigaObject*> objects = GigaObject::GetObjects(filter);
     auto it = objects.begin();
     for(; it != objects.end(); it++) {
         QListWidgetItem* item = new QListWidgetItem();

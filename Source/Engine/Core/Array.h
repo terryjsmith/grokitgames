@@ -17,13 +17,21 @@ public:
     
     Array(const Array &b) {
         m_size = b.m_size;
-        m_values = (T*)malloc(sizeof(T) * m_size);
-        memcpy(m_values, b.m_values, sizeof(T) * m_size);
+        m_values = 0;
+        
+        if(m_size == 0) return;
+        m_values = new T[m_size];
+        for(int i = 0; i < m_size; i++) {
+            m_values[i] = b.m_values[i];
+        }
     }
     
     ~Array() {
-        free(m_values);
-        m_size = 0;
+        if(m_size) {
+            delete[] m_values;
+            m_values = 0;
+            m_size = 0;
+        }
     }
     
     /**
@@ -76,7 +84,7 @@ public:
         }
         
         int operator-(const Iterator &b) const {
-            assert(m_position - b.m_position > 0);
+            assert(m_position - b.m_position >= 0);
             return(m_position - b.m_position);
         }
         
@@ -142,21 +150,7 @@ public:
      * Remove an element
      */
     void erase(Iterator pos) {
-        T* newarr = (T*)malloc(sizeof(T) * (m_size - 1));
-        memcpy(newarr, m_values, sizeof(T) * pos.m_position);
-        if(pos.m_position < (m_size - 1)) {
-            memcpy(newarr + pos.m_position, m_values + (pos.m_position + 1), sizeof(T) * (m_size - pos.m_position - 1));
-        }
-        
-        m_size--;
-        
-        if(m_values) {
-            free(m_values);
-        }
-        
-        if(m_size > 0) {
-            m_values = newarr;
-        }
+        this->erase(pos, pos);
     }
     
     /**
@@ -170,18 +164,21 @@ public:
         int newsize = m_size - count;
         
         // Create new data and copy
-        T* newarr = (T*)malloc(sizeof(T) * newsize);
-        memcpy(newarr, m_values, sizeof(T) * start.m_position);
-        if(end.m_position < (m_size - 1)) {
-            memcpy(newarr + start.m_position, m_values + (end.m_position + 1), sizeof(T) * (newsize - start.m_position));
+        T* newarr = new T[newsize];
+        for(int i = 0; i < start.m_position; i++) {
+            newarr[i] = m_values[i];
+        }
+        
+        for(int i = end.m_position + 1; i < m_size; i++) {
+            int index = i - end.m_position;
+            newarr[index] = m_values[i];
+        }
+        
+        if(m_size) {
+            delete[] m_values;
         }
         
         m_size = newsize;
-        
-        if(m_values) {
-            free(m_values);
-        }
-        
         if(m_size > 0) {
             m_values = newarr;
         }
@@ -196,12 +193,14 @@ public:
      * Insert items
      */
     void push_back(T item) {
-        T* newarr = (T*)malloc(sizeof(T) * (m_size + 1));
-        memcpy(newarr, m_values, sizeof(T) * m_size);
+        T* newarr = new T[m_size + 1];
+        for(int i = 0; i < m_size; i++) {
+            newarr[i] = m_values[i];
+        }
         newarr[m_size] = item;
         
-        if(m_values)
-            free(m_values);
+        if(m_size)
+            delete[] m_values;
         
         m_values = newarr;
         m_size++;
@@ -216,8 +215,9 @@ public:
      * Clear contents
      */
     void clear() {
-        if(m_values) {
-            free(m_values);
+        if(m_size) {
+            delete[] m_values;
+            m_values = 0;
         }
         
         m_size = 0;
@@ -244,14 +244,18 @@ public:
      * Resize buffer
      */
     void resize(int size) {
-        T* newarr = (T*)malloc(size * sizeof(T));
-        memcpy(newarr, m_values, sizeof(T) * (size < m_size ? size : m_size)); // Use the smaller of existing or new size
-        m_size = size;
+        T* newarr = new T[size];
         
-        if(m_values) {
-            free(m_values);
+        int copysize = size < m_size ? size : m_size;
+        for(int i = 0; i < copysize; i++) {
+            newarr[i] = m_values[i];
+        }
+
+        if(m_size) {
+            delete[] m_values;
         }
         
+        m_size = size;
         m_values = newarr;
     }
     
@@ -268,8 +272,13 @@ public:
     
     Array& operator =(const Array& b) {
         m_size = b.m_size;
-        m_values = (T*)malloc(sizeof(T) * m_size);
-        memcpy(m_values, b.m_values, sizeof(T) * m_size);
+        m_values = 0;
+        
+        if(m_size == 0) return(*this);
+        m_values = new T[m_size];
+        for(int i = 0; i < m_size; i++) {
+            m_values[i] = b.m_values[i];
+        }
         return(*this);
     }
     

@@ -551,7 +551,7 @@ Variant* ScriptingSystem::MonoObjectToVariant(MonoObject* mobj) {
     return(0);
 }
 
-MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var) {
+MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var, std::string classHint) {
     MonoObject* mobj = 0;
     
     if(var->IsInt()) {
@@ -584,6 +584,76 @@ MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var) {
     
     if(var->IsObject()) {
         mobj = this->GetRemoteObject(var->AsObject());
+    }
+    
+    if(var->IsArray()) {
+        // Special handling for empty arrays
+        int size = var->Size();
+        if(size == 0) {
+            MonoClass* cl = m_classes[classHint]->_class;
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            return((MonoObject*)array);
+        }
+        
+        // Otherwise, base type on first item
+        Variant* v = var->At(0);
+        if(v->IsInt()) {
+            MonoClass* cl = m_cachedTypes[Variant::VAR_INT32];
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            for(int i = 0; i < size; i++) {
+                v = var->At(i);
+                int iv = v->AsInt();
+                MonoObject* mobj = mono_value_box(mono_domain_get(), cl, &iv);
+                mono_array_setref(array, i, mobj);
+            }
+            return((MonoObject*)array);
+        }
+        
+        if(v->IsUInt()) {
+            MonoClass* cl = m_cachedTypes[Variant::VAR_UINT32];
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            for(int i = 0; i < size; i++) {
+                v = var->At(i);
+                int iv = v->AsUInt();
+                MonoObject* mobj = mono_value_box(mono_domain_get(), cl, &iv);
+                mono_array_setref(array, i, mobj);
+            }
+            return((MonoObject*)array);
+        }
+        
+        if(v->IsFloat()) {
+            MonoClass* cl = m_cachedTypes[Variant::VAR_FLOAT];
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            for(int i = 0; i < size; i++) {
+                v = var->At(i);
+                float f = v->AsFloat();
+                MonoObject* mobj = mono_value_box(mono_domain_get(), cl, &f);
+                mono_array_setref(array, i, mobj);
+            }
+            return((MonoObject*)array);
+        }
+        
+        if(v->IsString()) {
+            MonoClass* cl = m_cachedTypes[Variant::VAR_STRING];
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            for(int i = 0; i < size; i++) {
+                v = var->At(i);
+                MonoObject* mobj = (MonoObject*)mono_string_new(mono_domain_get(), v->AsString().c_str());
+                mono_array_setref(array, i, mobj);
+            }
+            return((MonoObject*)array);
+        }
+        
+        if(v->IsObject()) {
+            MonoClass* cl = m_classes[classHint]->_class;
+            MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
+            for(int i = 0; i < size; i++) {
+                v = var->At(i);
+                MonoObject* mobj = this->GetRemoteObject(v->AsObject());
+                mono_array_setref(array, i, mobj);
+            }
+            return((MonoObject*)array);
+        }
     }
     
     if(var->IsVector2()) {
@@ -672,6 +742,7 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
             case Variant::VAR_VECTOR4:
             case Variant::VAR_QUATERNION:
             case Variant::VAR_OBJECT:
+            case Variant::VAR_ARRAY:
                 args[i] = this->VariantToMonoObject(argv[i]);
                 break;
             default:

@@ -127,7 +127,7 @@ void MainWindow::btnOpenProject_clicked() {
         MetaSystem* metaSystem = GetSystem<MetaSystem>();
 
         // Load entities
-        std::vector<GigaObject*> entities = m_dataLoader->GetObjects("Entity");
+        Array<GigaObject*> entities = m_dataLoader->GetObjects("Entity");
 
         QStandardItem* rootItem = m_sceneTreeModel->invisibleRootItem();
 
@@ -143,10 +143,10 @@ void MainWindow::btnOpenProject_clicked() {
         }
 
         // Load components
-        std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
+        Array<std::string> componentTypes = metaSystem->GetComponentTypes();
         auto cti = componentTypes.begin();
         for(; cti != componentTypes.end(); cti++) {
-            std::vector<GigaObject*> components = m_dataLoader->GetObjects(*cti);
+            Array<GigaObject*> components = m_dataLoader->GetObjects(*cti);
             auto ci = components.begin();
             for(; ci != components.end(); ci++) {
                 // Check whether this is attached to an entity
@@ -175,9 +175,9 @@ void MainWindow::btnSaveProject_clicked() {
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
 
     // Save entities
-    std::vector<Entity*> entities = world->GetEntities();
+    Array<Entity*> entities = world->GetEntities();
 
-    std::vector<GigaObject*> objs;
+    Array<GigaObject*> objs;
     auto it = entities.begin();
     for(; it != entities.end(); it++) {
         objs.push_back(*it);
@@ -187,10 +187,10 @@ void MainWindow::btnSaveProject_clicked() {
     objs.clear();
 
     // Save components
-    std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
+    Array<std::string> componentTypes = metaSystem->GetComponentTypes();
     auto cti = componentTypes.begin();
     for(; cti != componentTypes.end(); cti++) {
-        std::vector<Component*> components = world->FindComponents(*cti);
+        Array<Component*> components = world->FindComponents(*cti);
 
         auto it = components.begin();
         for(; it != components.end(); it++) {
@@ -375,7 +375,7 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
     QFormLayout* layout = new QFormLayout(0);
 
     // Iterate over keys to create layout
-    std::vector<std::string> keys = record->GetKeys();
+    Array<std::string> keys = record->GetKeys();
     auto it = keys.begin();
     for(; it != keys.end(); it++) {
         QWidget* widget = 0;

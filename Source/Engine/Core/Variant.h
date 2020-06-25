@@ -4,6 +4,7 @@
 
 #include <Core/Giga.h>
 #include <Core/MathTypes.h>
+#include <Core/Array.h>
 
 class GigaObject;
 
@@ -75,6 +76,21 @@ public:
     Variant(GigaObject* value);
     Variant(const Variant& value);
     
+    template<class T>
+    Variant(Array<T> value) {
+        m_type = VAR_ARRAY;
+        m_size = value.size();
+        m_poolIncr = 10;
+        m_pool = m_size;
+        
+        m_array = (Variant**)malloc(m_pool * sizeof(Variant*));
+        memset(m_array, 0, sizeof(Variant*) * m_pool);
+        
+        for(int i = 0 ; i < m_size; i++) {
+            m_array[i] = new Variant(value[i]);
+        }
+    }
+    
     /**
      * Set operators
      */
@@ -143,6 +159,7 @@ public:
     void Add(Variant* var);
     void Remove(Variant* var);
     void Remove(uint32_t index);
+    Variant* At(uint32_t index);
     
     /**
      * Get operators

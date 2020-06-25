@@ -21,7 +21,7 @@ void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex
     QStandardItem* item = model->itemFromIndex(current);
     Entity* ent = (Entity*)item->data().value<void*>();
 
-    std::vector<Component*> components = ent->GetComponents();
+    Array<Component*> components = ent->GetComponents();
     auto it = components.begin();
     for(; it != components.end(); it++) {
         DataRecord* dr = new DataRecord();

@@ -103,7 +103,9 @@ int map_internal_type(CXType kind, std::string rettype) {
 
     // Special case for templated objects
     if (internalType == 0 && rettype.find("<") != -1) {
-        internalType = Variant::VAR_OBJECT;
+        if(rettype.find("Array<") != -1) {
+            internalType = Variant::VAR_ARRAY;
+        }
     }
 
     if (internalType == 0 && rettype == "std::string") {
@@ -224,6 +226,11 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
                 grabNextFunction = false;
                 return CXChildVisit_Continue;
             }
+            
+            if(internalType == Variant::VAR_ARRAY) {
+                rettype = rettype.substr(rettype.find("<") + 1);
+                rettype = rettype.substr(0, rettype.find(">"));
+            }
 
             MetaFunction* func = new MetaFunction();
             func->name = name;
@@ -249,6 +256,11 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
 
                 int intArgType = map_internal_type(arg_type, argtype);
                 if (intArgType != 0) {
+                    if(intArgType == Variant::VAR_ARRAY) {
+                        argtype = argtype.substr(argtype.find("<") + 1);
+                        argtype = argtype.substr(0, argtype.find(">"));
+                    }
+                    
                     MetaFunction::Parameter* p = new MetaFunction::Parameter();
                     p->name = arg_name;
                     p->type = intArgType;
@@ -611,6 +623,7 @@ int main(int argc, char** argv) {
     functionMappings[Variant::VAR_QUATERNION] = "Quaternion";
     functionMappings[Variant::VAR_STRING] = "String";
     functionMappings[Variant::VAR_OBJECT] = "Object";
+    functionMappings[Variant::VAR_ARRAY] = "Array";
     functionMappings[Variant::VAR_VARIANT] = "Variant";
     
     csharpMappings[Variant::VAR_INT32] = "int";
@@ -1215,6 +1228,8 @@ int main(int argc, char** argv) {
                     case Variant::VAR_QUATERNION:
                         returnType = "MonoObject*";
                         break;
+                    case Variant::VAR_ARRAY:
+                        returnType = "MonoArray*";
                     default:
                         returnType = mp->typeStr;
                 };
@@ -1235,6 +1250,7 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VECTOR3:
                     case Variant::VAR_VECTOR4:
                     case Variant::VAR_QUATERNION:
+                    case Variant::VAR_ARRAY:
                         output += "return(scriptingSystem->VariantToMonoObject(new Variant(cobj->" + mp->name + ")));\n";
                         break;
                     default:
@@ -1258,6 +1274,8 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VARIANT:
                         paramType = "MonoObject*";
                         break;
+                    case Variant::VAR_ARRAY:
+                        paramType = "MonoArray*";
                     default:
                         paramType = mp->typeStr;
                 };
@@ -1279,6 +1297,7 @@ int main(int argc, char** argv) {
                     case Variant::VAR_VECTOR4:
                     case Variant::VAR_QUATERNION:
                     case Variant::VAR_VARIANT:
+                    case Variant::VAR_ARRAY:
                         output += "\tcobj->" + mp->name + " = scriptingSystem->MonoObjectToVariant(value)->As" + functionMappings[mp->type] + "();\n";
                         break;
                     default:
@@ -1336,6 +1355,10 @@ int main(int argc, char** argv) {
                         paramType = "MonoObject*";
                         shortType = "scriptingSystem->MonoObjectToVariant(" + (*pi)->name + ")->As" + functionMappings[(*pi)->type] + "()";
                         break;
+                    case Variant::VAR_ARRAY:
+                        paramType = "MonoArray*";
+                        shortType = "scriptingSystem->MonoObjectToVariant(" + (*pi)->name + ")->As" + functionMappings[(*pi)->type] + "()";
+                        break;
                     default:
                         paramType = (*pi)->typeStr;
                         shortType = (*pi)->name;
@@ -1359,6 +1382,9 @@ int main(int argc, char** argv) {
                 case Variant::VAR_VECTOR4:
                 case Variant::VAR_QUATERNION:
                 case Variant::VAR_VARIANT:
+                    returnType = "MonoObject*";
+                    break;
+                case Variant::VAR_ARRAY:
                     returnType = "MonoObject*";
                     break;
                 default:
@@ -1394,9 +1420,19 @@ int main(int argc, char** argv) {
             }
             
             output += "\n\t";
+            
             // Return value
+            returnType = (*fi)->strReturnType;
+            if((*fi)->returnType == Variant::VAR_ARRAY || (*fi)->returnType == Variant::VAR_OBJECT) {
+                returnType = returnType.substr(0, returnType.length() - 2);
+            }
+            
             if((*fi)->returnType != -1) {
-                output += (*fi)->strReturnType + " retval = ";
+                std::string retType = (*fi)->strReturnType;
+                if((*fi)->returnType == Variant::VAR_ARRAY) {
+                    retType = "Array<" + retType + ">";
+                }
+                output += retType + " retval = ";
             }
 
             // Function call
@@ -1426,6 +1462,9 @@ int main(int argc, char** argv) {
                 case Variant::VAR_VECTOR4:
                 case Variant::VAR_QUATERNION:
                     output += "\treturn(scriptingSystem->VariantToMonoObject(new Variant(retval)));";
+                    break;
+                case Variant::VAR_ARRAY:
+                    output += "\treturn(scriptingSystem->VariantToMonoObject(new Variant(retval), \"" + returnType + "\"));";
                     break;
                 case Variant::VAR_VARIANT:
                     output += "\treturn(scriptingSystem->VariantToMonoObject(retval));";
@@ -1605,8 +1644,9 @@ int main(int argc, char** argv) {
             auto mi = csharpMappings.find((*fi)->returnType);
             if(mi != csharpMappings.end()) returnType = mi->second;
             
-            if((*fi)->returnType == Variant::VAR_OBJECT) returnType = (*fi)->strReturnType;
+            if((*fi)->returnType == Variant::VAR_OBJECT || (*fi)->returnType == Variant::VAR_ARRAY) returnType = (*fi)->strReturnType;
             if((*fi)->returnType == Variant::VAR_OBJECT) returnType = returnType.substr(0, returnType.length() - 2);
+            if((*fi)->returnType == Variant::VAR_ARRAY) returnType = returnType.substr(0, returnType.length() - 2) + "[]";
             output += returnType + " " + (*fi)->name;
             
             std::string params;
@@ -1619,6 +1659,7 @@ int main(int argc, char** argv) {
                 mi = csharpMappings.find((*pi)->type);
                 if(mi != csharpMappings.end()) paramType = mi->second;
                 if((*pi)->type == Variant::VAR_OBJECT) paramType = paramType.substr(0, paramType.length() - 2);
+                if((*pi)->type == Variant::VAR_ARRAY) paramType = paramType.substr(0, paramType.length() - 2) + "[]";
     
                 params += paramType + " " + (*pi)->name;
             }

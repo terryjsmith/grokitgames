@@ -14,7 +14,7 @@ NewComponentDialog::NewComponentDialog(QWidget *parent) :
 
     // Add entities
     World* world = World::GetInstance();
-    std::vector<Entity*> entities = world->GetEntities();
+    auto entities = world->GetEntities();
     auto ei = entities.begin();
     for(; ei != entities.end(); ei++) {
         ui->ddlEntity->addItem((*ei)->name.c_str());
@@ -22,7 +22,7 @@ NewComponentDialog::NewComponentDialog(QWidget *parent) :
 
     // Add component types
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
-    std::vector<std::string> componentTypes = metaSystem->GetComponentTypes();
+    auto componentTypes = metaSystem->GetComponentTypes();
 
     auto it = componentTypes.begin();
     for(; it != componentTypes.end(); it++) {
