@@ -11,8 +11,8 @@ CameraComponent::CameraComponent() {
     m_fov = 45.0f;
     m_aspect = 1.3;
     m_ortho = false;
-    transform->SetLook(vector3(0, 0, -1));
-    transform->SetUp(vector3(0, 1, 0));
+    m_transform->SetLook(vector3(0, 0, -1));
+    m_transform->SetUp(vector3(0, 1, 0));
     m_customProj = false;
     m_customView = false;
     applyLighting = false;
@@ -23,7 +23,7 @@ matrix4 CameraComponent::GetViewMatrix() {
         return(m_view);
     }
     
-    Transform* transform = this->transform;
+    Transform* transform = this->GetTransform();
     vector3 position = transform->GetWorldPosition();
 
     vector3 look = transform->GetLook();
@@ -49,12 +49,12 @@ Frustum CameraComponent::CalculateFrustum(float fnear, float ffar) {
     float farHeight = 2 * tan(m_fov / 2) * ffar;
     float farWidth = farHeight * m_aspect;
 
-    vector3 look = transform->GetLook();
-    vector3 up = transform->GetUp();
-    vector3 right = transform->GetRight();
+    vector3 look = m_transform->GetLook();
+    vector3 up = m_transform->GetUp();
+    vector3 right = m_transform->GetRight();
 
     // And their centers
-    vector3 position = transform->GetWorldPosition();
+    vector3 position = m_transform->GetWorldPosition();
     vector3 nearCenter = position + (look * fnear);
     vector3 farCenter = position + (look * ffar);
 
@@ -95,12 +95,12 @@ Frustum CameraComponent::GetFrustum() {
     float farHeight = 2 * tan(m_fov / 2) * ffar;
     float farWidth = farHeight * m_aspect;
 
-    vector3 look = transform->GetLook();
-    vector3 up = transform->GetUp();
-    vector3 right = transform->GetRight();
+    vector3 look = m_transform->GetLook();
+    vector3 up = m_transform->GetUp();
+    vector3 right = m_transform->GetRight();
 
     // And their centers
-    vector3 position = transform->GetWorldPosition();
+    vector3 position = m_transform->GetWorldPosition();
     vector3 nearCenter = position + (look * fnear);
     vector3 farCenter = position + (look * ffar);
 
@@ -143,7 +143,7 @@ void CameraComponent::Serialize(DataRecord* record) {
     
     record->Set("fov", new Variant(m_fov));
     record->Set("fnear", new Variant(m_fnear));
-    record->Set("ffar", new Variant(m_fnear));
+    record->Set("ffar", new Variant(m_ffar));
 }
 
 void CameraComponent::Deserialize(DataRecord* record) {

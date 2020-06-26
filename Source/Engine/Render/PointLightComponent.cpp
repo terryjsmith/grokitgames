@@ -65,11 +65,11 @@ void PointLightComponent::GenerateDepthTexture(Scene* scene) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     
     // Get world position
-    vector3 position = this->transform->GetWorldPosition();
+    vector3 position = this->GetTransform()->GetWorldPosition();
     
     // Update "camera"
     CameraComponent* camera = GetCamera(0);
-    camera->transform->SetWorldPosition(position);
+    camera->GetTransform()->SetWorldPosition(position);
     camera->SetFar(m_attenuation);
     camera->SetFOV(90.0f);
     camera->SetAspectRatio(1.0f);
@@ -79,9 +79,9 @@ void PointLightComponent::GenerateDepthTexture(Scene* scene) {
         m_depthPass->SetTexture(texture, texture->GetTarget(i));
         
         // Calculate frustum and matrices
-        camera->transform->SetLook(m_vectors[i].look);
-        camera->transform->SetUp(m_vectors[i].up);
-        camera->transform->SetRight(m_vectors[i].right);
+        camera->GetTransform()->SetLook(m_vectors[i].look);
+        camera->GetTransform()->SetUp(m_vectors[i].up);
+        camera->GetTransform()->SetRight(m_vectors[i].right);
         
         // Set "camera" and draw
         m_depthPass->SetView(camera);

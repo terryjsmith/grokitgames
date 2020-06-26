@@ -32,22 +32,19 @@ void MeshComponent::Initialize(Mesh* mesh) {
 }
 
 void MeshComponent::Serialize(DataRecord* record) {
-    Component::Serialize(record);
+    TransformableComponent::Serialize(record);
     
     record->SetTypeHint("mesh", "Mesh");
     record->Set("mesh", new Variant(mesh));
-
-    record->Set("transform", new Variant(transform));
     record->Set("applyLighting", new Variant(applyLighting));
 }
 
 void MeshComponent::Deserialize(DataRecord* record) {
-    Component::Deserialize(record);
+    TransformableComponent::Deserialize(record);
     
     record->SetTypeHint("mesh", "Mesh");
     Mesh* m = record->Get("mesh")->AsObject<Mesh*>();
     this->Initialize(m);
 
     this->applyLighting = record->Get("applyLighting")->AsBool();
-    this->transform = record->Get("transform")->AsObject<Transform*>();
 }

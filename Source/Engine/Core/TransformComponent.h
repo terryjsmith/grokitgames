@@ -2,27 +2,15 @@
 #ifndef transformcomponent_h
 #define transformcomponent_h
 
-#include <Core/Component.h>
-#include <Core/Transform.h>
+#include <Core/TransformableComponent.h>
 
 GIGA_CLASS()
-class GIGA_API TransformComponent : public Component {
+class GIGA_API TransformComponent : public TransformableComponent {
 public:
-    TransformComponent();
-    ~TransformComponent();
+    TransformComponent() = default;
+    ~TransformComponent() = default;
     
     GIGA_CLASS_NAME("TransformComponent");
-    
-    Transform* GetTransform() { return m_transform; }
-    
-    /**
-     * Serialize / deserialize
-     */
-    void Serialize(DataRecord* record);
-    void Deserialize(DataRecord* record);
-    
-protected:
-    Transform* m_transform;
 };
 
 #endif

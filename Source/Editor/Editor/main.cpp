@@ -46,6 +46,10 @@ int main(int argc, char *argv[])
 
     app->Initialize();
 
+    // Open error log
+    LogSystem* logSystem = GetSystem<LogSystem>();
+    logSystem->Open("error.log");
+
     // Set up resource paths
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     resourceSystem->AddSearchPath("Resources/Shaders");

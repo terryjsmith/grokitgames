@@ -274,6 +274,39 @@ void MainWindow::cbTextEditFinished() {
     default: break;
     }
 
+    QLineEdit* editX = 0;
+    QLineEdit* editY = 0;
+    QLineEdit* editZ = 0;
+    QLineEdit* editW = 0;
+
+    QList<QLineEdit*> children = ui->propertiesFrame->findChildren<QLineEdit*>(qFieldName + "_X");
+    for(int i = 0; i < children.size(); i++) {
+        if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
+            editX = children[i];
+        }
+    }
+
+    children = ui->propertiesFrame->findChildren<QLineEdit*>(qFieldName + "_Y");
+    for(int i = 0; i < children.size(); i++) {
+        if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
+            editY = children[i];
+        }
+    }
+
+    children = ui->propertiesFrame->findChildren<QLineEdit*>(qFieldName + "_Z");
+    for(int i = 0; i < children.size(); i++) {
+        if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
+            editZ = children[i];
+        }
+    }
+
+    children = ui->propertiesFrame->findChildren<QLineEdit*>(qFieldName + "_W");
+    for(int i = 0; i < children.size(); i++) {
+        if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
+            editW = children[i];
+        }
+    }
+
     // Special handling for objects
     if(v->GetType() == Variant::VAR_OBJECT) {
         // Get results
@@ -288,57 +321,25 @@ void MainWindow::cbTextEditFinished() {
 
     // Special handling for vectors / quaternions
     if(v->GetType() == Variant::VAR_VECTOR2) {
-        QLayout* layout = edit->layout();
-        QLineEdit* editX = layout->findChild<QLineEdit*>(qFieldName + "_X");
-        QLineEdit* editY = layout->findChild<QLineEdit*>(qFieldName + "_Y");
+        std::string X = editX->hasAcceptableInput() ? editX->text().toStdString() : std::to_string(v->AsVector2().x);
+        std::string Y = editY->hasAcceptableInput() ? editY->text().toStdString() : std::to_string(v->AsVector2().y);
 
-        vector2 newVec = vector2((float)atof(editX->text().toStdString().c_str()),
-                                 (float)atof(editY->text().toStdString().c_str()));
+        vector2 newVec = vector2((float)atof(X.c_str()), (float)atof(Y.c_str()));
 
         dr->Set(fieldName, new Variant(newVec));
     }
 
     if(v->GetType() == Variant::VAR_VECTOR3) {
-        QLayout* layout = (QLayout*)edit->parent();
-        QLineEdit* editX = 0;
-        QLineEdit* editY = 0;
-        QLineEdit* editZ = 0;
+        std::string X = editX->hasAcceptableInput() ? editX->text().toStdString() : std::to_string(v->AsVector3().x);
+        std::string Y = editY->hasAcceptableInput() ? editY->text().toStdString() : std::to_string(v->AsVector3().y);
+        std::string Z = editZ->hasAcceptableInput() ? editZ->text().toStdString() : std::to_string(v->AsVector3().z);
 
-        QList<QLineEdit*> children = layout->findChildren<QLineEdit*>(qFieldName + "_X");
-        for(int i = 0; i < children.size(); i++) {
-            if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
-                editX = children[i];
-            }
-        }
-
-        children = layout->findChildren<QLineEdit*>(qFieldName + "_Y");
-        for(int i = 0; i < children.size(); i++) {
-            if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
-                editY = children[i];
-            }
-        }
-
-        children = layout->findChildren<QLineEdit*>(qFieldName + "_Z");
-        for(int i = 0; i < children.size(); i++) {
-            if(children[i]->property("fieldObject").value<GigaObject*>() == obj) {
-                editZ = children[i];
-            }
-        }
-
-        vector3 newVec = vector3((float)atof(editX->text().toStdString().c_str()),
-                                 (float)atof(editY->text().toStdString().c_str()),
-                                 (float)atof(editZ->text().toStdString().c_str()));
+        vector3 newVec = vector3((float)atof(X.c_str()), (float)atof(Y.c_str()), (float)atof(Z.c_str()));
 
         dr->Set(fieldName, new Variant(newVec));
     }
 
     if(v->GetType() == Variant::VAR_VECTOR4) {
-        QLayout* layout = edit->layout();
-        QLineEdit* editX = layout->findChild<QLineEdit*>(qFieldName + "_X");
-        QLineEdit* editY = layout->findChild<QLineEdit*>(qFieldName + "_Y");
-        QLineEdit* editZ = layout->findChild<QLineEdit*>(qFieldName + "_Z");
-        QLineEdit* editW = layout->findChild<QLineEdit*>(qFieldName + "_W");
-
         vector4 newVec = vector4((float)atof(editX->text().toStdString().c_str()),
                                  (float)atof(editY->text().toStdString().c_str()),
                                  (float)atof(editZ->text().toStdString().c_str()),
@@ -348,13 +349,6 @@ void MainWindow::cbTextEditFinished() {
     }
 
     if(v->GetType() == Variant::VAR_QUATERNION) {
-        QLayout* layout = edit->layout();
-        QLineEdit* editX = layout->findChild<QLineEdit*>(qFieldName + "_X");
-        QLineEdit* editY = layout->findChild<QLineEdit*>(qFieldName + "_Y");
-        QLineEdit* editZ = layout->findChild<QLineEdit*>(qFieldName + "_Z");
-
-        // Convert axis angles to quaternion
-
         vector3 newVec = vector3((float)atof(editX->text().toStdString().c_str()),
                                  (float)atof(editY->text().toStdString().c_str()),
                                  (float)atof(editZ->text().toStdString().c_str()));
@@ -460,7 +454,7 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             QLineEdit* x = new QLineEdit(parent);
             x->setText(QString::number(vec3.x, 'f', 2));
             x->setMaximumWidth(40);
-            //x->setValidator(new QDoubleValidator(layout));
+            x->setValidator(new QDoubleValidator(layout));
             x->setObjectName(origFieldName + "_X");
             hbox->addWidget(x);
 
@@ -663,15 +657,40 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
     return(layout);
 }
 
+void MainWindow::cbStateChange(int s) {
+    // Get our signal sender
+    QCheckBox* checkbox = qobject_cast<QCheckBox*>(sender());
+
+    // Get our object
+    GigaObject* obj = checkbox->property("fieldObject").value<GigaObject*>();
+
+    // Serialize
+    DataRecord* dr = new DataRecord();
+    obj->Serialize(dr);
+
+    // Get which field this is
+    QString qFieldName = checkbox->property("fieldName").value<QString>();
+    std::string fieldName = qFieldName.toStdString();
+
+    bool isChecked = checkbox->isChecked();
+    dr->Set(fieldName, new Variant(isChecked));
+
+    obj->Deserialize(dr);
+
+    delete dr;
+}
+
 void MainWindow::clearLayout(QLayout *layout) {
     QLayoutItem *item;
     while((item = layout->takeAt(0))) {
         if (item->layout()) {
             clearLayout(item->layout());
             delete item->layout();
+            continue;
         }
         if (item->widget()) {
-           delete item->widget();
+            delete item->widget();
+            continue;
         }
         //delete item;
     }

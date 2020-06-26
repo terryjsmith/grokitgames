@@ -25,6 +25,12 @@ public:
     virtual void Serialize(DataRecord* record);
     virtual void Deserialize(DataRecord* record);
     
+    /**
+     * Callback functions for add/remove from Entity
+     */
+    virtual void onComponentAdded(Component* c) { }
+    virtual void onEntitySet() { }
+    
     friend class Entity;
     
 protected:

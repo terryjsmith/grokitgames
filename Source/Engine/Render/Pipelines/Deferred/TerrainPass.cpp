@@ -97,7 +97,7 @@ void TerrainPass::Render(Scene* scene) {
     matrix4 proj = camera->GetProjectionMatrix();
     
     m_program->Set("projectionMatrix", proj);
-    m_program->Set("cameraPosition", camera->transform->GetWorldPosition());
+    m_program->Set("cameraPosition", camera->GetTransform()->GetWorldPosition());
     
     // Iterate over renderables
     auto it = scene->renderables.begin();
@@ -125,7 +125,7 @@ void TerrainPass::Render(Scene* scene) {
         }
         baseTexture += numTextures;
         
-        matrix4 parent = glm::translate(matrix4(1.0f), vector3(mc->transform->GetWorldPosition()));
+        matrix4 parent = glm::translate(matrix4(1.0f), vector3(mc->GetTransform()->GetWorldPosition()));
         TerrainQuad* quad = dynamic_cast<TerrainQuad*>(mc->children[0]);
         RecursiveRender(quad, view, parent, scene);
         
@@ -145,7 +145,7 @@ void TerrainPass::Render(Scene* scene) {
 
 void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent, Scene* scene) {
     // Calculate model matrix
-    matrix4 mat = glm::translate(matrix4(1.0f), rc->transform->GetLocalPosition());
+    matrix4 mat = glm::translate(matrix4(1.0f), rc->GetTransform()->GetLocalPosition());
     matrix4 model = mat * parent;
     
     if(rc->children.size() > 0) {
@@ -160,7 +160,7 @@ void TerrainPass::RecursiveRender(TerrainQuad* rc, matrix4 view, matrix4 parent,
     
     CameraComponent* cc = scene->camera;
     Frustum frustum = cc->GetFrustum();
-    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    vector3 cameraPosition = cc->GetTransform()->GetWorldPosition();
     Sphere* boundingSphere = rc->GetBoundingSphere();
     
     if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {

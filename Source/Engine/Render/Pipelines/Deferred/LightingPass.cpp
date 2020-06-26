@@ -119,7 +119,7 @@ void LightingPass::Render(Scene* scene) {
     
     // Get the far plane distance
     CameraComponent* camera = scene->camera;
-    m_program->Set("cameraPosition", camera->transform->GetWorldPosition());
+    m_program->Set("cameraPosition", camera->GetTransform()->GetWorldPosition());
     
     // Get view matrix
     matrix4 view = camera->GetViewMatrix();
@@ -164,12 +164,12 @@ void LightingPass::Render(Scene* scene) {
         CameraComponent* cc = lc->GetCamera(0);
         
         // Bind vars
-        m_program->Set("lightPosition", lc->transform->GetWorldPosition());
+        m_program->Set("lightPosition", lc->GetTransform()->GetWorldPosition());
         m_program->Set("lightColour", lc->GetColor());
         m_program->Set("lightType", lc->GetLightType());
         m_program->Set("farPlane", cc->GetFar());
         m_program->Set("nearPlane", cc->GetNear());
-        m_program->Set("lightDirection", lc->transform->GetLook());
+        m_program->Set("lightDirection", lc->GetTransform()->GetLook());
     
         if(lc->GetLightType() == LightComponent::LIGHT_POINT) {
             lc->GetDepthTexture(0)->Bind(4);

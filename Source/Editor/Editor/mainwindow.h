@@ -39,6 +39,7 @@ public:
 public slots:
     // Property callbacks
     void cbTextEditFinished();
+    void cbStateChange(int s);
 
     void btnOpenProject_clicked();
     void btnSaveProject_clicked();

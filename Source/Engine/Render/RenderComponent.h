@@ -2,13 +2,12 @@
 #ifndef rendercomponent_h
 #define rendercomponent_h
 
-#include <Core/Component.h>
-#include <Core/Transform.h>
+#include <Core/TransformableComponent.h>
 #include <Render/Renderable.h>
 #include <Core/VariantRef.h>
 #include <Render/Sphere.h>
 
-class GIGA_API RenderComponent : public Component {
+class GIGA_API RenderComponent : public TransformableComponent {
 public:
     RenderComponent();
     virtual ~RenderComponent();
@@ -16,22 +15,17 @@ public:
     void SetProperty(std::string property, VariantRef val);
     VariantRef GetProperty(std::string property);
     
-    GIGA_FUNCTION() Transform* GetTransform() { return transform; }
-    
     /**
      * Get oriented sphere
      */
     Sphere* GetBoundingSphere(matrix4 parent = matrix4(1.0f));
-    
+
 public:
     // Renderable base object
     Renderable* renderable;
     
     // Children
     Array<RenderComponent*> children;
-    
-    // Transform
-    Transform* transform;
     
     // Lit or un-lit
     bool applyLighting;

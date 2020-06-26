@@ -112,7 +112,7 @@ void ForwardPass::Render(Scene* scene) {
 
 void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
     // Calculate model matrix
-    Transform* meshTransform = rc->transform;
+    Transform* meshTransform = rc->GetTransform();
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     

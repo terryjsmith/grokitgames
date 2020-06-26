@@ -7,19 +7,12 @@
 #include <Core/Entity.h>
 
 AudioComponent::AudioComponent() {
-    m_transform = new Transform();
-    
-    if(m_parent != 0) {
-        TransformComponent* tc = m_parent->GetComponent<TransformComponent>();
-        m_transform->SetParent(tc->GetTransform());
-    }
+    m_sound = 0;
+    channel = 0;
 }
 
 AudioComponent::~AudioComponent() {
-    if(m_transform) {
-        delete m_transform;
-        m_transform = 0;
-    }
+
 }
 
 void AudioComponent::Initialize(Sound* clip) {

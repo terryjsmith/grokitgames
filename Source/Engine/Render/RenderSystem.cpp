@@ -32,6 +32,12 @@ void RenderSystem::Update(float delta) {
     World* world = World::GetInstance();
     m_scene->renderables.clear();
     m_scene->renderables = world->FindComponents<RenderComponent>();
+
+    // Get camera object
+    auto cameras = world->FindComponents<CameraComponent>();
+    if(cameras.size()) {
+        m_scene->camera = cameras[0];
+    }
     
     m_renderPipeline->Render(m_scene);
     PROFILE_END_AREA("RenderSystem");

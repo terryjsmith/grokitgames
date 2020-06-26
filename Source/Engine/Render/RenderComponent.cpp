@@ -4,23 +4,11 @@
 #include <Core/Entity.h>
 
 RenderComponent::RenderComponent() {
-    transform = new Transform();
-    
-    if(m_parent != 0) {
-        TransformComponent* tc = m_parent->GetComponent<TransformComponent>();
-        transform->SetParent(tc->GetTransform());
-    }
-    
     renderable = 0;
     m_boundingSphere = 0;
 }
 
 RenderComponent::~RenderComponent() {
-    if(transform) {
-        delete transform;
-        transform = 0;
-    }
-    
     if(m_boundingSphere) {
         delete m_boundingSphere;
         m_boundingSphere = 0;
@@ -40,7 +28,7 @@ Sphere* RenderComponent::GetBoundingSphere(matrix4 parent) {
         m_boundingSphere = new Sphere();
     }
     
-    matrix4 modelMatrix = parent * transform->GetMatrix();
+    matrix4 modelMatrix = parent * GetTransform()->GetMatrix();
     
     // Get the center of the AABB
     vector3 center;

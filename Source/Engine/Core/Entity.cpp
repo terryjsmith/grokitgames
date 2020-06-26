@@ -5,10 +5,6 @@
 #include <Core/DataRecord.h>
 #include <Core/TransformComponent.h>
 
-Entity::Entity() {
-    //this->CreateComponent<TransformComponent>();
-}
-
 Entity::~Entity() {
     auto ci = m_components.begin();
     for(; ci != m_components.end(); ci++) {
@@ -27,6 +23,16 @@ Component* Entity::CreateComponent(std::string className) {
     
     component->m_parent = this;
     m_components.push_back(component);
+    
+    // Alert this component
+    component->onEntitySet();
+    
+    // Alert other components
+    auto ci = m_components.begin();
+    for(; ci != m_components.end(); ci++) {
+        (*ci)->onComponentAdded(component);
+    }
+    
     return(component);
 }
 
@@ -39,6 +45,16 @@ Component* Entity::CreateComponent(uint32_t typeID) {
     
     component->m_parent = this;
     m_components.push_back(component);
+    
+    // Alert this component
+    component->onEntitySet();
+    
+    // Alert other components
+    auto ci = m_components.begin();
+    for(; ci != m_components.end(); ci++) {
+        (*ci)->onComponentAdded(component);
+    }
+    
     return(component);
 }
 
@@ -82,6 +98,15 @@ void Entity::AddComponent(Component* c) {
     
     c->m_parent = this;
     m_components.push_back(c);
+    
+    // Alert this component
+    c->onEntitySet();
+    
+    // Alert other components
+    auto ci = m_components.begin();
+    for(; ci != m_components.end(); ci++) {
+        (*ci)->onComponentAdded(c);
+    }
 }
 
 void Entity::RemoveComponent(Component* c) {

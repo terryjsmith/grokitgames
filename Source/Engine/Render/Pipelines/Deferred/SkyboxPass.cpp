@@ -99,7 +99,7 @@ void SkyboxPass::Render(Scene* scene) {
         // Render skybox
         
         // Calculate model matrix
-        Transform* meshTransform = mc->transform;
+        Transform* meshTransform = mc->GetTransform();
         matrix4 model = meshTransform->GetMatrix();
         
         // Send view/proj matrix to shader

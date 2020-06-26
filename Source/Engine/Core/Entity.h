@@ -11,7 +11,7 @@
 GIGA_CLASS()
 class GIGA_API Entity : public GigaObject {
 public:
-    Entity();
+    Entity() = default;
     ~Entity();
     
     GIGA_CLASS_NAME("Entity");

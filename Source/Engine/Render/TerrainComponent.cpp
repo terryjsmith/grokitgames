@@ -117,7 +117,7 @@ void TerrainComponent::Load(std::string hmapFile, std::string nmapFile, std::str
     
     // Save
     children.push_back(quad);
-    transform->SetWorldPosition(offset);
+    m_transform->SetWorldPosition(offset);
     
     free(data);
     delete hmaptex;
@@ -133,5 +133,5 @@ void TerrainComponent::Unload() {
 void TerrainComponent::Update(Scene* scene) {
     CameraComponent* camera = scene->camera;
     TerrainQuad* quad = dynamic_cast<TerrainQuad*>(children[0]);
-    quad->SetLOD(camera->transform->GetWorldPosition());
+    quad->SetLOD(camera->GetTransform()->GetWorldPosition());
 }

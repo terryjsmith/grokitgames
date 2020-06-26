@@ -81,7 +81,7 @@ void GBufferPass::Render(Scene* scene) {
     matrix4 proj = camera->GetProjectionMatrix();
     
     m_program->Set("projectionMatrix", proj);
-    m_program->Set("cameraPosition", camera->transform->GetWorldPosition());
+    m_program->Set("cameraPosition", camera->GetTransform()->GetWorldPosition());
     
     // Iterate over renderables
     auto it = scene->renderables.begin();
@@ -113,7 +113,7 @@ void GBufferPass::Render(Scene* scene) {
 
 void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene) {
     // Calculate model matrix
-    Transform* meshTransform = rc->transform;
+    Transform* meshTransform = rc->GetTransform();
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     
@@ -136,7 +136,7 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     
     CameraComponent* cc = scene->camera;
     Frustum frustum = cc->GetFrustum();
-    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    vector3 cameraPosition = cc->GetTransform()->GetWorldPosition();
     Sphere* boundingSphere = rc->GetBoundingSphere(parent);
     
     if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {

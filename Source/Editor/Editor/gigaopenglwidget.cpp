@@ -56,8 +56,8 @@ void GigaOpenGLWidget::paintGL() {
     Application* app = Application::GetInstance();
     app->Update(delta);
 
-    QTimer::singleShot(10, this, SLOT(update()));
     QOpenGLWidget::paintGL();
+    QTimer::singleShot(30, this, SLOT(update()));
 
     PROFILE_END_FRAME();
 }

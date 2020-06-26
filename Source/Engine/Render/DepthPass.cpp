@@ -74,7 +74,7 @@ void DepthPass::Render(Scene* scene) {
     
     m_program->Set("projectionMatrix", proj);
     m_program->Set("farPlane", m_camera->GetFar());
-    m_program->Set("lightPosition", m_camera->transform->GetWorldPosition());
+    m_program->Set("lightPosition", m_camera->GetTransform()->GetWorldPosition());
     
     // Iterate over renderables
     auto it = scene->renderables.begin();
@@ -113,7 +113,7 @@ void DepthPass::Render(Scene* scene) {
 }
 
 void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 parent, Scene* scene) {
-    Transform* meshTransform = rc->transform;
+    Transform* meshTransform = rc->GetTransform();
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     
@@ -135,7 +135,7 @@ void DepthPass::RecursiveRender(RenderComponent* rc, matrix4 view, matrix4 paren
     Renderable* m = rc->renderable;
     CameraComponent* cc = scene->camera;
     Frustum frustum = cc->GetFrustum();
-    vector3 cameraPosition = cc->transform->GetWorldPosition();
+    vector3 cameraPosition = cc->GetTransform()->GetWorldPosition();
     Sphere* boundingSphere = rc->GetBoundingSphere(parent);
     
     if(frustum.Intersects(boundingSphere) == false && boundingSphere->Inside(cameraPosition) == false) {

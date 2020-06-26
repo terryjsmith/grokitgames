@@ -75,12 +75,12 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         camera->SetFOV(90.0f);
         camera->SetAspectRatio(1.0f);
         
-        vector4 position = vector4(transform->GetWorldPosition(), 0.0f);
-        camera->transform->SetLook(vector3(position));
-        vector3 cameraPosition = sceneCamera->transform->GetWorldPosition();
-        vector3 cameraUp = sceneCamera->transform->GetRight();
-        vector3 cameraRight = sceneCamera->transform->GetUp();
-        vector3 cameraLook = sceneCamera->transform->GetLook();
+        vector4 position = vector4(m_transform->GetWorldPosition(), 0.0f);
+        camera->GetTransform()->SetLook(vector3(position));
+        vector3 cameraPosition = sceneCamera->GetTransform()->GetWorldPosition();
+        vector3 cameraUp = sceneCamera->GetTransform()->GetRight();
+        vector3 cameraRight = sceneCamera->GetTransform()->GetUp();
+        vector3 cameraLook = sceneCamera->GetTransform()->GetLook();
         
         float fov = sceneCamera->GetFOV();
         float aspect = sceneCamera->GetAspectRatio();

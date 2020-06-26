@@ -127,7 +127,7 @@ void TerrainQuad::Load(Texture2D* hmap, Texture2D* nmap, vector2 fileOffset, flo
     m_fileOffset = fileOffset;
     
     // Set transform
-    transform->SetWorldPosition(vector3(fileOffset.x * terrainScale, 0, fileOffset.y * terrainScale));
+    m_transform->SetWorldPosition(vector3(fileOffset.x * terrainScale, 0, fileOffset.y * terrainScale));
 }
 
 void TerrainQuad::SetLOD(vector3 cameraPosition) {
