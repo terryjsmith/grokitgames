@@ -7,7 +7,6 @@ in vec3 frag_normal;
 in vec4 frag_position;
 in vec2 frag_texcoord1;
 in vec3 frag_vcolor;
-flat in float frag_depth;
 
 // Vertex attributes
 uniform int VERTEXTYPE_ATTRIB_POSITION;
@@ -64,5 +63,5 @@ void main () {
     out_diffuse = diffuse * frag.rgb;
     out_position = frag_position.xyz;
     out_normal = frag_normal;
-    out_aux = vec3(sceneIndex, materialID, frag_depth);
+    out_aux = vec3(sceneIndex, materialID, 0);
 }

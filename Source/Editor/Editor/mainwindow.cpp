@@ -680,6 +680,10 @@ void MainWindow::cbStateChange(int s) {
     delete dr;
 }
 
+SceneTreeView* MainWindow::GetSceneView() {
+    return(ui->sceneView);
+}
+
 void MainWindow::clearLayout(QLayout *layout) {
     QLayoutItem *item;
     while((item = layout->takeAt(0))) {

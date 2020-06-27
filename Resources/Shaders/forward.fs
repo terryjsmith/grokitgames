@@ -11,6 +11,9 @@ in vec2 frag_texcoord0;
  * Uniforms
  */
 
+// Index into scene
+uniform float sceneIndex;
+
 // Sample textures
 uniform sampler2D textureDiffuse;
 
@@ -26,6 +29,7 @@ uniform int VERTEXTYPE_ATTRIB_BONEWEIGHTS;
  * Out variables
  */
 layout (location = 0) out vec3 out_diffuse;
+layout (location = 1) out vec3 out_aux;
 
 /**
  * Main
@@ -45,4 +49,6 @@ void main () {
     if(VERTEXTYPE_ATTRIB_TEXCOORD0 == 1) {
         out_diffuse = texture(textureDiffuse, frag_texcoord0.st).rgb;
     }
+    
+    out_aux = vec3(sceneIndex, 0, 0);
 }

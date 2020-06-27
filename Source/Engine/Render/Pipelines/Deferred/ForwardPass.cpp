@@ -14,6 +14,7 @@ ForwardPass::~ForwardPass() {
     if(m_texture) {
         // Add our texture back to vertex buffer to ensure it is deleted, not the one currently attached
         m_framebuffers[0]->SetTexture(m_texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+        m_framebuffers[0]->SetTexture(m_texture2, COLOR_RGB16F, FRAMEBUFFER_SLOT_1);
     }
     
     auto fi = m_framebuffers.begin();
@@ -32,6 +33,7 @@ void ForwardPass::Initialize(int width, int height) {
     if(m_texture) {
         // Add our texture back to vertex buffer to ensure it is deleted, not the one currently attached
         m_framebuffers[0]->SetTexture(m_texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+        m_framebuffers[0]->SetTexture(m_texture2, COLOR_RGB16F, FRAMEBUFFER_SLOT_1);
     }
     
     auto fi = m_framebuffers.begin();
@@ -43,7 +45,11 @@ void ForwardPass::Initialize(int width, int height) {
     m_texture = renderSystem->CreateTexture2D();
     m_texture->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
     
+    m_texture2 = renderSystem->CreateTexture2D();
+    m_texture2->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
+    
     fb->AddTexture(m_texture, FRAMEBUFFER_SLOT_0);
+    fb->AddTexture(m_texture2, FRAMEBUFFER_SLOT_1);
     
     m_framebuffers.push_back(fb);
     
@@ -62,6 +68,10 @@ void ForwardPass::Initialize(int width, int height) {
 
 void ForwardPass::SetInputTexture(Texture2D* texture) {
     m_framebuffers[0]->SetTexture(texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_0);
+}
+
+void ForwardPass::SetAuxTexture(Texture2D* texture) {
+    m_framebuffers[0]->SetTexture(texture, COLOR_RGB16F, FRAMEBUFFER_SLOT_1);
 }
 
 void ForwardPass::SetDepthTexture(Texture2D* texture) {
@@ -94,12 +104,13 @@ void ForwardPass::Render(Scene* scene) {
     m_program->Set("projectionMatrix", proj);
     
     // Iterate over renderables
-    auto it = scene->renderables.begin();
-    for(; it != scene->renderables.end(); it++) {
-        MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
+    for(int i = 0; i < scene->renderables.size(); i++) {
+        MeshComponent* mc = dynamic_cast<MeshComponent*>(scene->renderables[i]);
         if(mc == 0) continue;
         
         if(mc->applyLighting == true) continue;
+        
+        m_program->Set("sceneIndex", (float)(i+1));
         
         RecursiveRender(mc, view, matrix4(1.0));
     }

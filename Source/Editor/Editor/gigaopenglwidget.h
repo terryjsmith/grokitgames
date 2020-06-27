@@ -14,8 +14,14 @@ public:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+
 protected:
     int m_framebufferWidth, m_framebufferHeight;
+    int m_width, m_height;
 
     // render pipeline
     Pipeline* m_renderPipeline;

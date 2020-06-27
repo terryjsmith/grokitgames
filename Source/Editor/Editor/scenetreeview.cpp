@@ -7,21 +7,22 @@ SceneTreeView::SceneTreeView(QWidget* parent) : QTreeView(parent) {
     initialized = false;
 }
 
-void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {
+void SceneTreeView::ProcessSelectedEntity(Entity* entity) {
     if(initialized == false) return;
 
-    MainWindow* window = MainWindow::getInstance();
+    // Make sure the item is selected in the list (if called from external source)
+    QItemSelectionModel* selection = this->selectionModel();
+    SceneTreeModel* model = (SceneTreeModel*)this->model();
+    QStandardItem* item = model->findItem(entity->entityID);
+    selection->select(item->index(), QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
+    MainWindow* window = MainWindow::getInstance();
     QVBoxLayout* propertyFrame = window->GetPropertyLayout();
 
     // Clear properties window
     window->clearLayout(propertyFrame);
 
-    SceneTreeModel* model = (SceneTreeModel*)current.model();
-    QStandardItem* item = model->itemFromIndex(current);
-    Entity* ent = (Entity*)item->data().value<void*>();
-
-    Array<Component*> components = ent->GetComponents();
+    Array<Component*> components = entity->GetComponents();
     auto it = components.begin();
     for(; it != components.end(); it++) {
         DataRecord* dr = new DataRecord();
@@ -44,4 +45,14 @@ void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex
     for(int i = 0; i < (int)components.size(); i++) {
         propertyFrame->setStretch(i, 0);
     }
+}
+
+void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {
+    if(initialized == false) return;
+
+    SceneTreeModel* model = (SceneTreeModel*)current.model();
+    QStandardItem* item = model->itemFromIndex(current);
+    Entity* ent = (Entity*)item->data().value<void*>();
+
+    ProcessSelectedEntity(ent);
 }

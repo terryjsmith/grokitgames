@@ -5,6 +5,7 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 
+#include "scenetreeview.h"
 #include "scenetreemodel.h"
 #include "metatypes.h"
 
@@ -27,6 +28,7 @@ public:
 
     // Getters
     SceneTreeModel* GetSceneModel() { return m_sceneTreeModel; }
+    SceneTreeView* GetSceneView();
     QVBoxLayout* GetPropertyLayout();
 
     // Form generator

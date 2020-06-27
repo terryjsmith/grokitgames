@@ -84,12 +84,13 @@ void GBufferPass::Render(Scene* scene) {
     m_program->Set("cameraPosition", camera->GetTransform()->GetWorldPosition());
     
     // Iterate over renderables
-    auto it = scene->renderables.begin();
-    for(; it != scene->renderables.end(); it++) {
-        MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
+    for(int i = 0 ; i < scene->renderables.size(); i++) {
+        MeshComponent* mc = dynamic_cast<MeshComponent*>(scene->renderables[i]);
         if(mc == 0) continue;
         
         if(mc->applyLighting == false) continue;
+        
+        m_program->Set("sceneIndex", (float)(i+1));
         
         // Load bones
         if(mc->animation) {
@@ -102,8 +103,6 @@ void GBufferPass::Render(Scene* scene) {
         
         RecursiveRender(mc, view, matrix4(1.0), scene);
     }
-    
-    //m_framebuffers[0]->GetTexture(0)->Save("diffuse.bmp");
     
     renderSystem->DisableDepthTest();
     

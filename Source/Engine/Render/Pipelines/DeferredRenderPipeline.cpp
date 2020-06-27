@@ -50,6 +50,7 @@ void DeferredRenderPipeline::Initialize(int width, int height) {
     ForwardPass* forwardPass = new ForwardPass();
     forwardPass->Initialize(width, height);
     forwardPass->SetInputTexture((Texture2D*)combine->GetFramebuffer(0)->GetTexture(0));
+    forwardPass->SetAuxTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(3));
     forwardPass->SetDepthTexture((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(4));
     
     AddPass(forwardPass);
@@ -78,4 +79,9 @@ void DeferredRenderPipeline::Render(Scene* scene) {
         
         PROFILE_END_AREA((*it)->GetGigaName());
     }
+}
+
+Texture2D* DeferredRenderPipeline::GetIndexTexture() {
+    RenderPass* gbuffer = m_renderPasses[0];
+    return((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(3));
 }

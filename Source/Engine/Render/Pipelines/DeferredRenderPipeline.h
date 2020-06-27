@@ -20,6 +20,11 @@ public:
      * Render scene
      */
     void Render(Scene* scene);
+    
+    /**
+     * Get texture for detecting clicks
+     */
+    virtual Texture2D* GetIndexTexture();
 };
 
 #endif 

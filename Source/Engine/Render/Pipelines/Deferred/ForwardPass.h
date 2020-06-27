@@ -26,6 +26,7 @@ public:
      * Set texture from previous passes
      */
     void SetInputTexture(Texture2D* texture);
+    void SetAuxTexture(Texture2D* texture);
     void SetDepthTexture(Texture2D* texture);
     
 protected:
@@ -33,6 +34,7 @@ protected:
     
 protected:
     Texture2D* m_texture;
+    Texture2D* m_texture2;
 };
 
 #endif
