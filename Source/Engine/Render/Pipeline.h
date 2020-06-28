@@ -26,8 +26,9 @@ public:
     void AddPass(RenderPass* pass);
     
     /**
-     * Get texture for detecting clicks
+     * Get textures
      */
+    virtual Texture2D* GetDepthTexture() { return(0); }
     virtual Texture2D* GetIndexTexture() { return(0); }
     
 protected:

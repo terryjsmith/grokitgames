@@ -11,8 +11,7 @@ CameraComponent::CameraComponent() {
     m_fov = 45.0f;
     m_aspect = 1.3;
     m_ortho = false;
-    m_transform->SetLook(vector3(0, 0, -1));
-    m_transform->SetUp(vector3(0, 1, 0));
+    m_transform->SetRoot(true);
     m_customProj = false;
     m_customView = false;
     applyLighting = false;

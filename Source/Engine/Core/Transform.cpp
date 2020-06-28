@@ -107,17 +107,23 @@ matrix4 Transform::GetMatrix() {
 
 vector3 Transform::GetUp() {
     if(glm::length(m_up)) return(m_up);
-    return(m_rotation * vector3(0, 1, 0));
+    
+    quaternion rotation = this->GetWorldRotation();
+    return(rotation * vector3(0, 1, 0));
 }
 
 vector3 Transform::GetRight() {
     if(glm::length(m_right)) return(m_right);
-    return(m_rotation * vector3(1, 0, 0));
+    
+    quaternion rotation = this->GetWorldRotation();
+    return(rotation * vector3(1, 0, 0));
 }
 
 vector3 Transform::GetLook() {
     if(glm::length(m_look)) return(m_look);
-    return(m_rotation * vector3(0, 0, -1));
+    
+    quaternion rotation = this->GetWorldRotation();
+    return(rotation * vector3(0, 0, -1));
 }
 
 void Transform::SetUp(vector3 up) {

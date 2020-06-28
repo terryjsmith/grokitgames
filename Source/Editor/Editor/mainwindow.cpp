@@ -349,9 +349,9 @@ void MainWindow::cbTextEditFinished() {
     }
 
     if(v->GetType() == Variant::VAR_QUATERNION) {
-        vector3 newVec = vector3((float)atof(editX->text().toStdString().c_str()),
-                                 (float)atof(editY->text().toStdString().c_str()),
-                                 (float)atof(editZ->text().toStdString().c_str()));
+        vector3 newVec = vector3(glm::radians((float)atof(editX->text().toStdString().c_str())),
+                                 glm::radians((float)atof(editY->text().toStdString().c_str())),
+                                 glm::radians((float)atof(editZ->text().toStdString().c_str())));
         quaternion q = quaternion(newVec);
         dr->Set(fieldName, new Variant(q));
     }

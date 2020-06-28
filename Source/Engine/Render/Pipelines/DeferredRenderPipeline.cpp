@@ -85,3 +85,8 @@ Texture2D* DeferredRenderPipeline::GetIndexTexture() {
     RenderPass* gbuffer = m_renderPasses[0];
     return((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(3));
 }
+
+Texture2D* DeferredRenderPipeline::GetDepthTexture() {
+    RenderPass* gbuffer = m_renderPasses[0];
+    return((Texture2D*)gbuffer->GetFramebuffer(0)->GetTexture(4));
+}

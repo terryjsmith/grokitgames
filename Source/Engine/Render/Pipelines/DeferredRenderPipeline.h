@@ -24,6 +24,7 @@ public:
     /**
      * Get texture for detecting clicks
      */
+    virtual Texture2D* GetDepthTexture();
     virtual Texture2D* GetIndexTexture();
 };
 

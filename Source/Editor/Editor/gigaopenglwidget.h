@@ -19,6 +19,9 @@ public:
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 
+    void keyPressEvent(QKeyEvent * event) override;
+    void keyReleaseEvent(QKeyEvent * event) override;
+
 protected:
     int m_framebufferWidth, m_framebufferHeight;
     int m_width, m_height;
@@ -28,6 +31,22 @@ protected:
 
     // Timer for update tick
     Timer* m_updateTimer;
+
+    // Our keyboard array
+    std::map<int, bool> m_keys;
+
+    // Camera moving
+    float m_moveSpeed, m_rotationSpeed;
+
+    // Target position
+    vector3 m_targetPosition;
+
+    // Are we dragging the mouse?
+    bool m_dragging;
+    bool m_panning;
+
+    // Last mouse position
+    QPoint m_lastMousePos;
 };
 
 #endif // GIGAOPENGLWIDGET_H
