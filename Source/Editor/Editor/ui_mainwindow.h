@@ -14,7 +14,6 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLineEdit>
@@ -23,6 +22,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPlainTextEdit>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QToolButton>
@@ -56,12 +56,13 @@ public:
     QVBoxLayout *toolsLayout;
     QTabWidget *tabWidget;
     QWidget *tab;
-    QGridLayout *gridLayout;
+    QHBoxLayout *horizontalLayout_4;
     QFrame *frame_2;
-    QGridLayout *gridLayout_3;
-    QGridLayout *gridLayout_2;
-    QToolButton *toolButton;
-    QToolButton *toolButton_2;
+    QHBoxLayout *horizontalLayout_5;
+    QPushButton *pushButton;
+    QPushButton *pushButton_2;
+    QPushButton *pushButton_3;
+    QPushButton *pushButton_4;
     QWidget *tab_2;
     QTabWidget *tabWidget_2;
     QWidget *tab_3;
@@ -166,43 +167,61 @@ public:
         tabWidget->setTabBarAutoHide(false);
         tab = new QWidget();
         tab->setObjectName(QString::fromUtf8("tab"));
-        gridLayout = new QGridLayout(tab);
-        gridLayout->setSpacing(6);
-        gridLayout->setContentsMargins(11, 11, 11, 11);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        gridLayout->setContentsMargins(0, -1, 0, 10);
+        horizontalLayout_4 = new QHBoxLayout(tab);
+        horizontalLayout_4->setSpacing(6);
+        horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_4->setObjectName(QString::fromUtf8("horizontalLayout_4"));
+        horizontalLayout_4->setContentsMargins(0, 0, 0, 0);
         frame_2 = new QFrame(tab);
         frame_2->setObjectName(QString::fromUtf8("frame_2"));
         frame_2->setMaximumSize(QSize(16777215, 200));
         frame_2->setFrameShape(QFrame::StyledPanel);
         frame_2->setFrameShadow(QFrame::Raised);
-        gridLayout_3 = new QGridLayout(frame_2);
-        gridLayout_3->setSpacing(6);
-        gridLayout_3->setContentsMargins(11, 11, 11, 11);
-        gridLayout_3->setObjectName(QString::fromUtf8("gridLayout_3"));
-        gridLayout_3->setContentsMargins(0, 0, 0, 0);
-        gridLayout_2 = new QGridLayout();
-        gridLayout_2->setSpacing(6);
-        gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-        toolButton = new QToolButton(frame_2);
-        toolButton->setObjectName(QString::fromUtf8("toolButton"));
+        horizontalLayout_5 = new QHBoxLayout(frame_2);
+        horizontalLayout_5->setSpacing(0);
+        horizontalLayout_5->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
+        horizontalLayout_5->setContentsMargins(0, 0, 0, 0);
+        pushButton = new QPushButton(frame_2);
+        pushButton->setObjectName(QString::fromUtf8("pushButton"));
         QIcon icon;
-        icon.addFile(QString::fromUtf8("../../../../../../Downloads/565219-av/png/038-play-arrow.png"), QSize(), QIcon::Normal, QIcon::Off);
-        toolButton->setIcon(icon);
-        toolButton->setCheckable(false);
+        icon.addFile(QString::fromUtf8(":/Icons/grab.png"), QSize(), QIcon::Normal, QIcon::Off);
+        pushButton->setIcon(icon);
+        pushButton->setCheckable(true);
+        pushButton->setAutoDefault(false);
+        pushButton->setFlat(false);
 
-        gridLayout_2->addWidget(toolButton, 0, 0, 1, 1);
+        horizontalLayout_5->addWidget(pushButton);
 
-        toolButton_2 = new QToolButton(frame_2);
-        toolButton_2->setObjectName(QString::fromUtf8("toolButton_2"));
+        pushButton_2 = new QPushButton(frame_2);
+        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
+        QIcon icon1;
+        icon1.addFile(QString::fromUtf8(":/Icons/drag.png"), QSize(), QIcon::Normal, QIcon::Off);
+        pushButton_2->setIcon(icon1);
+        pushButton_2->setCheckable(true);
 
-        gridLayout_2->addWidget(toolButton_2, 0, 1, 1, 1);
+        horizontalLayout_5->addWidget(pushButton_2);
+
+        pushButton_3 = new QPushButton(frame_2);
+        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
+        QIcon icon2;
+        icon2.addFile(QString::fromUtf8(":/Icons/rotate.png"), QSize(), QIcon::Normal, QIcon::Off);
+        pushButton_3->setIcon(icon2);
+        pushButton_3->setCheckable(true);
+
+        horizontalLayout_5->addWidget(pushButton_3);
+
+        pushButton_4 = new QPushButton(frame_2);
+        pushButton_4->setObjectName(QString::fromUtf8("pushButton_4"));
+        QIcon icon3;
+        icon3.addFile(QString::fromUtf8(":/Icons/scale.png"), QSize(), QIcon::Normal, QIcon::Off);
+        pushButton_4->setIcon(icon3);
+        pushButton_4->setCheckable(true);
+
+        horizontalLayout_5->addWidget(pushButton_4);
 
 
-        gridLayout_3->addLayout(gridLayout_2, 0, 0, 1, 1);
-
-
-        gridLayout->addWidget(frame_2, 0, 0, 1, 1);
+        horizontalLayout_4->addWidget(frame_2);
 
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
@@ -393,6 +412,7 @@ public:
         retranslateUi(MainWindow);
 
         tabWidget->setCurrentIndex(0);
+        pushButton->setDefault(true);
         tabWidget_2->setCurrentIndex(0);
         tabWidget_3->setCurrentIndex(0);
 
@@ -417,8 +437,10 @@ public:
         actionBuild->setText(QCoreApplication::translate("MainWindow", "Build", nullptr));
         actionRun->setText(QCoreApplication::translate("MainWindow", "Run", nullptr));
         actionDeploy->setText(QCoreApplication::translate("MainWindow", "Deploy", nullptr));
-        toolButton->setText(QCoreApplication::translate("MainWindow", "Build", nullptr));
-        toolButton_2->setText(QCoreApplication::translate("MainWindow", "Run", nullptr));
+        pushButton->setText(QString());
+        pushButton_2->setText(QString());
+        pushButton_3->setText(QString());
+        pushButton_4->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Tools", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Create", nullptr));
         sceneSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search scene...", nullptr));

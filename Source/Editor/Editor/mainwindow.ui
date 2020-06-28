@@ -67,17 +67,20 @@
            <attribute name="title">
             <string>Tools</string>
            </attribute>
-           <layout class="QGridLayout" name="gridLayout">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
              <number>0</number>
             </property>
             <property name="rightMargin">
              <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>10</number>
+             <number>0</number>
             </property>
-            <item row="0" column="0">
+            <item>
              <widget class="QFrame" name="frame_2">
               <property name="maximumSize">
                <size>
@@ -91,7 +94,10 @@
               <property name="frameShadow">
                <enum>QFrame::Raised</enum>
               </property>
-              <layout class="QGridLayout" name="gridLayout_3">
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -104,30 +110,70 @@
                <property name="bottomMargin">
                 <number>0</number>
                </property>
-               <item row="0" column="0">
-                <layout class="QGridLayout" name="gridLayout_2">
-                 <item row="0" column="0">
-                  <widget class="QToolButton" name="toolButton">
-                   <property name="text">
-                    <string>Build</string>
-                   </property>
-                   <property name="icon">
-                    <iconset>
-                     <normaloff>../../../../../../Downloads/565219-av/png/038-play-arrow.png</normaloff>../../../../../../Downloads/565219-av/png/038-play-arrow.png</iconset>
-                   </property>
-                   <property name="checkable">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QToolButton" name="toolButton_2">
-                   <property name="text">
-                    <string>Run</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+               <item>
+                <widget class="QPushButton" name="pushButton">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="editor.qrc">
+                   <normaloff>:/Icons/grab.png</normaloff>:/Icons/grab.png</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                 <property name="autoDefault">
+                  <bool>false</bool>
+                 </property>
+                 <property name="default">
+                  <bool>true</bool>
+                 </property>
+                 <property name="flat">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_2">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="editor.qrc">
+                   <normaloff>:/Icons/drag.png</normaloff>:/Icons/drag.png</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_3">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="editor.qrc">
+                   <normaloff>:/Icons/rotate.png</normaloff>:/Icons/rotate.png</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_4">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="editor.qrc">
+                   <normaloff>:/Icons/scale.png</normaloff>:/Icons/scale.png</iconset>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                </widget>
                </item>
               </layout>
              </widget>
@@ -516,6 +562,8 @@
    <header>scenetreeview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="editor.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -82,3 +82,6 @@ INCLUDEPATH += $$PWD/../../../../ThirdParty/openssl/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/soil/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/sqlite/include
 INCLUDEPATH += $$PWD/../../../../ThirdParty/mono/include/mono-2.0
+
+RESOURCES += \
+    editor.qrc
