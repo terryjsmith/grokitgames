@@ -88,6 +88,9 @@ void ForwardPass::Render(Scene* scene) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
     
+    renderSystem->EnableBlending();
+    renderSystem->SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+    
     // Get the camera
     CameraComponent* camera = scene->camera;
     
@@ -112,9 +115,11 @@ void ForwardPass::Render(Scene* scene) {
         
         m_program->Set("sceneIndex", (float)(i+1));
         
+        mc->PreRender(scene);
         RecursiveRender(mc, view, matrix4(1.0));
     }
 
+    renderSystem->DisableBlending();
     renderSystem->DisableDepthTest();
     
     m_framebuffers[0]->Unbind();
@@ -170,6 +175,8 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     m_program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
     enabled = vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
     m_program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
+    enabled = vertexType->EnableAttribute(7, VERTEXTYPE_ATTRIB_OFFSETS);
+    m_program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
     
     // Bind textures
     if(m->diffuseTexture) {
@@ -188,12 +195,23 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     
     // Draw
-    if(m->indexBuffer) {
-        int indexCount = m->indexBuffer->GetIndexCount();
-        renderSystem->DrawIndexed(DRAW_TRIANGLES, indexCount);
+    if(rc->instanced == true) {
+        if(m->indexBuffer) {
+            int indexCount = m->indexBuffer->GetIndexCount();
+            renderSystem->DrawInstancedIndexed(DRAW_TRIANGLES, indexCount, rc->instances);
+        }
+        else {
+            renderSystem->DrawInstanced(DRAW_TRIANGLES, vertexCount, rc->instances);
+        }
     }
     else {
-        renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
+        if(m->indexBuffer) {
+            int indexCount = m->indexBuffer->GetIndexCount();
+            renderSystem->DrawIndexed(DRAW_TRIANGLES, indexCount);
+        }
+        else {
+            renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
+        }
     }
     
     if(m->diffuseTexture) {

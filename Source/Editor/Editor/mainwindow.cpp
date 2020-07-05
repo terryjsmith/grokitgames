@@ -56,6 +56,19 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionEntity, &QAction::triggered, this, &MainWindow::btnCreateEntity_clicked);
     connect(ui->actionComponent, &QAction::triggered, this, &MainWindow::btnCreateComponent_clicked);
     connect(ui->actionScript, &QAction::triggered, this, &MainWindow::btnCreateScript_clicked);
+    connect(ui->btnEditMode_Grab, &QPushButton::clicked, this, &MainWindow::btnChangeEditMode);
+    connect(ui->btnEditMode_Move, &QPushButton::clicked, this, &MainWindow::btnChangeEditMode);
+    connect(ui->btnEditMode_Rotate, &QPushButton::clicked, this, &MainWindow::btnChangeEditMode);
+    connect(ui->btnEditMode_Scale, &QPushButton::clicked, this, &MainWindow::btnChangeEditMode);
+
+    // Set up edit mode
+    ui->btnEditMode_Grab->setProperty("editMode", (int)GigaOpenGLWidget::EditMode::EDITMODE_GRAB);
+    ui->btnEditMode_Move->setProperty("editMode", (int)GigaOpenGLWidget::EditMode::EDITMODE_MOVE);
+    ui->btnEditMode_Rotate->setProperty("editMode", (int)GigaOpenGLWidget::EditMode::EDITMODE_ROTATE);
+    ui->btnEditMode_Scale->setProperty("editMode", (int)GigaOpenGLWidget::EditMode::EDITMODE_SCALE);
+
+    // Set default edit mode
+    ui->btnEditMode_Grab->setChecked(true);
 
     ui->btnNewEntity->setDefaultAction(ui->actionEntity);
     ui->btnNewEntity->setText("+");
@@ -64,8 +77,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Create short key for saving files
     new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(trySaveFile()));
-    //QShortcut* shortcut = new QShortcut(QKeySequence(tr("Ctrl+S")), parent);
-    //connect(shortcut, SIGNAL(activated), this, SLOT(trySaveFile));
 
     // Initialize tree model
     m_sceneTreeModel = new SceneTreeModel(0);
@@ -73,6 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ModelTest test(m_sceneTreeModel);
 
+    this->installEventFilter(ui->openGLWidget);
     ui->sceneView->initialized = true;
 }
 
@@ -769,4 +781,24 @@ void MainWindow::trySaveFile() {
     file.write(contents.toUtf8());
 
     file.close();
+}
+
+GigaOpenGLWidget* MainWindow::GetOpenGLWidget() {
+    return(ui->openGLWidget);
+}
+
+void MainWindow::btnChangeEditMode() {
+    QPushButton* button = (QPushButton*)sender();
+
+    // Get and disable the other button modes
+    QFrame* frame = (QFrame*)button->parentWidget();
+    QList<QPushButton*> children = frame->findChildren<QPushButton*>();
+    for(int i = 0; i < children.size(); i++) {
+        if(children[i] != button) {
+            children[i]->setChecked(false);
+        }
+    }
+
+    GigaOpenGLWidget::EditMode mode = (GigaOpenGLWidget::EditMode)button->property("editMode").value<int>();
+    ui->openGLWidget->SetEditMode(mode);
 }

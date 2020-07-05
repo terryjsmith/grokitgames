@@ -55,6 +55,19 @@ namespace GIGA {
         public static Vector3 operator /(double b, Vector3 a) {
             return new Vector3(a.x / b, a.y / b, a.z / b);
         }
+        
+        public double Length() {
+            return(Math.Sqrt(this.x * this.x + this.y * this.y + this.z * this.z));
+        }
+        
+        public void Normalize() {
+            double length = this.Length();
+            if(length == 0) return;
+            
+            this.x = this.x / length;
+            this.y = this.y / length;
+            this.z = this.z / length;
+        }
     }
 }
 

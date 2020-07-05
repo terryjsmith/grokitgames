@@ -25,6 +25,8 @@
 #include <IO/Profiler.h>
 #include <IO/SQLiteDataLoader.h>
 #include <Core/TransformComponent.h>
+#include <Render/ParticleEmitterComponent.h>
+#include <Render/ParticleSystem.h>
 #include "register_globals.h"
 
 int main(int argc, const char * argv[]) {
@@ -49,6 +51,7 @@ int main(int argc, const char * argv[]) {
     AudioSystem* audioSystem = app->CreateSystem<AudioSystem>();
     AnimationSystem* animationSystem = app->CreateSystem<AnimationSystem>();
     LogSystem* logSystem = app->CreateSystem<LogSystem>();
+    ParticleSystem* particleSystem = app->CreateSystem<ParticleSystem>();
     
     // Initialize systems
     app->Initialize();
@@ -95,6 +98,8 @@ int main(int argc, const char * argv[]) {
     metaSystem->RegisterComponentType("Skybox");
     metaSystem->RegisterComponentType("TerrainComponent");
     metaSystem->RegisterComponentType("ScriptComponent");
+    metaSystem->RegisterComponentType("BillboardComponent");
+    metaSystem->RegisterComponentType("ParticleEmitterComponent");
     
     // Load game code
     if(Resource::Exists("game.dll")) {
@@ -143,10 +148,29 @@ int main(int argc, const char * argv[]) {
     
     inputSystem->RegisterInputDevice(keyboard);
     
+    /**
+     * Load extra stuff
+     */
+    Entity* entity = world->CreateEntity();
+    ParticleEmitterComponent* emitter = entity->CreateComponent<ParticleEmitterComponent>();
+    emitter->GetTransform()->SetWorldPosition(vector3(0, 0.6f, 0));
+    Texture2D* tex = (Texture2D*)resourceSystem->LoadResource("Resources/Textures/fireparticle.png", "Texture2D");
+    emitter->Initialize(tex, 1.0f, 1000);
+    
+    ScriptComponent* script = entity->CreateComponent<ScriptComponent>();
+    script->className = "Fire";
+    
+    /*BillboardComponent* bc = entity->CreateComponent<BillboardComponent>();
+    bc->Initialize();
+    bc->GetTransform()->SetWorldPosition(vector3(0, 0.6f, 0));
+    
+    Texture2D* tex = (Texture2D*)resourceSystem->LoadResource("Resources/Textures/fireparticle.png", "Texture2D");
+    bc->Create(tex, 0.5f);*/
+    
     // Game timer
     Timer* gameTimer = new Timer();
     gameTimer->Start();
-    
+
     // Main loop
     while(window->IsClosing() == false) {
         PROFILE_START_FRAME();

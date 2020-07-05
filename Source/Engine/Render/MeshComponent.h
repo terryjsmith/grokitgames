@@ -31,6 +31,10 @@ public:
     
     // Currently playing animation
     AnimationInstance* animation;
+    
+    // Instanced?
+    bool instanced;
+    int instances;
 };
 
 #endif

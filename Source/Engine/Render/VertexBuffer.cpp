@@ -2,7 +2,7 @@
 #include <Render/VertexBuffer.h>
 
 VertexBuffer::VertexBuffer() {
-    
+    m_bufferSize = 0;
     m_type = 0;
     m_dynamic = false;
     m_vertexData = 0;
@@ -23,18 +23,20 @@ VertexBuffer::~VertexBuffer() {
     }
 }
 
-void VertexBuffer::Create(VertexFormat* type, int count, float* data, bool dynamic) {
-    m_vertexData = (float*)malloc(sizeof(float) * type->GetVertexSize() * count);
-    memcpy(m_vertexData, data, sizeof(float) * type->GetVertexSize() * count);
+void VertexBuffer::Create(VertexFormat* type, int count, float* data, bool dynamic, int size) {
+    int bufferSize = size == 0 ? type->GetVertexSize() * count : size;
+    m_vertexData = (float*)malloc(sizeof(float) * bufferSize);
+    memcpy(m_vertexData, data, sizeof(float) * bufferSize);
     m_vertexCount = count;
+    m_bufferSize = bufferSize;
 }
 
-void VertexBuffer::SetData(int count, float* data) {
+void VertexBuffer::SetData(int size, int offset, float* data) {
+    assert(offset + size < m_bufferSize);
+    
     if(m_vertexData) {
         delete m_vertexData;
     }
-    
-    m_vertexData = (float*)malloc(sizeof(float) * m_type->GetVertexSize() * count);
-    memcpy(m_vertexData, data, sizeof(float) * m_type->GetVertexSize() * count);
-    m_vertexCount = count;
+
+    memcpy(m_vertexData + offset, data, sizeof(float) * size);
 }

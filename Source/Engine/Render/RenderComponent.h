@@ -7,6 +7,8 @@
 #include <Core/VariantRef.h>
 #include <Render/Sphere.h>
 
+class Scene;
+
 class GIGA_API RenderComponent : public TransformableComponent {
 public:
     RenderComponent();
@@ -19,6 +21,11 @@ public:
      * Get oriented sphere
      */
     Sphere* GetBoundingSphere(matrix4 parent = matrix4(1.0f));
+    
+    /**
+     * Any pre-render work that needs to be done can be done here
+     */
+    virtual void PreRender(Scene* scene) { }
 
 public:
     // Renderable base object

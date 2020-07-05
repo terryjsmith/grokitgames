@@ -9,8 +9,8 @@ public:
     VertexBuffer();
     virtual ~VertexBuffer();
     
-    virtual void Create(VertexFormat* type, int count, float* data, bool dynamic);
-    virtual void SetData(int count, float* data);
+    virtual void Create(VertexFormat* type, int count, float* data, bool dynamic, int size = 0);
+    virtual void SetData(int size, int offset, float* data);
     
     virtual void Bind() { }
     virtual void Unbind() { }
@@ -27,6 +27,7 @@ protected:
     
     float* m_vertexData;
     int m_vertexCount;
+    int m_bufferSize;
 };
 
 #endif

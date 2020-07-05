@@ -12,6 +12,7 @@ enum GIGA_API {
     VERTEXTYPE_ATTRIB_TEXCOORD1     = 1 << 4,
     VERTEXTYPE_ATTRIB_BONES         = 1 << 5,
     VERTEXTYPE_ATTRIB_BONEWEIGHTS   = 1 << 6,
+    VERTEXTYPE_ATTRIB_OFFSETS       = 1 << 7,
 };
 
 class GIGA_API VertexFormat {
@@ -25,7 +26,7 @@ public:
     /**
      * Add/remove/check for vertex attribute
      */
-    void AddVertexAttrib(int attrib, int size, int offset);
+    void AddVertexAttrib(int attrib, int size, int offset, int stride = 0);
     void RemoveVertexAttrib(int attrib);
     bool HasVertexAttrib(int attrib);
     
@@ -43,11 +44,17 @@ public:
     virtual void Bind() { }
     virtual void Unbind() { }
     
+    /**
+     * Set divisor/stride per index (instancing)
+     */
+    virtual void SetDivisor(int index, int divisor) { }
+    
     // Internal vertex attribute layout
     struct VertexAttrib {
         int attrib;
         int size;
         int offset;
+        int stride;
     };
     
 protected:

@@ -24,6 +24,11 @@ public:
     void Bind();
     void Unbind();
     
+    /**
+     * Set divisor/stride per index (instancing)
+     */
+    void SetDivisor(int index, int divisor);
+    
 protected:
     // Internal handle
     unsigned int m_vertexArray;

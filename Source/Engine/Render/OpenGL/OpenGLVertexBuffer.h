@@ -9,8 +9,8 @@ public:
     OpenGLVertexBuffer();
     ~OpenGLVertexBuffer() = default;
     
-    void Create(VertexFormat* type, int count, float* data, bool dynamic);
-    void SetData(int count, float* data);
+    void Create(VertexFormat* type, int count, float* data, bool dynamic, int size = 0);
+    void SetData(int size, int offset, float* data);
     
     void Bind();
     void Unbind();

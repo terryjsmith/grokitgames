@@ -7,6 +7,8 @@
 MeshComponent::MeshComponent() {
     mesh = 0;
     animation = 0;
+    instanced = false;
+    instances = 0;
 }
 
 void MeshComponent::Initialize(Mesh* mesh) {

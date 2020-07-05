@@ -1,11 +1,11 @@
 
-#include <Render/Pipeline.h>
+#include <Render/RenderPipeline.h>
 
-Pipeline::Pipeline() {
+RenderPipeline::RenderPipeline() {
     
 }
 
-Pipeline::~Pipeline() {
+RenderPipeline::~RenderPipeline() {
     auto pi = m_renderPasses.begin();
     for(; pi != m_renderPasses.end(); pi++) {
         delete(*pi);
@@ -13,6 +13,6 @@ Pipeline::~Pipeline() {
     m_renderPasses.clear();
 }
 
-void Pipeline::AddPass(RenderPass* pass) {
+void RenderPipeline::AddPass(RenderPass* pass) {
     m_renderPasses.push_back(pass);
 }

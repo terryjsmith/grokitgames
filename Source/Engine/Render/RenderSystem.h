@@ -3,7 +3,7 @@
 #define rendersystem_h
 
 #include <Core/System.h>
-#include <Render/Pipeline.h>
+#include <Render/RenderPipeline.h>
 #include <Render/VertexFormat.h>
 #include <Render/VertexBuffer.h>
 #include <Render/Scene.h>
@@ -50,8 +50,8 @@ public:
     /**
      * Set/get render pipeline
      */
-    void SetRenderPipeline(Pipeline* pipeline) { m_renderPipeline = pipeline; }
-    Pipeline* GetRenderPipeline() { return m_renderPipeline; }
+    void SetRenderPipeline(RenderPipeline* pipeline) { m_renderPipeline = pipeline; }
+    RenderPipeline* GetRenderPipeline() { return m_renderPipeline; }
     
     /**
      * Clear buffers
@@ -64,6 +64,8 @@ public:
      */
     virtual void Draw(int type, int elements) { }
     virtual void DrawIndexed(int type, int elements) { }
+    virtual void DrawInstanced(int type, int elements, int instances) { }
+    virtual void DrawInstancedIndexed(int type, int elements, int instances) { }
     
     /**
      * Depth testing
@@ -122,7 +124,7 @@ protected:
     Scene* m_scene;
     
     // Render pipeline
-    Pipeline* m_renderPipeline;
+    RenderPipeline* m_renderPipeline;
     
     // Default framebuffer
     int m_defaultFramebuffer;

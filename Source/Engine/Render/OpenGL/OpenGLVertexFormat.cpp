@@ -20,8 +20,9 @@ bool OpenGLVertexFormat::EnableAttribute(int index, int attrib) {
     std::map<int, VertexAttrib*>::iterator ai = m_attribs.find(attrib);
     VertexAttrib* attr = ai->second;
     
+    int strideLength = ai->second->stride == 0 ? m_vertexSize : ai->second->stride;
     GL_CHECK(glEnableVertexAttribArray(index));
-    GL_CHECK(glVertexAttribPointer(index, attr->size, GL_FLOAT, GL_FALSE, sizeof(float) *  m_vertexSize, (void*)(sizeof(float) * attr->offset)));
+    GL_CHECK(glVertexAttribPointer(index, attr->size, GL_FLOAT, GL_FALSE, sizeof(float) *  strideLength, (void*)(sizeof(float) * attr->offset)));
     
     return(true);
 }
@@ -37,4 +38,8 @@ void OpenGLVertexFormat::Bind() {
 
 void OpenGLVertexFormat::Unbind() {
     GL_CHECK(glBindVertexArray(0));
+}
+
+void OpenGLVertexFormat::SetDivisor(int index, int divisor) {
+    GL_CHECK(glVertexAttribDivisor(index, divisor));
 }

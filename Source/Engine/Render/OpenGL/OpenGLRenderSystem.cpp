@@ -61,6 +61,16 @@ void OpenGLRenderSystem::DrawIndexed(int type, int elements) {
     m_triCount += elements / 3;
 }
 
+void OpenGLRenderSystem::DrawInstanced(int type, int elements, int instances) {
+    GL_CHECK(glDrawArraysInstanced(type, 0, elements, instances));
+    m_triCount += elements / 3;
+}
+
+void OpenGLRenderSystem::DrawInstancedIndexed(int type, int elements, int instances) {
+    GL_CHECK(glDrawElementsInstanced(type, elements, GL_UNSIGNED_INT, 0, instances));
+    m_triCount += elements / 3;
+}
+
 void OpenGLRenderSystem::EnableDepthTest(int type) {
     GL_CHECK(glEnable(GL_DEPTH_TEST));
     GL_CHECK(glDepthFunc(type));

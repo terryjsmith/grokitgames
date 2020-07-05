@@ -101,6 +101,7 @@ void GBufferPass::Render(Scene* scene) {
             }
         }
         
+        mc->PreRender(scene);
         RecursiveRender(mc, view, matrix4(1.0), scene);
     }
     
@@ -173,6 +174,8 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     m_program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
     enabled = vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
     m_program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
+    enabled = vertexType->EnableAttribute(7, VERTEXTYPE_ATTRIB_OFFSETS);
+    m_program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
     
     // Bind textures
     if(m->diffuseTexture) {
@@ -202,12 +205,23 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     
     // Draw
-    if(m->indexBuffer) {
-        int indexCount = m->indexBuffer->GetIndexCount();
-        renderSystem->DrawIndexed(DRAW_TRIANGLES, indexCount);
+    if(rc->instanced == true) {
+        if(m->indexBuffer) {
+            int indexCount = m->indexBuffer->GetIndexCount();
+            renderSystem->DrawInstancedIndexed(DRAW_TRIANGLES, indexCount, rc->instances);
+        }
+        else {
+            renderSystem->DrawInstanced(DRAW_TRIANGLES, vertexCount, rc->instances);
+        }
     }
     else {
-        renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
+        if(m->indexBuffer) {
+            int indexCount = m->indexBuffer->GetIndexCount();
+            renderSystem->DrawIndexed(DRAW_TRIANGLES, indexCount);
+        }
+        else {
+            renderSystem->Draw(DRAW_TRIANGLES, vertexCount);
+        }
     }
     
     if(m->diffuseTexture) {

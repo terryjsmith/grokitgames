@@ -9,6 +9,7 @@ layout(location = 3) in vec2 vertex_texcoord0;
 layout(location = 4) in vec2 vertex_texcoord1;
 layout(location = 5) in vec4 vertex_bones;
 layout(location = 6) in vec4 vertex_weights;
+layout(location = 7) in vec3 vertex_offset;
 
 // Vertex attributes
 uniform int VERTEXTYPE_ATTRIB_POSITION;
@@ -18,6 +19,7 @@ uniform int VERTEXTYPE_ATTRIB_TEXCOORD0;
 uniform int VERTEXTYPE_ATTRIB_TEXCOORD1;
 uniform int VERTEXTYPE_ATTRIB_BONES;
 uniform int VERTEXTYPE_ATTRIB_BONEWEIGHTS;
+uniform int VERTEXTYPE_ATTRIB_OFFSETS;
 
 /**
  * Uniforms
@@ -57,6 +59,10 @@ void main () {
         
         bposition = BoneTransform * vec4(transformed_normal.xyz, 0.0);
         transformed_normal = bposition.xyz;
+    }
+    
+    if(VERTEXTYPE_ATTRIB_OFFSETS == 1) {
+        transformed_position += vertex_offset;
     }
     
     mat4 mvpMatrix = projectionMatrix * modelviewMatrix;

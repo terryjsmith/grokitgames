@@ -229,7 +229,7 @@ void TerrainQuad::SetLOD(vector3 cameraPosition) {
         renderable->vertexBuffer = vertexBuffer;
     }
     else {
-        vertexBuffer->SetData(vertexCount, vertexData.data());
+        vertexBuffer->SetData(vertexCount, 0, vertexData.data());
     }
     
     //free(data);

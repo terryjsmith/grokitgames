@@ -3,6 +3,7 @@
 
 #include <QTimer>
 #include <QMouseEvent>
+#include <QStatusBar>
 
 #include <Core/Application.h>
 #include <Render/RenderSystem.h>
@@ -21,6 +22,9 @@ GigaOpenGLWidget::GigaOpenGLWidget(QWidget *parent) : QOpenGLWidget(parent) {
 
 void GigaOpenGLWidget::initializeGL() {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
+
+    this->SetEditorMode(EditorMode::EDITORMODE_CAMERA);
+    this->SetEditMode(EditMode::EDITMODE_GRAB);
 
     //renderSystem->SetClearColor(vector4(1, 0, 1, 1));
 
@@ -71,6 +75,21 @@ void GigaOpenGLWidget::paintGL() {
     QTimer::singleShot(30, this, SLOT(update()));
 
     PROFILE_END_FRAME();
+}
+
+bool GigaOpenGLWidget::eventFilter(QObject *obj, QEvent *event)  {
+    if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+
+            if(keyEvent->key() == Qt::Key_Escape) {
+                this->SetEditorMode(EditorMode::EDITORMODE_CAMERA);
+            }
+
+            return true;
+        } else {
+            // standard event processing
+            return QObject::eventFilter(obj, event);
+        }
 }
 
 void GigaOpenGLWidget::mouseReleaseEvent(QMouseEvent *event) {
@@ -229,13 +248,15 @@ void GigaOpenGLWidget::wheelEvent(QWheelEvent* event) {
     QOpenGLWidget::wheelEvent(event);
 }
 
-void GigaOpenGLWidget::keyPressEvent(QKeyEvent * event) {
-    // Record key state
-    m_keys[event->key()] = true;
-    QOpenGLWidget::keyPressEvent(event);
-}
-
-void GigaOpenGLWidget::keyReleaseEvent(QKeyEvent * event) {
-    m_keys[event->key()] = false;
-    QOpenGLWidget::keyReleaseEvent(event);
+void GigaOpenGLWidget::SetEditorMode(EditorMode mode) {
+    QStatusBar* bar = MainWindow::getInstance()->statusBar();
+    switch(mode) {
+    case EditorMode::EDITORMODE_CAMERA:
+        bar->showMessage("Editor mode: camera");
+        break;
+    case EditorMode::EDITORMODE_OBJECT:
+        bar->showMessage("Editor mode: object");
+        break;
+    default: break;
+    };
 }

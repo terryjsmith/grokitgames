@@ -114,6 +114,7 @@ void ScriptingSystem::Initialize() {
     std::string libDir = cwd + "/Resources/Scripting/lib";
     std::string configDir = cwd + "/Resources/Scripting/etc";
     mono_set_dirs(libDir.c_str(), configDir.c_str());
+    mono_config_parse (NULL);
 
     m_domain = mono_jit_init("GrokItGames");
     
@@ -314,22 +315,19 @@ void ScriptingSystem::Update(float delta) {
             continue;
         }
         
-        // Get the cached entity
-        CachedObject* cobj = 0;
-        auto obj = m_objects.begin();
-        for(; obj != m_objects.end(); obj++) {
-            if((*obj)->local == (*i)->GetParent()) {
-                cobj = (*obj);
-                break;
-            }
-        }
-        
-        GIGA_ASSERT(cobj != 0, "Cannot find cached object.");
+        // If we cannot find a cached object, create one
+        MonoObject* remote = this->GetRemoteObject((*i)->GetParent());
+        GIGA_ASSERT(remote != 0, "Cannot find or create object.");
         
         void* args[1];
         double ddelta = delta;
         args[0] = &ddelta;
-        mono_runtime_invoke(mi->second->method, cobj->remote, args, nullptr);
+        MonoObject* exc = 0;
+        mono_runtime_invoke(mi->second->method, remote, args, nullptr);
+        if(exc) {
+            mono_print_unhandled_exception(exc);
+            GIGA_ASSERT(false, "Unable to run Update function.");
+        }
     }
     
     delete d;

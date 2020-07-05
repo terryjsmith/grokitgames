@@ -1,5 +1,6 @@
 #include "scenetreeview.h"
 #include "mainwindow.h"
+#include "gigaopenglwidget.h"
 
 #include <QLabel>
 
@@ -45,6 +46,9 @@ void SceneTreeView::ProcessSelectedEntity(Entity* entity) {
     for(int i = 0; i < (int)components.size(); i++) {
         propertyFrame->setStretch(i, 0);
     }
+
+    GigaOpenGLWidget* widget = MainWindow::getInstance()->GetOpenGLWidget();
+    widget->SetEditorMode(GigaOpenGLWidget::EditorMode::EDITORMODE_OBJECT);
 }
 
 void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {

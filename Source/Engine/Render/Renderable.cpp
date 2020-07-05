@@ -2,8 +2,8 @@
 #include <Render/Renderable.h>
 
 Renderable::Renderable() {
-    vertexBuffer = 0;
     indexBuffer = 0;
+    vertexBuffer = 0;
     diffuseTexture = 0;
     normalTexture = 0;
     emissiveTexture = 0;

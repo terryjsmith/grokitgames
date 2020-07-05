@@ -1,14 +1,14 @@
 
-#ifndef pipeline_h
-#define pipeline_h
+#ifndef renderpipeline_h
+#define renderpipeline_h
 
 #include <Core/GigaObject.h>
 #include <Render/RenderPass.h>
 
-class GIGA_API Pipeline : public GigaObject {
+class GIGA_API RenderPipeline : public GigaObject {
 public:
-    Pipeline();
-    ~Pipeline();
+    RenderPipeline();
+    ~RenderPipeline();
     
     /**
      * Initialize render pipeline

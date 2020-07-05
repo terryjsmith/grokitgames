@@ -8,6 +8,7 @@
 #include "scenetreeview.h"
 #include "scenetreemodel.h"
 #include "metatypes.h"
+#include "gigaopenglwidget.h"
 
 #include <Core/DataLoader.h>
 
@@ -30,6 +31,8 @@ public:
     SceneTreeModel* GetSceneModel() { return m_sceneTreeModel; }
     SceneTreeView* GetSceneView();
     QVBoxLayout* GetPropertyLayout();
+    GigaOpenGLWidget* GetOpenGLWidget();
+
 
     // Form generator
     QFormLayout* GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent);
@@ -51,6 +54,7 @@ public slots:
     void btnGameBuild_clicked();
     void objectBrowser();
     void trySaveFile();
+    void btnChangeEditMode();
 
 private:
     Ui::MainWindow *ui;

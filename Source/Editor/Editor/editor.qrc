@@ -4,5 +4,7 @@
         <file>Icons/grab.png</file>
         <file>Icons/rotate.png</file>
         <file>Icons/scale.png</file>
+        <file>Icons/light.png</file>
+        <file>Icons/speaker.png</file>
     </qresource>
 </RCC>

@@ -44,6 +44,8 @@ public:
      */
     void Draw(int type, int elements);
     void DrawIndexed(int type, int elements);
+    void DrawInstanced(int type, int elements, int instances);
+    void DrawInstancedIndexed(int type, int elements, int instances);
     
     /**
      * Depth testing

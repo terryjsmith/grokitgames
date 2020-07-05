@@ -238,6 +238,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             func->strReturnType = rettype;
             func->isStatic = isStatic;
             func->isConstructor = (cursor == CXCursor_Constructor);
+            func->found = true;
 
             if (func->isConstructor && access == CX_CXXPublic) {
                 currentMetaClass->hasPublicConstructor = true;
@@ -265,6 +266,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
                     p->name = arg_name;
                     p->type = intArgType;
                     p->typeStr = argtype;
+                    p->found = true;
                     func->params.push_back(p);
                 }
                 else {
@@ -340,6 +342,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             currentMetaClass = m;
         }
 
+        currentMetaClass->found = true;
         exportGigaClass = false;
 
         // Clear
@@ -363,6 +366,7 @@ CXChildVisitResult visitor(CXCursor c, CXCursor parent, CXClientData client_data
             var->name = name;
             var->type = internalType;
             var->typeStr = typestr;
+            var->found = true;
 
             if (markGet) {
                 var->getter = DummyGetter;
@@ -439,6 +443,24 @@ Array<std::string> ProcessInheritance(std::string className) {
     }
     
     return(addlClasses);
+}
+
+std::string GetInheritance(std::string className) {
+    std::string inheritedClass = "";
+    auto ici = inheritances.find(className);
+    if(ici != inheritances.end()) {
+        auto inh = ici->second.begin();
+        for(; inh != ici->second.end(); inh++) {
+            if(exportGigaClasses[*inh] == true) {
+                inheritedClass = *inh;
+                break;
+            }
+            
+            inheritedClass = GetInheritance(*inh);
+        }
+    }
+    
+    return(inheritedClass);
 }
 
 void ProcessDirectory(Directory* dir) {
@@ -1564,14 +1586,21 @@ int main(int argc, char** argv) {
     it = classes.begin();
     for (; it != classes.end(); it++) {
         MetaClass* cl = it->second;
-        std::string gigaClass = " : GigaObject";
-        if(cl->name == "GigaObject") {
-            gigaClass = "";
+        
+        // Find the highest level exported inheritance class
+        std::string inheritedClass = GetInheritance(cl->name);
+        
+        if(inheritedClass.length()) {
+            inheritedClass = ": " + inheritedClass;
+        }
+        
+        if(inheritedClass.length() == 0 && cl->name != "GigaObject") {
+            inheritedClass = ": GigaObject";
         }
     
         output = "using System;\nusing System.Runtime.CompilerServices;\n\n";
         output += "namespace GIGA {\n";
-        output += "\tpublic partial class " + cl->name + gigaClass + " {\n";
+        output += "\tpublic partial class " + cl->name + inheritedClass + " {\n";
 
         cout << "Checking class " << cl->name << endl;
 

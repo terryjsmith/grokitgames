@@ -59,10 +59,10 @@ public:
     QHBoxLayout *horizontalLayout_4;
     QFrame *frame_2;
     QHBoxLayout *horizontalLayout_5;
-    QPushButton *pushButton;
-    QPushButton *pushButton_2;
-    QPushButton *pushButton_3;
-    QPushButton *pushButton_4;
+    QPushButton *btnEditMode_Grab;
+    QPushButton *btnEditMode_Move;
+    QPushButton *btnEditMode_Rotate;
+    QPushButton *btnEditMode_Scale;
     QWidget *tab_2;
     QTabWidget *tabWidget_2;
     QWidget *tab_3;
@@ -182,43 +182,43 @@ public:
         horizontalLayout_5->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_5->setObjectName(QString::fromUtf8("horizontalLayout_5"));
         horizontalLayout_5->setContentsMargins(0, 0, 0, 0);
-        pushButton = new QPushButton(frame_2);
-        pushButton->setObjectName(QString::fromUtf8("pushButton"));
+        btnEditMode_Grab = new QPushButton(frame_2);
+        btnEditMode_Grab->setObjectName(QString::fromUtf8("btnEditMode_Grab"));
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/Icons/grab.png"), QSize(), QIcon::Normal, QIcon::Off);
-        pushButton->setIcon(icon);
-        pushButton->setCheckable(true);
-        pushButton->setAutoDefault(false);
-        pushButton->setFlat(false);
+        btnEditMode_Grab->setIcon(icon);
+        btnEditMode_Grab->setCheckable(true);
+        btnEditMode_Grab->setAutoDefault(false);
+        btnEditMode_Grab->setFlat(false);
 
-        horizontalLayout_5->addWidget(pushButton);
+        horizontalLayout_5->addWidget(btnEditMode_Grab);
 
-        pushButton_2 = new QPushButton(frame_2);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
+        btnEditMode_Move = new QPushButton(frame_2);
+        btnEditMode_Move->setObjectName(QString::fromUtf8("btnEditMode_Move"));
         QIcon icon1;
         icon1.addFile(QString::fromUtf8(":/Icons/drag.png"), QSize(), QIcon::Normal, QIcon::Off);
-        pushButton_2->setIcon(icon1);
-        pushButton_2->setCheckable(true);
+        btnEditMode_Move->setIcon(icon1);
+        btnEditMode_Move->setCheckable(true);
 
-        horizontalLayout_5->addWidget(pushButton_2);
+        horizontalLayout_5->addWidget(btnEditMode_Move);
 
-        pushButton_3 = new QPushButton(frame_2);
-        pushButton_3->setObjectName(QString::fromUtf8("pushButton_3"));
+        btnEditMode_Rotate = new QPushButton(frame_2);
+        btnEditMode_Rotate->setObjectName(QString::fromUtf8("btnEditMode_Rotate"));
         QIcon icon2;
         icon2.addFile(QString::fromUtf8(":/Icons/rotate.png"), QSize(), QIcon::Normal, QIcon::Off);
-        pushButton_3->setIcon(icon2);
-        pushButton_3->setCheckable(true);
+        btnEditMode_Rotate->setIcon(icon2);
+        btnEditMode_Rotate->setCheckable(true);
 
-        horizontalLayout_5->addWidget(pushButton_3);
+        horizontalLayout_5->addWidget(btnEditMode_Rotate);
 
-        pushButton_4 = new QPushButton(frame_2);
-        pushButton_4->setObjectName(QString::fromUtf8("pushButton_4"));
+        btnEditMode_Scale = new QPushButton(frame_2);
+        btnEditMode_Scale->setObjectName(QString::fromUtf8("btnEditMode_Scale"));
         QIcon icon3;
         icon3.addFile(QString::fromUtf8(":/Icons/scale.png"), QSize(), QIcon::Normal, QIcon::Off);
-        pushButton_4->setIcon(icon3);
-        pushButton_4->setCheckable(true);
+        btnEditMode_Scale->setIcon(icon3);
+        btnEditMode_Scale->setCheckable(true);
 
-        horizontalLayout_5->addWidget(pushButton_4);
+        horizontalLayout_5->addWidget(btnEditMode_Scale);
 
 
         horizontalLayout_4->addWidget(frame_2);
@@ -412,7 +412,7 @@ public:
         retranslateUi(MainWindow);
 
         tabWidget->setCurrentIndex(0);
-        pushButton->setDefault(true);
+        btnEditMode_Grab->setDefault(false);
         tabWidget_2->setCurrentIndex(0);
         tabWidget_3->setCurrentIndex(0);
 
@@ -437,10 +437,10 @@ public:
         actionBuild->setText(QCoreApplication::translate("MainWindow", "Build", nullptr));
         actionRun->setText(QCoreApplication::translate("MainWindow", "Run", nullptr));
         actionDeploy->setText(QCoreApplication::translate("MainWindow", "Deploy", nullptr));
-        pushButton->setText(QString());
-        pushButton_2->setText(QString());
-        pushButton_3->setText(QString());
-        pushButton_4->setText(QString());
+        btnEditMode_Grab->setText(QString());
+        btnEditMode_Move->setText(QString());
+        btnEditMode_Rotate->setText(QString());
+        btnEditMode_Scale->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Tools", nullptr));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Create", nullptr));
         sceneSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search scene...", nullptr));

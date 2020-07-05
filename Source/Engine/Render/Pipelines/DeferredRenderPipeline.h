@@ -2,9 +2,9 @@
 #ifndef deferredrenderpipeline_h
 #define deferredrenderpipeline_h
 
-#include <Render/Pipeline.h>
+#include <Render/RenderPipeline.h>
 
-class GIGA_API DeferredRenderPipeline : public Pipeline {
+class GIGA_API DeferredRenderPipeline : public RenderPipeline {
 public:
     DeferredRenderPipeline() = default;
     ~DeferredRenderPipeline() = default;

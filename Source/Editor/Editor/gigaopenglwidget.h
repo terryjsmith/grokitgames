@@ -14,13 +14,31 @@ public:
     void resizeGL(int w, int h) override;
     void paintGL() override;
 
+    enum EditorMode {
+        EDITORMODE_CAMERA = 1,
+        EDITORMODE_OBJECT
+    };
+
+    enum EditMode {
+        EDITMODE_GRAB = 1,
+        EDITMODE_MOVE,
+        EDITMODE_ROTATE,
+        EDITMODE_SCALE
+    };
+
+    void SetEditorMode(EditorMode mode);
+    EditorMode GetEditorMode() { return m_editorMode; }
+
+    void SetEditMode(EditMode mode) { m_editMode = mode; }
+    EditMode GetEditMode() { return m_editMode; }
+
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
 
-    void keyPressEvent(QKeyEvent * event) override;
-    void keyReleaseEvent(QKeyEvent * event) override;
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 protected:
     int m_framebufferWidth, m_framebufferHeight;
@@ -40,6 +58,10 @@ protected:
 
     // Target position
     vector3 m_targetPosition;
+
+    // Our current editor mode
+    EditorMode m_editorMode;
+    EditMode m_editMode;
 
     // Are we dragging the mouse?
     bool m_dragging;

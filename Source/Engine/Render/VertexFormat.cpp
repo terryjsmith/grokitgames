@@ -10,11 +10,12 @@ VertexFormat::~VertexFormat() {
     m_attribs.clear();
 }
 
-void VertexFormat::AddVertexAttrib(int attrib, int size, int offset) {
+void VertexFormat::AddVertexAttrib(int attrib, int size, int offset, int stride) {
     VertexAttrib* a = new VertexAttrib;
     a->attrib = attrib;
     a->offset = offset;
     a->size = size;
+    a->stride = stride;
     
     m_attribs[attrib] = a;
     m_vertexSize += size;

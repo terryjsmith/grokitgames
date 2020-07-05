@@ -4,34 +4,31 @@
 
 OpenGLVertexBuffer::OpenGLVertexBuffer() {
     m_buffer = 0;
+    m_vertexData = 0;
 }
 
-void OpenGLVertexBuffer::Create(VertexFormat* type, int count, float* data, bool dynamic) {
+void OpenGLVertexBuffer::Create(VertexFormat* type, int count, float* data, bool dynamic, int size) {
     m_type = type;
     m_dynamic = dynamic;
     
-    m_vertexData = (float*)malloc(sizeof(float) * type->GetVertexSize() * count);
-    memcpy(m_vertexData, data, sizeof(float) * type->GetVertexSize() * count);
+    int bufferSize = size == 0 ? m_type->GetVertexSize() * count : size;
     m_vertexCount = count;
+    m_bufferSize = bufferSize;
     
     GL_CHECK(glGenBuffers(1, &m_buffer));
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_buffer));
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * type->GetVertexSize() * m_vertexCount, data, m_dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW));
+    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * bufferSize, data, m_dynamic ? GL_STREAM_DRAW : GL_STATIC_DRAW));
 }
 
-void OpenGLVertexBuffer::SetData(int count, float* data) {
+void OpenGLVertexBuffer::SetData(int size, int offset, float* data) {
     if(m_buffer == 0) {
         GL_CHECK(glGenBuffers(1, &m_buffer));
     }
     
     m_dynamic = true;
     
-    m_vertexData = (float*)malloc(sizeof(float) * m_type->GetVertexSize() * count);
-    memcpy(m_vertexData, data, sizeof(float) * m_type->GetVertexSize() * count);
-    m_vertexCount = count;
-    
     GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_buffer));
-    GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_type->GetVertexSize() * m_vertexCount, data, GL_STREAM_DRAW));
+    GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * offset, sizeof(float) * size, data));
 }
 
 void OpenGLVertexBuffer::Bind() {

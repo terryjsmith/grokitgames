@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 
 namespace GIGA {
-	public class GigaObject {
+	public partial class GigaObject {
         protected internal IntPtr ptr;
         
         public GigaObject() {
