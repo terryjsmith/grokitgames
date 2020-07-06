@@ -30,7 +30,7 @@ public:
     void SetDepthTexture(Texture2D* texture);
     
 protected:
-    void RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent);
+    void RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, ShaderProgram* program);
     
 protected:
     Texture2D* m_texture;

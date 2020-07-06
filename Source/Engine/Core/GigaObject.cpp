@@ -14,7 +14,17 @@ GigaObject::~GigaObject() {
     auto it = m_objects.find(this);
     if(it != m_objects.end()) {
         m_objects.erase(it);
+        auto oit = it;
+        
+        it = m_objects.find(this);
+        if(it != m_objects.end()) {
+            m_objects.erase(it);
+        }
+        GIGA_ASSERT(it == m_objects.end(), "Something bad happened here.");
+        return;
     }
+    
+    //GIGA_ASSERT(false, "Something bad happened here.");
 }
 
 Meta::Class* GigaObject::GetClass() {

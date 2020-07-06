@@ -37,16 +37,22 @@ void MeshComponent::Serialize(DataRecord* record) {
     TransformableComponent::Serialize(record);
     
     record->SetTypeHint("mesh", "Mesh");
+    record->SetTypeHint("program", "ShaderProgram");
+    
     record->Set("mesh", new Variant(mesh));
     record->Set("applyLighting", new Variant(applyLighting));
+    record->Set("program", new Variant(program));
 }
 
 void MeshComponent::Deserialize(DataRecord* record) {
     TransformableComponent::Deserialize(record);
     
     record->SetTypeHint("mesh", "Mesh");
+    record->SetTypeHint("program", "ShaderProgram");
+    
     Mesh* m = record->Get("mesh")->AsObject<Mesh*>();
     this->Initialize(m);
 
+    this->program = record->Get("program")->AsObject<ShaderProgram*>();
     this->applyLighting = record->Get("applyLighting")->AsBool();
 }

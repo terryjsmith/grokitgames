@@ -23,7 +23,7 @@ public:
     virtual void Render(Scene* scene);
     
 protected:
-    void RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene);
+    void RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene, ShaderProgram* program);
 };
 
 #endif 

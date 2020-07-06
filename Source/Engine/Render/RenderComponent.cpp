@@ -7,6 +7,7 @@ RenderComponent::RenderComponent() {
     renderable = 0;
     m_boundingSphere = 0;
     applyLighting = false;
+    program = 0;
 }
 
 RenderComponent::~RenderComponent() {

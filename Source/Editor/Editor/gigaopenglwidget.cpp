@@ -96,7 +96,7 @@ void GigaOpenGLWidget::mouseReleaseEvent(QMouseEvent *event) {
     if(event->button() == Qt::MouseButton::LeftButton) {
         // Get the index buffer
         RenderSystem* rs = GetSystem<RenderSystem>();
-        Pipeline* pipeline = rs->GetRenderPipeline();
+        RenderPipeline* pipeline = rs->GetRenderPipeline();
         Texture2D* indexTexture = pipeline->GetIndexTexture();
 
         // Get the position of the mouse click
@@ -145,7 +145,7 @@ void GigaOpenGLWidget::mousePressEvent(QMouseEvent *event) {
     if(event->button() == Qt::MouseButton::LeftButton) {
         // Get the depth buffer
         RenderSystem* rs = GetSystem<RenderSystem>();
-        Pipeline* pipeline = rs->GetRenderPipeline();
+        RenderPipeline* pipeline = rs->GetRenderPipeline();
         Texture2D* depthTexture = pipeline->GetDepthTexture();
 
         // Get the position of the mouse click

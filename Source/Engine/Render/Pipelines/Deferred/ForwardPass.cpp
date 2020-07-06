@@ -109,14 +109,25 @@ void ForwardPass::Render(Scene* scene) {
     // Iterate over renderables
     for(int i = 0; i < scene->renderables.size(); i++) {
         MeshComponent* mc = dynamic_cast<MeshComponent*>(scene->renderables[i]);
+        ShaderProgram* program = m_program;
         if(mc == 0) continue;
         
         if(mc->applyLighting == true) continue;
         
-        m_program->Set("sceneIndex", (float)(i+1));
+        if(mc->program) {
+            mc->program->Set("projectionMatrix", proj);
+            program = mc->program;
+        }
+        
+        program->Set("sceneIndex", (float)(i+1));
         
         mc->PreRender(scene);
-        RecursiveRender(mc, view, matrix4(1.0));
+        RecursiveRender(mc, view, matrix4(1.0), program);
+        
+        if(mc->program) {
+            mc->program->Unbind();
+            m_program->Bind();
+        }
     }
 
     renderSystem->DisableBlending();
@@ -126,7 +137,7 @@ void ForwardPass::Render(Scene* scene) {
     m_program->Unbind();
 }
 
-void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent) {
+void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, ShaderProgram* program) {
     // Calculate model matrix
     Transform* meshTransform = rc->GetTransform();
     matrix4 mat = meshTransform->GetMatrix();
@@ -138,7 +149,7 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
             MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
             if(mc == 0) continue;
             
-            RecursiveRender(mc, view, model);
+            RecursiveRender(mc, view, model, program);
         }
         
         return;
@@ -146,7 +157,7 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     
     // Send view/proj matrix to shader
     matrix4 modelviewMatrix = view * model;
-    m_program->Set("modelviewMatrix", modelviewMatrix);
+    program->Set("modelviewMatrix", modelviewMatrix);
     
     Renderable* m = rc->renderable;
     if(m == 0) return;
@@ -164,31 +175,31 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     
     // Enable the attributes we need
     bool enabled = vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
-    m_program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
     enabled = vertexType->EnableAttribute(1, VERTEXTYPE_ATTRIB_COLOR);
-    m_program->Set("VERTEXTYPE_ATTRIB_COLOR", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_COLOR", (int)enabled);
     enabled = vertexType->EnableAttribute(3, VERTEXTYPE_ATTRIB_TEXCOORD0);
-    m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
     enabled = vertexType->EnableAttribute(4, VERTEXTYPE_ATTRIB_TEXCOORD1);
-    m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD1", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_TEXCOORD1", (int)enabled);
     enabled = vertexType->EnableAttribute(5, VERTEXTYPE_ATTRIB_BONES);
-    m_program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
     enabled = vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
-    m_program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
     enabled = vertexType->EnableAttribute(7, VERTEXTYPE_ATTRIB_OFFSETS);
-    m_program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
     
     // Bind textures
     if(m->diffuseTexture) {
         m->diffuseTexture->Bind(0);
-        m_program->Set("diffuseTexture", 0);
+        program->Set("diffuseTexture", 0);
         
         // glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
     }
     
     if(m->normalTexture) {
         m->normalTexture->Bind(1);
-        m_program->Set("normalTexture", 1);
+        program->Set("normalTexture", 1);
     }
     
     // Get render system

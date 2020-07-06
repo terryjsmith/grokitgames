@@ -7,10 +7,12 @@
 /**
  * A shader program - a combination vertex and fragment shader
  */
-class GIGA_API ShaderProgram {
+class GIGA_API ShaderProgram : public GigaObject {
 public:
     ShaderProgram();
     ~ShaderProgram() = default;
+    
+    GIGA_CLASS_NAME("ShaderProgram");
     
     /**
      * Initialize (set shaders)
@@ -43,6 +45,17 @@ public:
     virtual void Set(std::string name, int value) { }
     virtual void Set(std::string name, unsigned int value) { }
     virtual void Set(std::string name, matrix4 value) { }
+    
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
+    
+    /**
+     * Show a string representation of an object (defaults to giga name)
+     */
+    virtual std::string ToString();
     
     /**
      * A variable inside the shader program (to cache its location)

@@ -323,7 +323,7 @@ void ScriptingSystem::Update(float delta) {
         double ddelta = delta;
         args[0] = &ddelta;
         MonoObject* exc = 0;
-        mono_runtime_invoke(mi->second->method, remote, args, nullptr);
+        mono_runtime_invoke(mi->second->method, remote, args, &exc);
         if(exc) {
             mono_print_unhandled_exception(exc);
             GIGA_ASSERT(false, "Unable to run Update function.");
@@ -390,6 +390,16 @@ MonoObject* ScriptingSystem::GetRemoteObject(GigaObject* obj) {
     
     // If we get here, we need to create a new object
     auto ci = m_classes.find(obj->GetGigaName());
+    
+    // If we have an entity with a ScriptComponent attached, make sure we initialize that type
+    Entity* entity = dynamic_cast<Entity*>(obj);
+    if(entity) {
+        ScriptComponent* script = entity->GetComponent<ScriptComponent>();
+        if(script) {
+            ci = m_classes.find(script->className);
+        }
+    }
+    
     GIGA_ASSERT(ci != m_classes.end(), "Class name not loaded.");
     
     // Create object

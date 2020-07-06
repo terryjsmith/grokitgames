@@ -33,6 +33,9 @@ public:
     
     // Current frame (animations)
     GIGA_VARIABLE(Get, Set) int frame;
+    
+    // Distance from camera (sorting)
+    float distance;
 };
 
 #endif

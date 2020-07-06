@@ -1,8 +1,11 @@
 
 #include <Render/ParticleSystem.h>
 #include <Core/World.h>
+#include <IO/Profiler.h>
 
 void ParticleSystem::Update(float delta) {
+    PROFILE_START_AREA("ParticleSystem");
+    
     World* world = World::GetInstance();
     Array<ParticleEmitterComponent*> emitters = world->FindComponents<ParticleEmitterComponent>();
     auto it = emitters.begin();
@@ -38,4 +41,6 @@ void ParticleSystem::Update(float delta) {
             (*it)->Emit();
         }
     }
+    
+    PROFILE_END_AREA("ParticleSystem");
 }

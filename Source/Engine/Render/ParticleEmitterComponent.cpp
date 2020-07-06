@@ -7,7 +7,7 @@ ParticleEmitterComponent::ParticleEmitterComponent() {
     instances = 0;
     instanced = true;
     m_size = 0;
-    m_rate = 5.0f;
+    m_rate = 3.0f;
     m_velocity = vector3(0, 1, 0);
     m_lifespan = 3.0f;
 }
@@ -126,11 +126,12 @@ void ParticleEmitterComponent::PreRender(Scene* scene) {
     
     // Set the centers of the particles in the vertex buffer
     Array<Particle*> particles = GetParticles(Particle::PARTICLESTATE_ALIVE);
+    Array<Particle*> sorted = SortParticles(particles, scene->camera);
     float* positions = new float[particles.size() * 3];
     for(int i = 0; i < particles.size(); i++) {
         int offset = i * 3;
         
-        vector3 position = particles[i]->transform->GetWorldPosition();
+        vector3 position = sorted[i]->transform->GetWorldPosition();
         positions[offset + 0] = position.x;
         positions[offset + 1] = position.y;
         positions[offset + 2] = position.z;
@@ -150,6 +151,32 @@ void ParticleEmitterComponent::PreRender(Scene* scene) {
     
     // Save instance data
     this->instances = particles.size();
+}
+
+Array<Particle*> ParticleEmitterComponent::SortParticles(Array<Particle*>& particles, CameraComponent* camera) {
+    Array<Particle*> retarr;
+    vector3 cameraPosition = camera->GetTransform()->GetWorldPosition();
+    auto it = particles.begin();
+    for(; it != particles.end(); it++) {
+        (*it)->distance = glm::length((*it)->transform->GetWorldPosition() - cameraPosition);
+    }
+    
+    it = particles.begin();
+    for(; it != particles.end(); it++) {
+        auto ri = retarr.begin();
+        for(; ri != retarr.end(); ri++) {
+            if((*ri)->distance < (*it)->distance) {
+                retarr.insert(*it, ri);
+                break;
+            }
+        }
+        
+        if(ri == retarr.end()) {
+            retarr.push_back(*it);
+        }
+    }
+    
+    return(retarr);
 }
 
 float ParticleEmitterComponent::GetLastEmission(float delta) {

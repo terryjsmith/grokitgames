@@ -170,7 +170,7 @@ public:
         }
         
         for(int i = end.m_position + 1; i < m_size; i++) {
-            int index = i - end.m_position;
+            int index = i - end.m_position + start.m_position - 1;
             newarr[index] = m_values[i];
         }
         
@@ -198,6 +198,28 @@ public:
             newarr[i] = m_values[i];
         }
         newarr[m_size] = item;
+        
+        if(m_size)
+            delete[] m_values;
+        
+        m_values = newarr;
+        m_size++;
+    }
+    
+    /**
+     * Insert a value in front of another value
+     */
+    void insert(T item, Iterator pos) {
+        T* newarr = new T[m_size + 1];
+        for(int i = 0; i < pos.m_position; i++) {
+            newarr[i] = m_values[i];
+        }
+        
+        newarr[pos.m_position] = item;
+        
+        for(int i = pos.m_position + 1; i <= m_size; i++) {
+            newarr[i] = m_values[i - 1];
+        }
         
         if(m_size)
             delete[] m_values;

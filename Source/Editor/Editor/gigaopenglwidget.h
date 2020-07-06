@@ -2,7 +2,7 @@
 #define GIGAOPENGLWIDGET_H
 
 #include <QOpenGLWidget>
-#include <Render/Pipeline.h>
+#include <Render/RenderPipeline.h>
 #include <Core/Timer.h>
 
 class GigaOpenGLWidget : public QOpenGLWidget
@@ -45,7 +45,7 @@ protected:
     int m_width, m_height;
 
     // render pipeline
-    Pipeline* m_renderPipeline;
+    RenderPipeline* m_renderPipeline;
 
     // Timer for update tick
     Timer* m_updateTimer;

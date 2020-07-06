@@ -4,6 +4,7 @@
 
 #include <Render/MeshComponent.h>
 #include <Render/Particle.h>
+#include <Render/CameraComponent.h>
 
 GIGA_CLASS()
 class GIGA_API ParticleEmitterComponent : public MeshComponent {
@@ -27,6 +28,11 @@ public:
      * Get active particles
      */
     GIGA_FUNCTION() Array<Particle*> GetParticles(int state);
+    
+    /**
+     * Sort particles from farthest to closest from the camera
+     */
+    Array<Particle*> SortParticles(Array<Particle*>& particles, CameraComponent* camera);
     
     /**
      * Any pre-render work that needs to be done can be done here

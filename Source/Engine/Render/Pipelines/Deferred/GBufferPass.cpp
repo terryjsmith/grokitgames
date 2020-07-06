@@ -86,23 +86,37 @@ void GBufferPass::Render(Scene* scene) {
     // Iterate over renderables
     for(int i = 0 ; i < scene->renderables.size(); i++) {
         MeshComponent* mc = dynamic_cast<MeshComponent*>(scene->renderables[i]);
+        ShaderProgram* program = m_program;
         if(mc == 0) continue;
         
         if(mc->applyLighting == false) continue;
         
-        m_program->Set("sceneIndex", (float)(i+1));
+        if(mc->program) {
+            mc->program->Bind();
+            mc->program->Set("projectionMatrix", proj);
+            mc->program->Set("cameraPosition", camera->GetTransform()->GetWorldPosition());
+            
+            program = mc->program;
+        }
+        
+        program->Set("sceneIndex", (float)(i+1));
         
         // Load bones
         if(mc->animation) {
             auto bi = mc->animation->bones.begin();
             for(; bi != mc->animation->bones.end(); bi++) {
                 int index = std::distance(mc->animation->bones.begin(), bi);
-                m_program->Set("boneMatrix[" + std::to_string(index) + "]", bi->second);
+                program->Set("boneMatrix[" + std::to_string(index) + "]", bi->second);
             }
         }
         
         mc->PreRender(scene);
-        RecursiveRender(mc, view, matrix4(1.0), scene);
+        RecursiveRender(mc, view, matrix4(1.0), scene, program);
+        
+        if(mc->program) {
+            mc->program->Unbind();
+            m_program->Bind();
+        }
     }
     
     renderSystem->DisableDepthTest();
@@ -111,7 +125,7 @@ void GBufferPass::Render(Scene* scene) {
     m_program->Unbind();
 }
 
-void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene) {
+void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 parent, Scene* scene, ShaderProgram* program) {
     // Calculate model matrix
     Transform* meshTransform = rc->GetTransform();
     matrix4 mat = meshTransform->GetMatrix();
@@ -125,7 +139,7 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
                 continue;
             }
             
-            RecursiveRender(mc, view, model, scene);
+            RecursiveRender(mc, view, model, scene, program);
         }
         
         return;
@@ -145,8 +159,8 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     
     // Send view/proj matrix to shader
     matrix4 modelviewMatrix = view * model;
-    m_program->Set("modelviewMatrix", modelviewMatrix);
-    m_program->Set("modelMatrix", model);
+    program->Set("modelviewMatrix", modelviewMatrix);
+    program->Set("modelMatrix", model);
     
     VertexBuffer* vertexBuffer = m->vertexBuffer;
     VertexFormat* vertexType = vertexBuffer->GetFormat();
@@ -161,33 +175,33 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     
     // Enable the attributes we need
     bool enabled = vertexType->EnableAttribute(0, VERTEXTYPE_ATTRIB_POSITION);
-    m_program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_POSITION", (int)enabled);
     enabled = vertexType->EnableAttribute(1, VERTEXTYPE_ATTRIB_COLOR);
-    m_program->Set("VERTEXTYPE_ATTRIB_COLOR", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_COLOR", (int)enabled);
     enabled = vertexType->EnableAttribute(2, VERTEXTYPE_ATTRIB_NORMAL);
-    m_program->Set("VERTEXTYPE_ATTRIB_NORMAL", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_NORMAL", (int)enabled);
     enabled = vertexType->EnableAttribute(3, VERTEXTYPE_ATTRIB_TEXCOORD0);
-    m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_TEXCOORD0", (int)enabled);
     enabled = vertexType->EnableAttribute(4, VERTEXTYPE_ATTRIB_TEXCOORD1);
-    m_program->Set("VERTEXTYPE_ATTRIB_TEXCOORD1", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_TEXCOORD1", (int)enabled);
     enabled = vertexType->EnableAttribute(5, VERTEXTYPE_ATTRIB_BONES);
-    m_program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_BONES", (int)enabled);
     enabled = vertexType->EnableAttribute(6, VERTEXTYPE_ATTRIB_BONEWEIGHTS);
-    m_program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_BONEWEIGHTS", (int)enabled);
     enabled = vertexType->EnableAttribute(7, VERTEXTYPE_ATTRIB_OFFSETS);
-    m_program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
+    program->Set("VERTEXTYPE_ATTRIB_OFFSETS", (int)enabled);
     
     // Bind textures
     if(m->diffuseTexture) {
         m->diffuseTexture->Bind(0);
-        m_program->Set("diffuseTexture", 0);
+        program->Set("diffuseTexture", 0);
         
         // glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
     }
     
     if(m->normalTexture) {
         m->normalTexture->Bind(1);
-        m_program->Set("normalTexture", 1);
+        program->Set("normalTexture", 1);
     }
     
     // Get our material texture
@@ -195,11 +209,11 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     Texture* materialTexture = materialSystem->GetTexture();
     
     materialTexture->Bind(3);
-    m_program->Set("textureMaterialLookup", 3);
+    program->Set("textureMaterialLookup", 3);
     materialTexture->SetTextureFilter(FILTER_NEAREST);
     
     // Specify material
-    m_program->Set("materialID", (float)m->material->GetMaterial());
+    program->Set("materialID", (float)m->material->GetMaterial());
     
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();

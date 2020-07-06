@@ -822,6 +822,11 @@ int main(int argc, char** argv) {
             cout << "Non-exportable, skipping" << endl;
             continue;
         }
+        
+        if(ei->second == false) {
+            cout << "Non-exportable, skipping" << endl;
+            continue;
+        }
 
         std::map<std::string, bool>::iterator singleton = singletonClasses.find(cl->name);
         if (singleton != singletonClasses.end()) {
@@ -1078,6 +1083,11 @@ int main(int argc, char** argv) {
         if (ei == exportGigaClasses.end()) {
             continue;
         }
+        
+        if(ei->second == false) {
+            cout << "Non-exportable, skipping" << endl;
+            continue;
+        }
 
         output += "\tMeta::Class* metaClass" + cl->name + " = new Meta::Class();\n";
         if (cl->hasPublicConstructor == true) {
@@ -1216,6 +1226,11 @@ int main(int argc, char** argv) {
 
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cl->name);
         if (ei == exportGigaClasses.end()) {
+            cout << "Non-exportable, skipping" << endl;
+            continue;
+        }
+        
+        if(ei->second == false) {
             cout << "Non-exportable, skipping" << endl;
             continue;
         }
@@ -1509,6 +1524,11 @@ int main(int argc, char** argv) {
         if (ei == exportGigaClasses.end()) {
             continue;
         }
+        
+        if(ei->second == false) {
+            cout << "Non-exportable, skipping" << endl;
+            continue;
+        }
 
         auto flist = cl->GetFunctions();
         auto fi = flist.begin();
@@ -1606,6 +1626,11 @@ int main(int argc, char** argv) {
 
         std::map<std::string, bool>::iterator ei = exportGigaClasses.find(cl->name);
         if (ei == exportGigaClasses.end()) {
+            cout << "Non-exportable, skipping" << endl;
+            continue;
+        }
+        
+        if(ei->second == false) {
             cout << "Non-exportable, skipping" << endl;
             continue;
         }

@@ -6,6 +6,7 @@
 #include <Render/Renderable.h>
 #include <Core/VariantRef.h>
 #include <Render/Sphere.h>
+#include <Render/ShaderProgram.h>
 
 class Scene;
 
@@ -42,6 +43,9 @@ public:
     
     // Oriented bounding sphere
     Sphere* m_boundingSphere;
+    
+    // Custom shader
+    ShaderProgram* program;
 };
 
 #endif
