@@ -50,9 +50,18 @@ public:
      */
     float GetLifespan() { return m_lifespan; }
     
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
+    
 protected:
     // Particles
     Array<Particle*> m_particles;
+    
+    // Max count of particles
+    int m_maxCount;
     
     // Size of billboard object
     float m_size;

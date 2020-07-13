@@ -17,13 +17,7 @@ Transform::Transform() {
 }
 
 void Transform::SetParent(Transform* transform) {
-    // First, whether we have a current parent or not, set everything to world positions
-    m_position = GetWorldPosition();
-    m_scaling = GetWorldScaling();
-    m_rotation = GetWorldRotation();
-    
     m_parent = transform;
-    
     m_parent->AddChild(this);
 }
 

@@ -1,13 +1,16 @@
 #include "objectselectdialog.h"
 #include "ui_objectselectdialog.h"
 #include "metatypes.h"
+#include "newobjectdialog.h"
 
 #include <QListWidgetItem>
+#include <QPushButton>
 
 ObjectSelectDialog::ObjectSelectDialog(std::string filter, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ObjectSelectDialog)
 {
+    m_filter = filter;
     ui->setupUi(this);
     Array<GigaObject*> objects = GigaObject::GetObjects(filter);
     auto it = objects.begin();
@@ -18,6 +21,9 @@ ObjectSelectDialog::ObjectSelectDialog(std::string filter, QWidget *parent) :
 
         ui->listWidget->addItem(item);
     }
+
+    QPushButton* newButton = ui->buttonBox->addButton("New...", QDialogButtonBox::ActionRole);
+    connect(newButton, &QPushButton::clicked, this, &ObjectSelectDialog::btnNewObject_clicked);
 }
 
 ObjectSelectDialog::~ObjectSelectDialog()
@@ -38,4 +44,10 @@ QList<GigaObject*> ObjectSelectDialog::GetSelectedObjects() {
     }
 
     return(ret);
+}
+
+void ObjectSelectDialog::btnNewObject_clicked() {
+    NewObjectDialog* dlg = new NewObjectDialog(QString::fromStdString(m_filter), this);
+    dlg->setModal(true);
+    int returnCode = dlg->exec();
 }

@@ -14,11 +14,11 @@ void Component::Serialize(DataRecord* record) {
         entityID = m_parent->entityID;
     }
     
-    record->Set("entityID", new Variant((uint32_t)entityID));
+    record->Set("Component.entityID", new Variant((uint32_t)entityID));
 }
 
 void Component::Deserialize(DataRecord* record) {
-    uint32_t entityID = record->Get("entityID")->AsUInt();
+    uint32_t entityID = record->Get("Component.entityID")->AsUInt();
     if(entityID) {
         Entity* ent = World::GetInstance()->FindEntity(entityID);
         

@@ -356,7 +356,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records
     Array<std::string> fields = firstRecord->GetKeys();
     auto fi = fields.begin();
     for(; fi != fields.end(); fi++) {
-        query += "," + (*fi) + " TEXT";
+        query += ",'" + (*fi) + "' TEXT";
     }
     
     query += ", PRIMARY KEY(" + table + "_id ASC))";
@@ -431,40 +431,12 @@ void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records
                 if(field.compare(primaryKeyCol) != 0) {
                     Variant* v = dr->Get(field);
                     std::string value = std::to_string(v->GetType()) + ":" + dr->Get(field)->ToString();
-                    if(v->IsObject()) {
-                        if(v->AsObject() == 0) {
-                            DataRecord::TypeHint* hint = dr->GetTypeHint(*f);
-                            std::string value = std::to_string(v->GetType()) + ":" + hint->type + ":0";
-                        }
-                        else {
-                            // Look for a cached object
-                            auto oi = m_recordCache.find(v->AsObject());
-                            if(oi != m_recordCache.end()) {
-                                // Update the cached object ID
-                                value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
-                            }
-                            else {
-                                // Create a new object, save ID
-                                GigaObject* obj = v->AsObject();
-                                Array<GigaObject*> newRecord;
-                                newRecord.push_back(obj);
-                                
-                                this->SaveObjects(obj->GetGigaName(), newRecord);
-                                
-                                // Get the new object from the cache
-                                DataRecord* newDR = m_recordCache[obj];
-                                
-                                // Get ID
-                                value = std::to_string(v->GetType()) + ":" + obj->GetGigaName() + ":" + std::to_string(newDR->GetID());
-                            }
-                        }
-                    }
                     
                     if(f != fields.begin()) {
                         query += ",";
                         values += ",";
                     }
-                    query += field;
+                    query += "'" + field + "'";
                     values += "'" + value + "'";
                 }
             }
@@ -512,28 +484,9 @@ void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records
             if(field.compare(primaryKeyCol) != 0) {
                 Variant* v = dr->Get(field);
                 std::string value = std::to_string(v->GetType()) + ":" + dr->Get(field)->ToString();
-                if(v->IsObject()) {
-                    if(v->AsObject() == 0) {
-                        DataRecord::TypeHint* hint = dr->GetTypeHint(*f);
-                        std::string value = std::to_string(v->GetType()) + ":" + hint->type + ":0";
-                    }
-                    else {
-                        // Save / update
-                        GigaObject* obj = v->AsObject();
-                        Array<GigaObject*> newRecord;
-                        newRecord.push_back(obj);
-
-                        // Save
-                        this->SaveObjects(obj->GetGigaName(), newRecord);
-
-                        // Look for a cached object
-                        auto oi = m_recordCache.find(v->AsObject());
-                        value = std::to_string(v->GetType()) + ":" + oi->first->GetGigaName() + ":" + std::to_string(oi->second->GetID());
-                    }
-                }
                 
                 if(f != fields.begin()) query += ",";
-                query += field + " = '" + value + "'";
+                query += "'" + field + "' = '" + value + "'";
             }
         }
             

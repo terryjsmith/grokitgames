@@ -1096,6 +1096,7 @@ int main(int argc, char** argv) {
         output += "\tmetaClass" + cl->name + "->name = \"" + cl->name + "\";\n";
         output += "\tmetaClass" + cl->name + "->typeID = " + std::to_string(typeID) + ";\n";
         output += "\tmetaClass" + cl->name + "->singleton = " + (cl->singleton == true ? "true" : "false") + ";\n";
+        output += "\tmetaClass" + cl->name + "->native = true;\n";
         
         auto pci = cl->inheritsFrom.begin();
         for(; pci != cl->inheritsFrom.end(); pci++) {

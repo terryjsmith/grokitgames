@@ -4,6 +4,7 @@
 #include "newcomponentdialog.h"
 #include "modeltest.h"
 #include "objectselectdialog.h"
+#include "editorsettings.h"
 
 #include <QFileDialog>
 #include <QJsonDocument>
@@ -30,18 +31,6 @@ MainWindow* MainWindow::getInstance() {
     }
 
     return(m_instance);
-}
-
-// Add custom field mapping to system
-void OverrideField(MonoString* field, MonoString* object) {
-    std::string strField = mono_string_to_utf8(field);
-    std::string objOverride = mono_string_to_utf8(object);
-
-    MainWindow::getInstance()->AddOverride(strField, objOverride);
-}
-
-void MainWindow::AddOverride(std::string field, std::string type) {
-    m_overrides[field] = type;
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -86,6 +75,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->installEventFilter(ui->openGLWidget);
     ui->sceneView->initialized = true;
+
+    ui->openGLWidget->setFocus(Qt::FocusReason::NoFocusReason);
 }
 
 void MainWindow::btnOpenProject_clicked() {
@@ -376,60 +367,100 @@ void MainWindow::cbTextEditFinished() {
 }
 
 
-QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent) {
-    // Create a new form layout
-    QFormLayout* layout = new QFormLayout(0);
-
+void MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent, QGridLayout* layout, QString title) {
     // Iterate over keys to create layout
     Array<std::string> keys = record->GetKeys();
+
+    QLabel* label = new QLabel(title);
+    label->setStyleSheet("font-weight: bold; background: #aaa; padding: 5px;");
+
+    layout->addWidget(label, layout->rowCount() + 1, 0, 1, 2);
+
+    // Start by grouping everything together by part (keys are stored as part.varname)
+    std::map<std::string, Variant*> mapped;
     auto it = keys.begin();
+    for(; it != keys.end(); it++) {
+        mapped[*it] = record->Get(*it);
+    }
+
+    std::string currentBlock = "";
+    it = keys.begin();
     for(; it != keys.end(); it++) {
         QWidget* widget = 0;
         bool added = false;
 
-        if((*it).compare("entityID") == 0) continue;
+        if((*it).compare("Component.entityID") == 0) continue;
+
+        // See if we're starting a new block
+        std::string block = (*it).substr(0, (*it).find("."));
+        if(currentBlock != block) {
+            // If we're switching blocks, show a header of sorts
+            QLabel* label = new QLabel(QString::fromStdString(block));
+            label->setStyleSheet("font-weight: bold;");
+
+            layout->addWidget(label, layout->rowCount() + 1, 0, 1, 2);
+            //layout->addRow(QString::fromStdString(block), spacer);
+
+            currentBlock = block;
+        }
 
         // Set the field name to the column name
         QString origFieldName = (*it).c_str();
         QString fieldName = (*it).c_str();
+        fieldName = fieldName.mid(fieldName.indexOf(".") + 1);
         fieldName = fieldName.replace(QRegExp("([a-z])([A-Z])"), "\\1 \\2");
         fieldName = fieldName.replace(0, 1, fieldName.left(1).toUpper());
+
+        // Add the label
+        QLabel* label = new QLabel(fieldName);
+        layout->addWidget(label, layout->rowCount(), 0);
 
         // Get the variant and type
         Variant* v = record->Get(*it);
         uint32_t variantType = v->GetType();
 
+        // Get any custom field definition
+        EditorSettings::CustomField* customField = EditorSettings::GetInstance()->GetCustomField(obj->GetGigaName(), *it);
+
         if(variantType == Variant::VAR_INT32 || variantType == Variant::VAR_UINT32 || variantType == Variant::VAR_INT64 || variantType == Variant::VAR_UINT64) {
+            std::string value = v->ToString();
+            if(customField && value.length() == 0) value = customField->defaultValue;
+
             QLineEdit* edit = new QLineEdit(parent);
-            edit->setText(QString::fromStdString(v->ToString()));
+            edit->setText(QString::fromStdString(value));
             edit->setValidator(new QIntValidator(layout));
             edit->setMaximumWidth(40);
             widget = edit;
 
-            connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(edit, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
         }
 
         if(variantType == Variant::VAR_BOOL) {
+            bool value = v->AsBool();
+
             QCheckBox* cb = new QCheckBox(parent);
-            cb->setChecked(v->AsBool());
+            cb->setChecked(value);
 
             connect(cb, SIGNAL(stateChanged(int)), this, SLOT(cbStateChange(int)));
             widget = cb;
         }
 
         if(variantType == Variant::VAR_FLOAT) {
+            float value = v->AsFloat();
+
             QLineEdit* edit = new QLineEdit(parent);
-            edit->setText(QString::number(v->AsFloat(), 'f', 2));
+            edit->setText(QString::number(value, 'f', 2));
             edit->setValidator(new QDoubleValidator(layout));
             edit->setMaximumWidth(40);
             widget = edit;
 
-            connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(edit, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
         }
 
         if(variantType == Variant::VAR_VECTOR2) {
+            vector2 value = v->AsVector2();
             QHBoxLayout* hbox = new QHBoxLayout();
-            vector2 vec2 = v->AsVector2();
+            vector2 vec2 = value;
 
             QLineEdit* x = new QLineEdit(parent);
             x->setText(QString::number(vec2.x, 'f', 2));
@@ -451,17 +482,18 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             y->setProperty("fieldObject", QVariant::fromValue(obj));
             y->setProperty("fieldName", QString::fromStdString(*it));
 
-            connect(x, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(y, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(x, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(y, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
 
-            hbox->addStretch(1);
-            layout->addRow(fieldName,hbox);
+            //hbox->addStretch(1);
+            layout->addLayout(hbox, layout->rowCount() - 1, 1);
             added = true;
         }
 
         if(variantType == Variant::VAR_VECTOR3) {
+            vector3 value = v->AsVector3();
             QHBoxLayout* hbox = new QHBoxLayout();
-            vector3 vec3 = v->AsVector3();
+            vector3 vec3 = value;
 
             QLineEdit* x = new QLineEdit(parent);
             x->setText(QString::number(vec3.x, 'f', 2));
@@ -493,18 +525,19 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             z->setProperty("fieldObject", QVariant::fromValue(obj));
             z->setProperty("fieldName", QString::fromStdString(*it));
 
-            connect(x, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(y, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(z, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(x, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(y, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(z, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
 
-            hbox->addStretch(1);
-            layout->addRow(fieldName,hbox);
+            //hbox->addStretch(1);
+            layout->addLayout(hbox, layout->rowCount() - 1, 1);
             added = true;
         }
 
         if(variantType == Variant::VAR_VECTOR4) {
+            vector4 value = v->AsVector4();
             QHBoxLayout* hbox = new QHBoxLayout();
-            vector4 vec4 = v->AsVector4();
+            vector4 vec4 = value;
 
             QLineEdit* x = new QLineEdit(parent);
             x->setText(QString::number(vec4.x, 'f', 2));
@@ -546,19 +579,20 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             w->setProperty("fieldObject", QVariant::fromValue(obj));
             w->setProperty("fieldName", QString::fromStdString(*it));
 
-            connect(x, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(y, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(z, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(w, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(x, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(y, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(z, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(w, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
 
-            hbox->addStretch(1);
-            layout->addRow(fieldName,hbox);
+            //hbox->addStretch(1);
+            layout->addLayout(hbox, layout->rowCount() - 1, 1);
             added = true;
         }
 
         if(variantType == Variant::VAR_QUATERNION) {
+            quaternion value = v->AsQuaternion();
             QHBoxLayout* hbox = new QHBoxLayout();
-            quaternion quat = v->AsQuaternion();
+            quaternion quat = value;
 
             vector3 angles = glm::degrees(glm::eulerAngles(quat));
 
@@ -592,81 +626,51 @@ QFormLayout* MainWindow::GetFormLayout(DataRecord* record, GigaObject* obj, QWid
             z->setProperty("fieldObject", QVariant::fromValue(obj));
             z->setProperty("fieldName", QString::fromStdString(*it));
 
-            connect(x, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(y, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-            connect(z, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
+            connect(x, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(y, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
+            connect(z, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
 
-            hbox->addStretch(1);
-            layout->addRow(fieldName,hbox);
+            //hbox->addStretch(1);
+            layout->addLayout(hbox, layout->rowCount() - 1, 1);
             added = true;
         }
 
         if(variantType == Variant::VAR_STRING) {
+            QHBoxLayout* hbox = new QHBoxLayout();
+
+            std::string value = v->AsString();
+            if(customField && value.length() == 0) value = customField->defaultValue;
+
             QLineEdit* edit = new QLineEdit(parent);
-            edit->setText(QString::fromStdString(v->AsString()));
-            widget = edit;
+            edit->setDisabled(true);
+            edit->setObjectName(QString::fromStdString(*it) + "_edit");
+            edit->setProperty("fieldObject", QVariant::fromValue(obj));
+            edit->setProperty("fieldName", QString::fromStdString(*it));
+            edit->setText(QString::fromStdString(value));
+            hbox->addWidget(edit);
 
-            connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-        }
+            connect(edit, SIGNAL(editingFinished()), this, SLOT(cbTextEditFinished()));
 
-        // Special case for resource objects
-        if(variantType == Variant::VAR_OBJECT) {
-            GigaObject* obj2 = v->AsObject();
-            DataRecord::TypeHint* hint = record->GetTypeHint(*it);
-            if(obj2 != 0 && hint == 0) {
-                // Valid object, serialize into layout
-                QVBoxLayout* vbox = new QVBoxLayout;
-
-                DataRecord* dr2 = new DataRecord();
-                obj2->Serialize(dr2);
-
-                QFormLayout* form = GetFormLayout(dr2, obj2, widget);
-                if(form->rowCount() > 1) {
-                    QLabel* label = new QLabel(QString::fromStdString(obj2->GetGigaName()));
-                    label->setStyleSheet("font-weight: bold;");
-                    vbox->addWidget(label);
-                }
-                form->setLabelAlignment(Qt::AlignLeft);
-                vbox->addLayout(form);
-
-                layout->addRow(vbox);
-                delete dr2;
-            }
-            else {
-                // Invalid object, use type hint to show object selector
-                QHBoxLayout* hbox = new QHBoxLayout();
-
-                QLineEdit* edit = new QLineEdit(parent);
-                edit->setDisabled(true);
-                edit->setObjectName(QString::fromStdString(*it) + "_edit");
-                edit->setProperty("fieldObject", QVariant::fromValue(obj));
-                if(obj2 != 0) edit->setText(QString::fromStdString(obj2->ToString()));
-                edit->setProperty("fieldName", QString::fromStdString(*it));
-                connect(edit, SIGNAL(textChanged(const QString &)), this, SLOT(cbTextEditFinished()));
-
+            if(customField) {
                 QPushButton* button = new QPushButton();
                 button->setText("+");
-                button->setProperty("type", QString::fromStdString(hint->type));
-                button->setProperty("multiselect", hint->single == false);
+                button->setProperty("type", QString::fromStdString(customField->type));
+                button->setProperty("multiselect", customField->action == "SelectMultiple");
                 button->setObjectName(QString::fromStdString(*it));
                 connect(button, SIGNAL(clicked()), this, SLOT(objectBrowser()));
-
-                hbox->addWidget(edit);
                 hbox->addWidget(button);
-
-                layout->addRow(fieldName, hbox);
             }
+
+            layout->addLayout(hbox, layout->rowCount() - 1, 1);
             added = true;
         }
 
         if(added == false) {
             widget->setProperty("fieldObject", QVariant::fromValue(obj));
             widget->setProperty("fieldName", QString::fromStdString(*it));
-            layout->insertRow(0, fieldName, widget);
+            layout->addWidget(widget, layout->rowCount() - 1, 1);
         }
     }
-
-    return(layout);
 }
 
 void MainWindow::cbStateChange(int s) {
@@ -785,6 +789,11 @@ void MainWindow::trySaveFile() {
 
 GigaOpenGLWidget* MainWindow::GetOpenGLWidget() {
     return(ui->openGLWidget);
+}
+
+void MainWindow::SetEditMode(std::string mode) {
+    QPushButton* btn = ui->frame_2->findChild<QPushButton*>(QString::fromStdString("btnEditMode_" + mode));
+    btn->click();
 }
 
 void MainWindow::btnChangeEditMode() {

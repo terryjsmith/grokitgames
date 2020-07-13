@@ -5,6 +5,7 @@
 #include <QMouseEvent>
 #include <QStatusBar>
 
+#include <Core/TransformComponent.h>
 #include <Core/Application.h>
 #include <Render/RenderSystem.h>
 #include <Render/Pipelines/DeferredRenderPipeline.h>
@@ -18,10 +19,22 @@ GigaOpenGLWidget::GigaOpenGLWidget(QWidget *parent) : QOpenGLWidget(parent) {
     m_rotationSpeed = 0.0f;
     m_dragging = false;
     m_panning = false;
+    m_targetDistance = 0;
+    m_selectedEntity = 0;
+    m_translationComponent = 0;
+    m_scaleComponent = 0;
+    m_rotationComponent = 0;
+    m_editAxis = EDITAXIS_NONE;
+    m_editorMode = EDITORMODE_CAMERA;
 }
 
 void GigaOpenGLWidget::initializeGL() {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
+    World* world = World::GetInstance();
+
+    m_translationComponent =  new TranslationGizmoComponent();
+    m_scaleComponent =  new ScaleGizmoComponent();
+    m_rotationComponent =  new RotationGizmoComponent();
 
     this->SetEditorMode(EditorMode::EDITORMODE_CAMERA);
     this->SetEditMode(EditMode::EDITMODE_GRAB);
@@ -79,54 +92,51 @@ void GigaOpenGLWidget::paintGL() {
 
 bool GigaOpenGLWidget::eventFilter(QObject *obj, QEvent *event)  {
     if (event->type() == QEvent::KeyPress) {
+            MainWindow* mainWindow = MainWindow::getInstance();
             QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
 
             if(keyEvent->key() == Qt::Key_Escape) {
                 this->SetEditorMode(EditorMode::EDITORMODE_CAMERA);
+                this->SetSelectedEntity(0);
+                m_editAxis = EDITAXIS_NONE;
             }
 
+            if(keyEvent->key() == Qt::Key_G && m_keys[Qt::Key_Alt] == true) {
+                mainWindow->SetEditMode("Grab");
+                m_editMode = EditMode::EDITMODE_GRAB;
+            }
+
+            if(keyEvent->key() == Qt::Key_R && m_keys[Qt::Key_Alt] == true) {
+                mainWindow->SetEditMode("Rotate");
+                m_editMode = EditMode::EDITMODE_ROTATE;
+            }
+
+            if(keyEvent->key() == Qt::Key_M && m_keys[Qt::Key_Alt] == true) {
+                mainWindow->SetEditMode("Move");
+                m_editMode = EditMode::EDITMODE_MOVE;
+            }
+
+            if(keyEvent->key() == Qt::Key_S && m_keys[Qt::Key_Alt] == true) {
+                mainWindow->SetEditMode("Scale");
+                m_editMode = EditMode::EDITMODE_SCALE;
+            }
+
+            m_keys[keyEvent->key()] = true;
             return true;
-        } else {
-            // standard event processing
-            return QObject::eventFilter(obj, event);
-        }
+    }
+
+    if (event->type() == QEvent::KeyRelease) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        m_keys[keyEvent->key()] = false;
+
+        return true;
+    }
+
+    return QObject::eventFilter(obj, event);
 }
 
 void GigaOpenGLWidget::mouseReleaseEvent(QMouseEvent *event) {
     if(event->button() == Qt::MouseButton::LeftButton) {
-        // Get the index buffer
-        RenderSystem* rs = GetSystem<RenderSystem>();
-        RenderPipeline* pipeline = rs->GetRenderPipeline();
-        Texture2D* indexTexture = pipeline->GetIndexTexture();
-
-        // Get the position of the mouse click
-        QPoint pos = event->pos();
-
-        int scaleFactor = m_framebufferWidth / m_width;
-
-        float* data = (float*)malloc(sizeof(float) * m_framebufferWidth * m_framebufferHeight * 3);
-        indexTexture->Bind(0);
-        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, data);
-        indexTexture->Unbind();
-
-        // Get the clicked index
-        int dindex = (((m_framebufferHeight - (pos.ry() * scaleFactor)) * m_framebufferWidth) + (pos.rx() * scaleFactor)) * 3;
-        float index = data[dindex];
-        free(data);
-
-        // Index is 1-based, so need to subtract 1 to see if valid
-        index = index - 1;
-        if(index >= 0) {
-            // Get clicked item
-            RenderComponent* rc = rs->GetScene()->renderables[index];
-
-            MainWindow* mainWindow = MainWindow::getInstance();
-
-            // Select item
-            SceneTreeView* view = mainWindow->GetSceneView();
-            view->ProcessSelectedEntity(rc->GetParent());
-        }
-
         m_dragging = false;
     }
 
@@ -147,6 +157,7 @@ void GigaOpenGLWidget::mousePressEvent(QMouseEvent *event) {
         RenderSystem* rs = GetSystem<RenderSystem>();
         RenderPipeline* pipeline = rs->GetRenderPipeline();
         Texture2D* depthTexture = pipeline->GetDepthTexture();
+        Texture2D* indexTexture = pipeline->GetIndexTexture();
 
         // Get the position of the mouse click
         QPoint pos = event->pos();
@@ -159,29 +170,117 @@ void GigaOpenGLWidget::mousePressEvent(QMouseEvent *event) {
         depthTexture->Unbind();
 
         // Get the clicked index
-        int dindex = (((m_framebufferHeight - (pos.ry() * scaleFactor)) * m_framebufferWidth) + (pos.rx() * scaleFactor));
+        vector2 screenCenter = vector2(m_framebufferWidth / 2.0f, m_framebufferHeight / 2.0f);
+        int dindex = (screenCenter.y * m_framebufferWidth) + screenCenter.x;
         float depth = data[dindex];
         free(data);
 
         // Get camera to determine near and far plane
         CameraComponent* camera = rs->GetScene()->camera;
-        float fnear = camera->GetNear();
-        float ffar = camera->GetFar();
+        matrix4 projMatrix = camera->GetProjectionMatrix();
+        matrix4 viewMatrix = camera->GetViewMatrix();
+        vector4 viewport = vector4(0, 0, m_framebufferWidth, m_framebufferHeight);
 
-        matrix4 projMatrixInv = glm::inverse(camera->GetProjectionMatrix());
-        matrix4 viewMatrixInv = glm::inverse(camera->GetViewMatrix());
+        vector3 objectCoords = glm::unProject(vector3(screenCenter.x, screenCenter.y, depth), viewMatrix, projMatrix, viewport);
 
-        float z = depth * 2.0 - 1.0;
-        vector2 texcoord = vector2(((float)pos.rx() * scaleFactor)/(float)m_framebufferWidth, ((float)pos.ry() * scaleFactor)/(float)m_framebufferHeight);
-        vector4 clipSpacePosition = vector4(texcoord.x * 2.0 - 1.0, texcoord.y * 2.0 - 1.0, z, 1.0);
-        vector4 viewSpacePosition = projMatrixInv * clipSpacePosition;
-
-        // Perspective division
-        viewSpacePosition /= viewSpacePosition.w;
-
-        vector4 worldSpacePosition = viewMatrixInv * viewSpacePosition;
-        m_targetPosition = vector3(worldSpacePosition);
+        m_targetPosition = objectCoords;
+        vector3 distanceVec = camera->GetTransform()->GetWorldPosition() - m_targetPosition;
+        m_targetDistance = glm::length(distanceVec);
         m_dragging = true;
+        m_editorMode = EDITORMODE_OBJECT;
+
+        data = (float*)malloc(sizeof(float) * m_framebufferWidth * m_framebufferHeight * 4);
+        indexTexture->Bind(0);
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, data);
+        indexTexture->Unbind();
+
+        // Get the clicked index
+        dindex = (((m_framebufferHeight - (pos.ry() * scaleFactor)) * m_framebufferWidth) + (pos.rx() * scaleFactor)) * 4;
+        float index = data[dindex];
+        float childIndex = data[dindex + 3];
+        free(data);
+
+        // Actual child index (1-based as well)
+        childIndex--;
+
+        // Index is 1-based, so need to subtract 1 to see if valid
+        index = index - 1;
+        if(index >= 0) {
+            // Get clicked item
+            RenderComponent* rc = rs->GetScene()->renderables[index];
+            m_selectedEntity = rc->GetParent();
+
+            MainWindow* mainWindow = MainWindow::getInstance();
+
+            // Select item
+            SceneTreeView* view = mainWindow->GetSceneView();
+            view->ProcessSelectedEntity(rc->GetParent());
+
+            // Reset edit axis
+            m_editAxis = EDITAXIS_NONE;
+
+            // Check if we clicked a "special" object
+            TranslationGizmoComponent* tgc = dynamic_cast<TranslationGizmoComponent*>(rc);
+            QStatusBar* bar = MainWindow::getInstance()->statusBar();
+            if(tgc) {
+                // Set axis to which one was clicked (0 = Y, 1 = Z, 2 = X)
+                switch((int)childIndex) {
+                case 0:
+                    m_editAxis = EDITAXIS_Y;
+                    bar->showMessage("Edit axis: Y");
+                    break;
+                case 1:
+                    m_editAxis = EDITAXIS_Z;
+                    bar->showMessage("Edit axis: Z");
+                    break;
+                case 2:
+                    m_editAxis = EDITAXIS_X;
+                    bar->showMessage("Edit axis: X");
+                    break;
+                default: break;
+                };
+            }
+
+            RotationGizmoComponent* rgc = dynamic_cast<RotationGizmoComponent*>(rc);
+            if(rgc) {
+                // Set axis to which one was clicked (0 = X, 1 = Z, 2 = Y)
+                switch((int)childIndex) {
+                case 0:
+                    m_editAxis = EDITAXIS_X;
+                    bar->showMessage("Edit axis: X");
+                    break;
+                case 1:
+                    m_editAxis = EDITAXIS_Z;
+                    bar->showMessage("Edit axis: Z");
+                    break;
+                case 2:
+                    m_editAxis = EDITAXIS_Y;
+                    bar->showMessage("Edit axis: Y");
+                    break;
+                default: break;
+                };
+            }
+
+            ScaleGizmoComponent* sgc = dynamic_cast<ScaleGizmoComponent*>(rc);
+            if(sgc) {
+                // Set axis to which one was clicked (0 = Y, 1 = Z, 2 = X)
+                switch((int)childIndex) {
+                case 0:
+                    m_editAxis = EDITAXIS_Y;
+                    bar->showMessage("Edit axis: Y");
+                    break;
+                case 1:
+                    m_editAxis = EDITAXIS_Z;
+                    bar->showMessage("Edit axis: Z");
+                    break;
+                case 2:
+                    m_editAxis = EDITAXIS_X;
+                    bar->showMessage("Edit axis: X");
+                    break;
+                default: break;
+                };
+            }
+        }
     }
 
     QOpenGLWidget::mousePressEvent(event);
@@ -209,23 +308,63 @@ void GigaOpenGLWidget::mouseMoveEvent(QMouseEvent* event) {
     }
 
     if(m_dragging == true) {
-        // Figure out distance from camera to target
-        float distance = glm::length(camera->GetTransform()->GetWorldPosition() - m_targetPosition);
+        // If no edit axis, rotate around object
+        if(m_editAxis == EDITAXIS_NONE) {
+            // Rotate around X
+            float rotateFactor = 0.5f;
 
-        // Rotate around X
-        float rotateFactor = 0.5f;
+            vector3 up = vector3(0, 1, 0);//camera->GetTransform()->GetUp();
+            vector3 right = vector3(1, 0, 0);//camera->GetTransform()->GetRight();
 
-        vector3 up = vector3(0, 1, 0);//camera->GetTransform()->GetUp();
-        vector3 right = vector3(1, 0, 0);//camera->GetTransform()->GetRight();
+            camera->GetTransform()->Rotate(right, (float)diff.y() * rotateFactor);
+            camera->GetTransform()->Rotate(up, (float)-diff.x() * rotateFactor);
 
-        camera->GetTransform()->Rotate(right, (float)-diff.y() * rotateFactor);
-        camera->GetTransform()->Rotate(up, (float)-diff.x() * rotateFactor);
+            vector3 look = glm::normalize(camera->GetTransform()->GetLook());
+            vector3 position = m_targetPosition - (m_targetDistance * look);
+            camera->GetTransform()->SetWorldPosition(position);
+        }
 
-        vector3 look = glm::normalize(camera->GetTransform()->GetLook());
-        vector3 position = m_targetPosition - (distance * look);
-        camera->GetTransform()->SetWorldPosition(position);
+        if(m_editAxis && m_editorMode == EDITORMODE_OBJECT && m_editMode == EDITMODE_MOVE) {
+            float moveFactor = 0.1f;
+            TransformComponent* tc = m_selectedEntity->GetComponent<TransformComponent>();
+            float fdiff = m_editAxis == EDITAXIS_Y ? (float)diff.y() : (float)diff.x();
+            vector3 amount = vector3(fdiff * moveFactor);
 
-        float checkDistance = glm::length(camera->GetTransform()->GetWorldPosition() - m_targetPosition);
+            // Mask based on selected axis
+            amount.x = amount.x * (m_editAxis == EDITAXIS_X ? 1.0f : 0.0f);
+            amount.y = amount.y * (m_editAxis == EDITAXIS_Y ? 1.0f : 0.0f);
+            amount.z = amount.z * (m_editAxis == EDITAXIS_Z ? 1.0f : 0.0f);
+
+            tc->GetTransform()->Move(amount);
+        }
+
+        if(m_editAxis && m_editorMode == EDITORMODE_OBJECT && m_editMode == EDITMODE_SCALE) {
+            float moveFactor = 0.1f;
+            TransformComponent* tc = m_selectedEntity->GetComponent<TransformComponent>();
+            float fdiff = m_editAxis == EDITAXIS_Y ? (float)diff.y() : (float)diff.x();
+            vector3 amount = vector3(fdiff * moveFactor);
+
+            // Mask based on selected axis
+            amount.x = amount.x * (m_editAxis == EDITAXIS_X ? 1.0f : 0.0f);
+            amount.y = amount.y * (m_editAxis == EDITAXIS_Y ? 1.0f : 0.0f);
+            amount.z = amount.z * (m_editAxis == EDITAXIS_Z ? 1.0f : 0.0f);
+
+            tc->GetTransform()->Scale(amount);
+        }
+
+        if(m_editAxis && m_editorMode == EDITORMODE_OBJECT && m_editMode == EDITMODE_ROTATE) {
+            float moveFactor = 0.1f;
+            TransformComponent* tc = m_selectedEntity->GetComponent<TransformComponent>();
+            float fdiff = m_editAxis == EDITAXIS_Y ? (float)diff.y() : (float)diff.x();
+            vector3 amount = vector3(fdiff * moveFactor);
+
+            // Mask based on selected axis
+            amount.x = amount.x * (m_editAxis == EDITAXIS_X ? 1.0f : 0.0f);
+            amount.y = amount.y * (m_editAxis == EDITAXIS_Y ? 1.0f : 0.0f);
+            amount.z = amount.z * (m_editAxis == EDITAXIS_Z ? 1.0f : 0.0f);
+
+            tc->GetTransform()->Move(amount);
+        }
     }
 
     m_lastMousePos = pos;
@@ -259,4 +398,73 @@ void GigaOpenGLWidget::SetEditorMode(EditorMode mode) {
         break;
     default: break;
     };
+}
+
+void GigaOpenGLWidget::SetEditMode(EditMode mode) {
+    m_editMode = mode;
+    World* world = World::GetInstance();
+
+    if(m_selectedEntity) {
+        m_selectedEntity->RemoveComponent(m_scaleComponent);
+        m_selectedEntity->RemoveComponent(m_rotationComponent);
+        m_selectedEntity->RemoveComponent(m_translationComponent);
+
+        MeshComponent* rc = m_selectedEntity->GetComponent<MeshComponent>();
+        vector3 center = vector3(0.0f);
+        if(rc) {
+            vector3 center = rc->GetBoundingSphere()->center; // In world position
+            center -= rc->GetTransform()->GetWorldPosition();
+        }
+
+        if(m_editMode == EDITMODE_MOVE) {
+            m_translationComponent->GetTransform()->SetLocalPosition(center);
+            m_selectedEntity->AddComponent(m_translationComponent);
+        }
+
+        if(m_editMode == EDITMODE_ROTATE) {
+            m_rotationComponent->GetTransform()->SetLocalPosition(center);
+            m_selectedEntity->AddComponent(m_rotationComponent);
+        }
+
+        if(m_editMode == EDITMODE_SCALE) {
+            m_scaleComponent->GetTransform()->SetLocalPosition(center);
+            m_selectedEntity->AddComponent(m_scaleComponent);
+        }
+    }
+}
+
+void GigaOpenGLWidget::SetSelectedEntity(Entity* entity) {
+    World* world = World::GetInstance();
+
+    if(entity == 0 && m_selectedEntity) {
+        m_selectedEntity->RemoveComponent(m_scaleComponent);
+        m_selectedEntity->RemoveComponent(m_rotationComponent);
+        m_selectedEntity->RemoveComponent(m_translationComponent);
+        m_selectedEntity = 0;
+        return;
+    }
+
+    m_selectedEntity = entity;
+
+    MeshComponent* rc = m_selectedEntity->GetComponent<MeshComponent>();
+    vector3 center = vector3(0.0f);
+    if(rc) {
+        vector3 center = rc->GetBoundingSphere()->center; // In world position
+        center -= rc->GetTransform()->GetWorldPosition();
+    }
+
+    if(m_editMode == EDITMODE_MOVE) {
+        m_translationComponent->GetTransform()->SetLocalPosition(center);
+        m_selectedEntity->AddComponent(m_translationComponent);
+    }
+
+    if(m_editMode == EDITMODE_ROTATE) {
+        m_rotationComponent->GetTransform()->SetLocalPosition(center);
+        m_selectedEntity->AddComponent(m_rotationComponent);
+    }
+
+    if(m_editMode == EDITMODE_SCALE) {
+        m_scaleComponent->GetTransform()->SetLocalPosition(center);
+        m_selectedEntity->AddComponent(m_scaleComponent);
+    }
 }

@@ -22,11 +22,6 @@ public:
     virtual void PreRender(Scene* scene);
     
     /**
-     * Initialize
-     */
-    void Initialize();
-    
-    /**
      * Serialize / deserialize
      */
     virtual void Serialize(DataRecord* record);

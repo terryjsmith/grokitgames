@@ -93,12 +93,6 @@ public:
         FILEMODE_APPEND = 8,
     };
     
-    /**
-     * Serialization
-     */
-    void Serialize(DataRecord* record);
-    void Deserialize(DataRecord* record);
-    
 public:
     // Just the filename + extension
     std::string filename;

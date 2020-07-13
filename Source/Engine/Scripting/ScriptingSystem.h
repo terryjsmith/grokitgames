@@ -6,6 +6,7 @@
 #include <Scripting/ScriptComponent.h>
 #include <Core/Message.h>
 #include <Scripting/MonoObjects.h>
+#include <Scripting/ScriptObject.h>
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
@@ -77,13 +78,7 @@ public:
     void AddInternalCall(std::string definition, void* func);
 
 protected:
-    // Object cache
-    struct CachedObject {
-        GigaObject* local;
-        MonoObject* remote;
-    };
-    
-    Array<CachedObject*> m_objects;
+    Array<ScriptObject*> m_objects;
     
     // Cache of classes
     std::map<std::string, MonoClassDesc*> m_classes;

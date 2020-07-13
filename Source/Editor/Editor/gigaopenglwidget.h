@@ -5,6 +5,10 @@
 #include <Render/RenderPipeline.h>
 #include <Core/Timer.h>
 
+#include "translationgizmocomponent.h"
+#include "scalegizmocomponent.h"
+#include "rotationgizmocomponent.h"
+
 class GigaOpenGLWidget : public QOpenGLWidget
 {
 public:
@@ -26,11 +30,20 @@ public:
         EDITMODE_SCALE
     };
 
+    enum EditAxis {
+        EDITAXIS_NONE = 0,
+        EDITAXIS_X = 1,
+        EDITAXIS_Y,
+        EDITAXIS_Z
+    };
+
     void SetEditorMode(EditorMode mode);
     EditorMode GetEditorMode() { return m_editorMode; }
 
-    void SetEditMode(EditMode mode) { m_editMode = mode; }
+    void SetEditMode(EditMode mode);
     EditMode GetEditMode() { return m_editMode; }
+
+    void SetSelectedEntity(Entity* entity);
 
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
@@ -58,17 +71,27 @@ protected:
 
     // Target position
     vector3 m_targetPosition;
+    float m_targetDistance;
 
     // Our current editor mode
     EditorMode m_editorMode;
     EditMode m_editMode;
+    EditAxis m_editAxis;
 
     // Are we dragging the mouse?
     bool m_dragging;
     bool m_panning;
 
+    // Selected entity
+    Entity* m_selectedEntity;
+
     // Last mouse position
     QPoint m_lastMousePos;
+
+    // Gizmos
+    TranslationGizmoComponent* m_translationComponent;
+    ScaleGizmoComponent* m_scaleComponent;
+    RotationGizmoComponent* m_rotationComponent;
 };
 
 #endif // GIGAOPENGLWIDGET_H

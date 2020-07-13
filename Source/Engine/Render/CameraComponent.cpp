@@ -138,17 +138,17 @@ void CameraComponent::SetViewMatrix(matrix4 view) {
 }
 
 void CameraComponent::Serialize(DataRecord* record) {
-    Component::Serialize(record);
+    TransformableComponent::Serialize(record);
     
-    record->Set("fov", new Variant(m_fov));
-    record->Set("fnear", new Variant(m_fnear));
-    record->Set("ffar", new Variant(m_ffar));
+    record->Set("Camera.fov", new Variant(m_fov));
+    record->Set("Camera.near", new Variant(m_fnear));
+    record->Set("Camera.far", new Variant(m_ffar));
 }
 
 void CameraComponent::Deserialize(DataRecord* record) {
-    Component::Deserialize(record);
+    TransformableComponent::Deserialize(record);
     
-    m_fov = record->Get("fov")->AsFloat();
-    m_fnear = record->Get("fnear")->AsFloat();
-    m_ffar = record->Get("ffar")->AsFloat();
+    m_fov = record->Get("Camera.fov")->AsFloat();
+    m_fnear = record->Get("Camera.near")->AsFloat();
+    m_ffar = record->Get("Camera.far")->AsFloat();
 }

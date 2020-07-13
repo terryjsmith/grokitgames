@@ -139,3 +139,15 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
         //m_depthTextures[i]->Save("depth.bmp");
     }
 }
+
+void DirectionalLightComponent::Serialize(DataRecord* record){
+    TransformableComponent::Serialize(record);
+    
+    record->Set("Light.color", new Variant(m_color));
+}
+
+void DirectionalLightComponent::Deserialize(DataRecord* record) {
+    TransformableComponent::Deserialize(record);
+    
+    m_color = record->Get("Light.color")->AsVector3();
+}

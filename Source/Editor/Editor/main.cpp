@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "editorsettings.h"
 #include <QApplication>
 #include <QSurfaceFormat>
 
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     resourceSystem->AddSearchPath("Resources/Shaders");
     resourceSystem->AddSearchPath("Resources/Scripts");
+    resourceSystem->AddSearchPath("Resources/Models");
 
     // Register built-in component types
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
@@ -67,6 +69,8 @@ int main(int argc, char *argv[])
     metaSystem->RegisterComponentType("Skybox");
     metaSystem->RegisterComponentType("TerrainComponent");
     metaSystem->RegisterComponentType("ScriptComponent");
+    metaSystem->RegisterComponentType("BillboardComponent");
+    metaSystem->RegisterComponentType("ParticleEmitterComponent");
 
     // Start up scripting system
     ScriptingSystem* scriptingSystem = GetSystem<ScriptingSystem>();
@@ -90,6 +94,9 @@ int main(int argc, char *argv[])
 
     MainWindow* w = MainWindow::getInstance();
     w->show();
+
+    // Initialize settings
+    EditorSettings* settings = EditorSettings::GetInstance();
 
     // Load editor files
     scriptingSystem->LoadLibrary("Resources/Scripting/GIGAEditor.dll");

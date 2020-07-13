@@ -7,9 +7,6 @@
 #include <IO/Profiler.h>
 #include <Core/Directory.h>
 #include <Scripting/ScriptObject.h>
-#include <Scripting/MonoEntity.h>
-#include <Scripting/MonoComponent.h>
-#include <Scripting/MonoSystem.h>
 #include <Core/DataRecord.h>
 
 GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
@@ -46,36 +43,29 @@ GigaObject* ScriptingSystem::internal_GigaObject_Ctor(MonoObject* obj) {
     
     GIGA_ASSERT(cl != 0, "Class type not found.");
     
+    // Process inheritance to find top-level native C++ class
     Meta::Class* mc = metaSystem->FindClass(cl->name);
+    if(mc->native == false) {
+        auto ci = mc->inheritsFrom.begin();
+        for(; ci != mc->inheritsFrom.end(); ci++) {
+            Meta::Class* mci = metaSystem->FindClass(*ci);
+            if(mci) {
+                if(mci->native == true) {
+                    mc = mci;
+                }
+            }
+        }
+        
+        if(ci == mc->inheritsFrom.end()) mc = metaSystem->FindClass("GigaObject");
+    }
     
     // Create a new script object
     newobj = mc->CreateObject();
     
-    // If this is a remote only object (class doesn't exist locally), set class type
-    ScriptObject* sc = dynamic_cast<ScriptObject*>(newobj);
-    if(sc != 0) {
-        sc->classType = cl;
-    }
-    
-    // Deal with special inheritance types
-    MonoEntity* me = dynamic_cast<MonoEntity*>(newobj);
-    if(me != 0) {
-        me->classType = cl;
-    }
-    
-    MonoComponent* mcn = dynamic_cast<MonoComponent*>(newobj);
-    if(mcn != 0) {
-        mcn->classType = cl;
-    }
-    
-    MonoSystem* ms = dynamic_cast<MonoSystem*>(newobj);
-    if(ms != 0) {
-        ms->classType = cl;
-    }
-    
-    CachedObject* cobj = new CachedObject();
+    ScriptObject* cobj = new ScriptObject();
     cobj->local = newobj;
     cobj->remote = obj;
+    cobj->classType = cl;
     
     scriptingSystem->m_objects.push_back(cobj);
     
@@ -162,41 +152,17 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
         
         // Make sure the class name is registered with the meta system
         if(strcmp(name_space, "GIGA") != 0) {
-            // Get the other class types
-            MonoClassDesc* entityClass = m_classes["GameObject"];
-            MonoClassDesc* componentClass = m_classes["GameComponent"];
-            MonoClassDesc* systemClass = m_classes["GameSystem"];
-            
             Meta::Class* mcl = metaSystem->FindClass(name);
             if(mcl == 0) {
                 // Create new meta class
                 mcl = new Meta::Class();
                 mcl->name = name;
                 
-                // Registered, check for special types from ECS model
-                bool registered = false;
-                if(mono_class_is_subclass_of(_class, entityClass->_class, false)) {
-                    mcl->RegisterConstructor<MonoEntity>();
-                    registered = true;
-                }
-                
-                if(mono_class_is_subclass_of(_class, componentClass->_class, false)) {
-                    mcl->RegisterConstructor<MonoComponent>();
-                    registered = true;
-                }
-                
-                if(mono_class_is_subclass_of(_class, systemClass->_class, false)) {
-                    mcl->RegisterConstructor<MonoSystem>();
-                    registered = true;
-                }
-                
                 // All other objects get registered as generic ScriptObjects
-                if(registered == false) {
-                    mcl->RegisterConstructor<ScriptObject>();
-                }
-                
+                mcl->RegisterConstructor<ScriptObject>();
                 mcl->typeID = metaSystem->GetNextTypeID();
                 mcl->singleton = false;
+                mcl->native = false;
                 
                 metaSystem->AddClass(mcl);
             }
@@ -304,6 +270,8 @@ void ScriptingSystem::Update(float delta) {
     Array<ScriptComponent*> components = world->FindComponents<ScriptComponent>();
     auto i = components.begin();
     for (; i != components.end(); i++) {
+        if((*i)->className.length() == 0) continue;
+        
         // Get the class name
         auto ci = m_classes.find((*i)->className);
         GIGA_ASSERT(ci != m_classes.end(), "Class name not found.");
@@ -406,9 +374,10 @@ MonoObject* ScriptingSystem::GetRemoteObject(GigaObject* obj) {
     MonoObject* mobj = mono_object_new(mono_domain_get(), ci->second->_class);
     
     // Cache object so it doesn't get re-created in constructor
-    CachedObject* cobj = new CachedObject();
+    ScriptObject* cobj = new ScriptObject();
     cobj->local = obj;
     cobj->remote = mobj;
+    cobj->classType = ci->second;
     
     m_objects.push_back(cobj);
     
@@ -448,19 +417,30 @@ GigaObject* ScriptingSystem::GetLocalObject(MonoObject* obj) {
         return(si);
     }
     
-    // Otherwise, create a new object
-    GigaObject* newobj = cl->CreateObject();
-    
-    // If this is a script object (remote only), set the class name
-    ScriptObject* sc = dynamic_cast<ScriptObject*>(newobj);
-    if(sc != 0) {
-        sc->classType = ci->second;
+    // Process inheritance to find top-level native C++ class
+    Meta::Class* mc = metaSystem->FindClass(cl->name);
+    if(mc->native == false) {
+        auto ci = mc->inheritsFrom.begin();
+        for(; ci != mc->inheritsFrom.end(); ci++) {
+            Meta::Class* mci = metaSystem->FindClass(*ci);
+            if(mci) {
+                if(mci->native == true) {
+                    mc = mci;
+                }
+            }
+        }
+        
+        if(ci == mc->inheritsFrom.end()) mc = metaSystem->FindClass("GigaObject");
     }
     
+    // Otherwise, create a new object
+    GigaObject* newobj = mc->CreateObject();
+    
     // Cache
-    CachedObject* cobj = new CachedObject();
+    ScriptObject* cobj = new ScriptObject();
     cobj->local = newobj;
     cobj->remote = obj;
+    cobj->classType = ci->second;
     
     m_objects.push_back(cobj);
     

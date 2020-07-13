@@ -31,7 +31,7 @@ void GBufferPass::Initialize(int width, int height) {
     fb->AddTexture(normal, FRAMEBUFFER_SLOT_2);
     
     Texture2D* aux = renderSystem->CreateTexture2D();
-    aux->Initialize(width, height, COLOR_RGB16F, TEXTURE_TYPE_FLOAT, COLOR_RGB);
+    aux->Initialize(width, height, COLOR_RGBA, TEXTURE_TYPE_FLOAT, COLOR_RGBA);
     fb->AddTexture(aux, FRAMEBUFFER_SLOT_3);
     
     Texture2D* depth = renderSystem->CreateTexture2D();
@@ -131,14 +131,17 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     
+    int counter = 0;
     if(rc->children.size() > 0) {
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
+            counter++;
             MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
             if(mc == 0) {
                 continue;
             }
             
+            program->Set("childIndex", (float)counter);
             RecursiveRender(mc, view, model, scene, program);
         }
         
@@ -213,7 +216,11 @@ void GBufferPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     materialTexture->SetTextureFilter(FILTER_NEAREST);
     
     // Specify material
-    program->Set("materialID", (float)m->material->GetMaterial());
+    int materialID = 0;
+    if(m->material) {
+        materialID = m->material->GetMaterial();
+    }
+    program->Set("materialID", (float)materialID);
     
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();

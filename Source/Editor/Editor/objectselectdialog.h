@@ -20,8 +20,12 @@ public:
     void SetSelectMode(bool multiselect);
     QList<GigaObject*> GetSelectedObjects();
 
+public slots:
+    void btnNewObject_clicked();
+
 private:
     Ui::ObjectSelectDialog *ui;
+    std::string m_filter;
 };
 
 #endif // OBJECTSELECTDIALOG_H

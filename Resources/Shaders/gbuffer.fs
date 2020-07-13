@@ -27,6 +27,7 @@ uniform sampler2D textureMaterialLookup;
 
 // Index into scene
 uniform float sceneIndex;
+uniform float childIndex;
 uniform float materialID;
 
 /**
@@ -35,7 +36,7 @@ uniform float materialID;
 layout (location = 0) out vec3 out_diffuse;
 layout (location = 1) out vec3 out_position;
 layout (location = 2) out vec3 out_normal;
-layout (location = 3) out vec3 out_aux;
+layout (location = 3) out vec4 out_aux;
 
 /**
  * Main
@@ -63,5 +64,5 @@ void main () {
     out_diffuse = diffuse * frag.rgb;
     out_position = frag_position.xyz;
     out_normal = frag_normal;
-    out_aux = vec3(sceneIndex, materialID, 0);
+    out_aux = vec4(sceneIndex, materialID, 0, childIndex);
 }

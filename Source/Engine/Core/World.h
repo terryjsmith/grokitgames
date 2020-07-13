@@ -46,6 +46,11 @@ public:
     GIGA_FUNCTION() Entity* FindEntity(std::string name);
     
     /**
+     * Remove entity
+     */
+    GIGA_FUNCTION() void RemoveEntity(Entity* entity);
+    
+    /**
      * Clear the world (delete all entities)
      */
     void Clear();
@@ -58,9 +63,10 @@ public:
         auto it = m_entities.begin();
         for(; it != m_entities.end(); it++) {
             Entity* ent = (*it);
-            T* c = ent->GetComponent<T>();
-            if(c) {
-                components.push_back(c);
+            Array<T*> cs = ent->GetComponents<T>();
+            auto it = cs.begin();
+            for(; it != cs.end(); it++) {
+                components.push_back(*it);
             }
         }
         

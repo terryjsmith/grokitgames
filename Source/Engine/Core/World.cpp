@@ -90,3 +90,10 @@ Array<Component*> World::FindComponents(std::string type) {
     
     return(components);
 }
+
+void World::RemoveEntity(Entity* entity) {
+    auto it = m_entities.find(entity);
+    if(it != m_entities.end()) {
+        m_entities.erase(it);
+    }
+}

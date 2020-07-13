@@ -121,11 +121,11 @@ void Entity::RemoveComponent(Component* c) {
 }
 
 void Entity::Serialize(DataRecord* record) {
-    record->Set("entityID", new Variant(entityID));
-    record->Set("name", new Variant(name));
+    record->Set("Entity.ID", new Variant(entityID));
+    record->Set("Entity.name", new Variant(name));
 }
 
 void Entity::Deserialize(DataRecord* record) {
-    entityID = record->Get("entityID")->AsUInt();
-    name = record->Get("name")->AsString();
+    entityID = record->Get("Entity.ID")->AsUInt();
+    name = record->Get("Entity.name")->AsString();
 }

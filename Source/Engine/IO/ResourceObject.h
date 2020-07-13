@@ -24,12 +24,6 @@ public:
     Resource* GetResource();
     
     /**
-     * Serialization
-     */
-    virtual void Serialize(DataRecord* record);
-    virtual void Deserialize(DataRecord* record);
-    
-    /**
      * Return file name
      */
     virtual std::string ToString();

@@ -12,7 +12,7 @@ class NewObjectDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit NewObjectDialog(QWidget *parent = nullptr);
+    explicit NewObjectDialog(QString type, QWidget *parent = nullptr);
     ~NewObjectDialog();
 
 private:

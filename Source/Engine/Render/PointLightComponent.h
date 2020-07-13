@@ -32,6 +32,12 @@ public:
      */
     matrix4 GetLightMatrix();
     
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
+    
 protected:
     // A cached set of "look" vectors for the 6 directions
     struct LookVectors {

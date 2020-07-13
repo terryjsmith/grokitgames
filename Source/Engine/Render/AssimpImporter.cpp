@@ -175,6 +175,9 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
         }
         ret->material = materialList[paiMesh->mMaterialIndex]->material;
         
+        // Only use texture coords if there is a valid texture (otherwise, it can have coords, but just be black)
+        std::string texpath = materialList[paiMesh->mMaterialIndex]->texture;
+        
         // Initialize our data
         Array<float> vertex_data;
         Array<unsigned int> index_data;
@@ -193,7 +196,12 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
             offset += 3;
         }
         
-        if(paiMesh->HasTextureCoords(0)) {
+        if(paiMesh->HasVertexColors(0)) {
+            vf->AddVertexAttrib(VERTEXTYPE_ATTRIB_COLOR, 3, offset);
+            offset += 3;
+        }
+        
+        if(paiMesh->HasTextureCoords(0) && texpath.length()) {
             vf->AddVertexAttrib(VERTEXTYPE_ATTRIB_TEXCOORD0, 2, offset);
             offset += 2;
         }
@@ -249,7 +257,7 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
                 offset += 3;
             }
             
-            if(paiMesh->HasTextureCoords(0)) {
+            if(paiMesh->HasTextureCoords(0) && texpath.length()) {
                 vertex_data[offset + 0] = pTexCoord->x;
                 vertex_data[offset + 1] = pTexCoord->y;
                 
@@ -345,6 +353,24 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
         ret->aabb = new AABB();
         ret->aabb->Create(vector3(minX, minY, minZ), vector3(maxX, maxY, maxZ));
     }
+    
+    // Set the bounding box of the parent renderable
+    float minX, maxX, minY, maxY, minZ, maxZ;
+    minX = minY = minZ = FLT_MAX;
+    maxX = maxY = maxZ = -FLT_MAX;
+    
+    for(int i = 0; i < mesh->renderable->children.size(); i++) {
+        Renderable* r = mesh->renderable->children[i];
+        minX = std::min(r->aabb->min.x, minX);
+        minY = std::min(r->aabb->min.y, minY);
+        minZ = std::min(r->aabb->min.z, minZ);
+        maxX = std::max(r->aabb->max.x, maxX);
+        maxY = std::max(r->aabb->max.y, maxY);
+        maxZ = std::max(r->aabb->max.z, maxZ);
+    }
+    
+    mesh->renderable->aabb = new AABB();
+    mesh->renderable->aabb->Create(vector3(minX, minY, minZ), vector3(maxX, maxY, maxZ));
     
     // Save the global inverse matrix for later use
     mesh->globalInverseMatrix = glm::inverse(mat4_convert(scene->mRootNode->mTransformation));

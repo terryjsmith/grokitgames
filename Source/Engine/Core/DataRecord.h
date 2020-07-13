@@ -63,18 +63,9 @@ public:
         bool single;
     };
     
-    /**
-     * Set/get type hints (mostly used in editor)
-     */
-    void SetTypeHint(std::string field, std::string type, bool single = true);
-    TypeHint* GetTypeHint(std::string field);
-    
 protected:
     // Variant variables
     std::map<std::string, Variant*> m_vars;
-    
-    // Type hints
-    std::map<std::string, TypeHint*> m_types;
     
     // Updated since last reset
     bool m_updated;

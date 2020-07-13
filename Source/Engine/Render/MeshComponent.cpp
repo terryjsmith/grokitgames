@@ -12,17 +12,14 @@ MeshComponent::MeshComponent() {
 }
 
 void MeshComponent::Initialize(Mesh* mesh) {
-    if(mesh == 0) return;
-    if(this->mesh == mesh) return;
-
     this->renderable = mesh->renderable;
-    this->applyLighting = true;
     this->mesh = mesh;
     
     auto it = children.begin();
     for(; it != children.end(); it++) {
         delete(*it);
     }
+    children.clear();
     
     auto ri = renderable->children.begin();
     for(;ri != renderable->children.end(); ri++) {
@@ -35,24 +32,22 @@ void MeshComponent::Initialize(Mesh* mesh) {
 
 void MeshComponent::Serialize(DataRecord* record) {
     TransformableComponent::Serialize(record);
+
+    record->Set("Mesh.applyLighting", new Variant(applyLighting));
+    record->Set("Mesh.mesh", new Variant(mesh == 0 ? std::string() : mesh->GetResource()->filename));
     
-    record->SetTypeHint("mesh", "Mesh");
-    record->SetTypeHint("program", "ShaderProgram");
-    
-    record->Set("mesh", new Variant(mesh));
-    record->Set("applyLighting", new Variant(applyLighting));
-    record->Set("program", new Variant(program));
+    //record->Set("program", new Variant(program));
 }
 
 void MeshComponent::Deserialize(DataRecord* record) {
     TransformableComponent::Deserialize(record);
     
-    record->SetTypeHint("mesh", "Mesh");
-    record->SetTypeHint("program", "ShaderProgram");
+    this->applyLighting = record->Get("Mesh.applyLighting")->AsBool();
+    std::string filename = record->Get("Mesh.mesh")->AsString();
     
-    Mesh* m = record->Get("mesh")->AsObject<Mesh*>();
+    ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+    Mesh* m = (Mesh*)resourceSystem->LoadResource(filename, "Mesh");
     this->Initialize(m);
 
-    this->program = record->Get("program")->AsObject<ShaderProgram*>();
-    this->applyLighting = record->Get("applyLighting")->AsBool();
+    //this->program = record->Get("program")->AsObject<ShaderProgram*>();
 }

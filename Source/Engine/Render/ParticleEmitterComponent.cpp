@@ -1,6 +1,7 @@
 
 #include <Render/ParticleEmitterComponent.h>
 #include <Render/RenderSystem.h>
+#include <IO/ResourceSystem.h>
 #include <Core/Application.h>
 
 ParticleEmitterComponent::ParticleEmitterComponent() {
@@ -10,10 +11,12 @@ ParticleEmitterComponent::ParticleEmitterComponent() {
     m_rate = 3.0f;
     m_velocity = vector3(0, 1, 0);
     m_lifespan = 3.0f;
+    m_maxCount = 0;
 }
 
 void ParticleEmitterComponent::Initialize(Texture2D* texture, float size, int maxCount) {
     m_size = size;
+    m_maxCount = maxCount;
     
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     if(renderable == 0) {
@@ -182,4 +185,26 @@ Array<Particle*> ParticleEmitterComponent::SortParticles(Array<Particle*>& parti
 float ParticleEmitterComponent::GetLastEmission(float delta) {
     m_last += delta;
     return(m_last);
+}
+
+void ParticleEmitterComponent::Serialize(DataRecord* record) {
+    record->Set("Emitter.size", new Variant(m_size));
+    record->Set("Emitter.emissionRate", new Variant(m_rate));
+    record->Set("Emitter.lifespan", new Variant(m_lifespan));
+    record->Set("Emitter.maxCount", new Variant(m_maxCount));
+
+    record->Set("Emitter.texture", new Variant(renderable->diffuseTexture->GetResource()->filename));
+}
+
+void ParticleEmitterComponent::Deserialize(DataRecord* record) {
+    m_size = record->Get("Emitter.size")->AsFloat();
+    m_rate = record->Get("Emitter.emissionRate")->AsFloat();
+    m_lifespan = record->Get("Emitter.lifespan")->AsFloat();
+    m_maxCount = record->Get("Emitter.maxCount")->AsInt();
+    
+    std::string filename = record->Get("Emitter.texture")->AsString();
+    ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+    Texture2D* texture = (Texture2D*)resourceSystem->LoadResource(filename, "Texture2D");
+    
+    this->Initialize(texture, m_size, m_maxCount);
 }

@@ -220,15 +220,3 @@ unsigned char* Resource::ReadFile() {
 void Resource::SetPosition(unsigned int offset) {
     fseek(m_fp, SEEK_SET, offset);
 }
-
-void Resource::Serialize(DataRecord* record) {
-    record->Set("filename", new Variant(filename));
-    record->Set("type", new Variant(type));
-}
-
-void Resource::Deserialize(DataRecord* record) {
-    std::string filename = record->Get("filename")->AsString();
-    this->Initialize(filename, FILEMODE_READ);
-    
-    type = record->Get("type")->AsString();
-}

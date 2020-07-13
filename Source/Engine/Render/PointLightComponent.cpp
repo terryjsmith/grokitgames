@@ -94,3 +94,17 @@ void PointLightComponent::GenerateDepthTexture(Scene* scene) {
 matrix4 PointLightComponent::GetLightMatrix() {
     return(matrix4(1.0f));
 }
+
+void PointLightComponent::Serialize(DataRecord* record) {
+    TransformableComponent::Serialize(record);
+    
+    record->Set("Light.color", new Variant(m_color));
+    record->Set("Light.attenuation", new Variant(m_attenuation));
+}
+
+void PointLightComponent::Deserialize(DataRecord* record) {
+    TransformableComponent::Deserialize(record);
+    
+    m_color = record->Get("Light.color")->AsVector3();
+    m_attenuation = record->Get("Light.attenuation")->AsFloat();
+}

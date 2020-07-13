@@ -85,7 +85,7 @@ public:
     QPlainTextEdit *plainTextEdit;
     QVBoxLayout *verticalLayout_4;
     QFrame *propertiesFrame;
-    QVBoxLayout *verticalLayout_6;
+    QVBoxLayout *verticalLayout_7;
     QVBoxLayout *propertiesLayout;
     QStatusBar *statusBar;
     QMenuBar *menuBar;
@@ -353,16 +353,16 @@ public:
         propertiesFrame->setMinimumSize(QSize(250, 0));
         propertiesFrame->setFrameShape(QFrame::NoFrame);
         propertiesFrame->setFrameShadow(QFrame::Raised);
-        verticalLayout_6 = new QVBoxLayout(propertiesFrame);
-        verticalLayout_6->setSpacing(6);
-        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
-        verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
-        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
+        verticalLayout_7 = new QVBoxLayout(propertiesFrame);
+        verticalLayout_7->setSpacing(6);
+        verticalLayout_7->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_7->setObjectName(QString::fromUtf8("verticalLayout_7"));
+        verticalLayout_7->setContentsMargins(0, 0, 0, 0);
         propertiesLayout = new QVBoxLayout();
         propertiesLayout->setSpacing(6);
         propertiesLayout->setObjectName(QString::fromUtf8("propertiesLayout"));
 
-        verticalLayout_6->addLayout(propertiesLayout);
+        verticalLayout_7->addLayout(propertiesLayout);
 
 
         verticalLayout_4->addWidget(propertiesFrame);

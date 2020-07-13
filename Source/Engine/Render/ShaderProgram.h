@@ -7,6 +7,7 @@
 /**
  * A shader program - a combination vertex and fragment shader
  */
+GIGA_CLASS()
 class GIGA_API ShaderProgram : public GigaObject {
 public:
     ShaderProgram();

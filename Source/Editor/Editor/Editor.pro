@@ -25,31 +25,42 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 sdk_no_version_check
 
 SOURCES += \
+        editorsettings.cpp \
         gigaopenglwidget.cpp \
         main.cpp \
         mainwindow.cpp \
         modeltest.cpp \
         newcomponentdialog.cpp \
         newentitydialog.cpp \
+        newobjectdialog.cpp \
         objectselectdialog.cpp \
+        rotationgizmocomponent.cpp \
+        scalegizmocomponent.cpp \
         scenetreemodel.cpp \
-        scenetreeview.cpp
+        scenetreeview.cpp \
+        translationgizmocomponent.cpp
 
 HEADERS += \
+        editorsettings.h \
         gigaopenglwidget.h \
         mainwindow.h \
         metatypes.h \
         modeltest.h \
         newcomponentdialog.h \
         newentitydialog.h \
+        newobjectdialog.h \
         objectselectdialog.h \
+        rotationgizmocomponent.h \
+        scalegizmocomponent.h \
         scenetreemodel.h \
-        scenetreeview.h
+        scenetreeview.h \
+        translationgizmocomponent.h
 
 FORMS += \
         mainwindow.ui \
         newcomponentdialog.ui \
         newentitydialog.ui \
+        newobjectdialog.ui \
         objectselectdialog.ui
 
 # Default rules for deployment.

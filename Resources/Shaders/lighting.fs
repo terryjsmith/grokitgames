@@ -44,6 +44,7 @@ uniform mat4 lightSpaceMatrix[4];
 uniform float cascadeEnd[4];
 uniform float farPlane;
 uniform float nearPlane;
+uniform float materialID;
 
 // Model view matrix
 uniform mat4 worldviewInverseMatrix;
@@ -200,7 +201,7 @@ void main()
     
     // Re-construct our material from our material texture
     Material mat;
-    float materialID = texture(textureMaterial, frag_texcoord.xy).y;
+    /*float materialID = texture(textureMaterial, frag_texcoord.xy).y;*/
     float y = materialID / 1024.0;
     
     mat.diffuse = texture(textureMaterialLookup, vec2(0.0, y)).xyz;

@@ -24,6 +24,12 @@ public:
      * Generate depth texture
      */
     void GenerateDepthTexture(Scene* scene);
+    
+    /**
+     * Serialize / deserialize
+     */
+    virtual void Serialize(DataRecord* record);
+    virtual void Deserialize(DataRecord* record);
 };
 
 #endif

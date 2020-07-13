@@ -102,6 +102,9 @@ public:
     // Other classes this class inherits from
     Array<std::string> inheritsFrom;
     
+    // Native / built-in (C++)
+    bool native;
+    
 protected:
     // Create a new component from a class type
     template<typename T> static GigaObject* InternalCreateObject() { return new T; }

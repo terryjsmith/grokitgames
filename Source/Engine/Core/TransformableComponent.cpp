@@ -38,17 +38,16 @@ void TransformableComponent::SetParent() {
 void TransformableComponent::Serialize(DataRecord* record) {
     Component::Serialize(record);
 
-    record->Set("transform", new Variant(m_transform));
+    record->Set("Transform.position", new Variant(m_transform->GetLocalPosition()));
+    record->Set("Transform.rotation", new Variant(m_transform->GetLocalRotation()));
+    record->Set("Transform.scaling", new Variant(m_transform->GetLocalScaling()));
 }
 
 void TransformableComponent::Deserialize(DataRecord* record) {
     Component::Deserialize(record);
     
-    Transform* transform = record->Get("transform")->AsObject<Transform*>();
-    if(m_transform && m_transform != transform) {
-        delete m_transform;
-    }
-    
-    m_transform = transform;
+    m_transform->SetLocalPosition(record->Get("Transform.position")->AsVector3());
+    m_transform->SetLocalScaling(record->Get("Transform.scaling")->AsVector3());
+    m_transform->SetLocalRotation(record->Get("Transform.rotation")->AsQuaternion());
     this->SetParent();
 }

@@ -151,6 +151,7 @@ int main(int argc, const char * argv[]) {
     /**
      * Load extra stuff
      */
+    /*
     Entity* entity = world->CreateEntity();
     ParticleEmitterComponent* emitter = entity->CreateComponent<ParticleEmitterComponent>();
     emitter->GetTransform()->SetWorldPosition(vector3(0, 0.6f, 0));
@@ -159,6 +160,7 @@ int main(int argc, const char * argv[]) {
     
     ScriptComponent* script = entity->CreateComponent<ScriptComponent>();
     script->className = "Fire";
+    */
     
     /*BillboardComponent* bc = entity->CreateComponent<BillboardComponent>();
     bc->Initialize();
@@ -166,6 +168,8 @@ int main(int argc, const char * argv[]) {
     
     Texture2D* tex = (Texture2D*)resourceSystem->LoadResource("Resources/Textures/fireparticle.png", "Texture2D");
     bc->Create(tex, 0.5f);*/
+    
+    
     
     // Game timer
     Timer* gameTimer = new Timer();

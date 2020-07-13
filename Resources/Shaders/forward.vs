@@ -24,7 +24,8 @@ uniform int VERTEXTYPE_ATTRIB_OFFSETS;
  * Uniforms
  */
 uniform mat4 projectionMatrix;
-uniform mat4 modelviewMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 modelMatrix;
 
 /**
  * Out variables
@@ -45,11 +46,10 @@ void main () {
         transformed_position += vertex_offset;
     }
     
-    mat4 mvpMatrix = projectionMatrix * modelviewMatrix;
-    gl_Position = mvpMatrix * vec4(transformed_position.xyz, 1.0);
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(transformed_position.xyz, 1.0);
     
     // Send through position, normal and texture coords
-    frag_position = modelviewMatrix * vec4(transformed_position.xyz, 1.0);
+    frag_position = viewMatrix * modelMatrix * vec4(transformed_position.xyz, 1.0);
     frag_vcolor = vertex_color;
     frag_texcoord0 = vertex_texcoord0;
 }

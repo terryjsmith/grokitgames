@@ -23,32 +23,32 @@ void SceneTreeView::ProcessSelectedEntity(Entity* entity) {
     // Clear properties window
     window->clearLayout(propertyFrame);
 
+    QGridLayout* layout = new QGridLayout();
+
     Array<Component*> components = entity->GetComponents();
     auto it = components.begin();
     for(; it != components.end(); it++) {
         DataRecord* dr = new DataRecord();
         (*it)->Serialize(dr);
 
-        QFormLayout* layout = window->GetFormLayout(dr, *it, 0);
-        layout->setLabelAlignment(Qt::AlignLeft);
+        window->GetFormLayout(dr, *it, 0, layout, QString::fromStdString((*it)->GetGigaName()));
 
-        QVBoxLayout* newLayout = new QVBoxLayout();
-
-        QLabel* label = new QLabel(QString::fromStdString(((*it)->GetGigaName())));
+        /*QLabel* label = new QLabel(QString::fromStdString(((*it)->GetGigaName())));
         label->setStyleSheet("font-weight: bold; background: #999; padding: 5px; color: #fff;");
         newLayout->addWidget(label);
         newLayout->addLayout(layout);
 
-        propertyFrame->addLayout(newLayout);
+        propertyFrame->addLayout(newLayout);*/
     }
 
+    propertyFrame->addLayout(layout);
+
     propertyFrame->addStretch(1);
-    for(int i = 0; i < (int)components.size(); i++) {
-        propertyFrame->setStretch(i, 0);
-    }
+    propertyFrame->setStretch(0, 0);
 
     GigaOpenGLWidget* widget = MainWindow::getInstance()->GetOpenGLWidget();
     widget->SetEditorMode(GigaOpenGLWidget::EditorMode::EDITORMODE_OBJECT);
+    widget->SetSelectedEntity(entity);
 }
 
 void SceneTreeView::currentChanged(const QModelIndex &current, const QModelIndex &previous) {

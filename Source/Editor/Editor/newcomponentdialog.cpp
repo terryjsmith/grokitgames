@@ -1,6 +1,7 @@
 #include "newcomponentdialog.h"
 #include "ui_newcomponentdialog.h"
 #include "mainwindow.h"
+#include "editorsettings.h"
 
 #include <Core/MetaSystem.h>
 #include <Core/Application.h>
@@ -49,7 +50,27 @@ void NewComponentDialog::accept() {
     assert(item != 0);
 
     // Create the component
-    Component* component = entity->CreateComponent(ui->ddlComponentType->currentText().toStdString());
+    std::string componentClass = ui->ddlComponentType->currentText().toStdString();
+    Component* component = entity->CreateComponent(componentClass);
+
+    // Serialize and set default overrides (if any)
+    DataRecord* record = new DataRecord();
+    component->Serialize(record);
+
+    EditorSettings* settings = EditorSettings::GetInstance();
+    auto keys = record->GetKeys();
+    auto it = keys.begin();
+    for(; it != keys.end(); it++) {
+        EditorSettings::CustomField* custom = settings->GetCustomField(componentClass, *it);
+        if(custom) {
+            Variant* v = record->Get(*it);
+            v->FromString(custom->defaultValue, v->GetType());
+        }
+    }
+
+    component->Deserialize(record);
+    delete record;
+
     QStandardItem* newItem = new QStandardItem(ui->ddlComponentType->currentText());
     newItem->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     item->appendRow(newItem);

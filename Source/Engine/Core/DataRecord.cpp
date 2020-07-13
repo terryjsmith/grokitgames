@@ -60,30 +60,3 @@ Array<std::string> DataRecord::GetKeys() {
     
     return(keys);
 }
-
-void DataRecord::SetTypeHint(std::string field, std::string type, bool single) {
-    TypeHint* hint = 0;
-    
-    auto it = m_types.find(field);
-    if(it == m_types.end()) {
-        hint = new TypeHint();
-    }
-    else {
-        hint = it->second;
-    }
-    
-    hint->type = type;
-    hint->single = single;
-    
-    m_types[field] = hint;
-}
-
-DataRecord::TypeHint* DataRecord::GetTypeHint(std::string field) {
-    TypeHint* retval = 0;
-    auto it = m_types.find(field);
-    if(it != m_types.end()) {
-        retval = it->second;
-    }
-    
-    return(retval);
-}

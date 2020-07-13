@@ -33,13 +33,12 @@ public:
     QVBoxLayout* GetPropertyLayout();
     GigaOpenGLWidget* GetOpenGLWidget();
 
-
     // Form generator
-    QFormLayout* GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent);
+    void GetFormLayout(DataRecord* record, GigaObject* obj, QWidget* parent, QGridLayout* layout, QString title);
     void clearLayout(QLayout *layout);
 
-    // Add override
-    void AddOverride(std::string field, std::string type);
+    // Set edit mode in UI
+    void SetEditMode(std::string mode);
 
 public slots:
     // Property callbacks
@@ -67,9 +66,6 @@ private:
 
     // Data loader
     DataLoader* m_dataLoader;
-
-    // Custom object types
-    std::map<std::string, std::string> m_overrides;
 };
 
 #endif // MAINWINDOW_H

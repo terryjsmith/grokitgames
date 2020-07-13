@@ -2,6 +2,7 @@
 #include <Render/BillboardComponent.h>
 #include <Render/Scene.h>
 #include <Render/RenderSystem.h>
+#include <IO/ResourceSystem.h>
 #include <Core/Application.h>
 
 BillboardComponent::BillboardComponent() {
@@ -10,12 +11,10 @@ BillboardComponent::BillboardComponent() {
 }
 
 void BillboardComponent::Create(Texture2D* tex, float size) {
+    RenderSystem* renderSystem = GetSystem<RenderSystem>();
+    
     m_texture = tex;
     m_size = size;
-}
-
-void BillboardComponent::Initialize() {
-    RenderSystem* renderSystem = GetSystem<RenderSystem>();
     
     if(renderable == 0) {
         renderable = new Renderable();
@@ -80,12 +79,26 @@ void BillboardComponent::PreRender(Scene* scene) {
 }
 
 void BillboardComponent::Serialize(DataRecord* record) {
-    record->Set("size", new Variant(m_size));
-    record->Set("transform", new Variant(m_transform));
+    TransformableComponent::Serialize(record);
+    
+    record->Set("Billboard.size", new Variant(m_size));
+    if(m_texture) {
+        record->Set("Billboard.texture", new Variant(m_texture->GetResource()->filename));
+    }
+    else {
+        record->Set("Billboard.texture", new Variant(std::string()));
+    }
 }
 
 void BillboardComponent::Deserialize(DataRecord* record) {
-    m_size = record->Get("size")->AsFloat();
-    m_transform = record->Get("transform")->AsObject<Transform*>();
-    this->Initialize();
+    TransformableComponent::Deserialize(record);
+    
+    std::string texture = record->Get("Billboard.texture")->AsString();
+    m_size = record->Get("Billboard.size")->AsFloat();
+    
+    if(texture.length()) {
+        ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
+        m_texture = (Texture2D*)resourceSystem->LoadResource(texture, "Texture2D");
+        this->Create(m_texture, m_size);
+    }
 }

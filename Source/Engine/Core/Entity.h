@@ -55,6 +55,20 @@ public:
         
         return(0);
     }
+    
+    template<class T>
+    Array<T*> GetComponents() {
+        Array<T*> components;
+        auto it = m_components.begin();
+        for(; it != m_components.end(); it++) {
+            T* obj = dynamic_cast<T*>(*it);
+            if(obj != 0) {
+                components.push_back(obj);
+            }
+        }
+        
+        return(components);
+    }
 
     /**
      * Find component by class name

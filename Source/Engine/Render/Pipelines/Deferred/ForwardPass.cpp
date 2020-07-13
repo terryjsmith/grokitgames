@@ -4,6 +4,7 @@
 #include <Core/Application.h>
 #include <Render/Defines.h>
 #include <IO/ResourceSystem.h>
+#include <Render/MaterialSystem.h>
 
 ForwardPass::ForwardPass() {
     m_texture = 0;
@@ -88,8 +89,8 @@ void ForwardPass::Render(Scene* scene) {
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     renderSystem->EnableDepthTest(TEST_LEQUAL);
     
-    renderSystem->EnableBlending();
-    renderSystem->SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
+    //renderSystem->EnableBlending();
+    //renderSystem->SetBlendFunc(BLEND_SRC_ALPHA, BLEND_ONE_MINUS_SRC_ALPHA);
     
     // Get the camera
     CameraComponent* camera = scene->camera;
@@ -105,6 +106,7 @@ void ForwardPass::Render(Scene* scene) {
     matrix4 proj = camera->GetProjectionMatrix();
     
     m_program->Set("projectionMatrix", proj);
+    m_program->Set("viewMatrix", view);
     
     // Iterate over renderables
     for(int i = 0; i < scene->renderables.size(); i++) {
@@ -116,6 +118,7 @@ void ForwardPass::Render(Scene* scene) {
         
         if(mc->program) {
             mc->program->Set("projectionMatrix", proj);
+            mc->program->Set("viewMatrix", view);
             program = mc->program;
         }
         
@@ -143,21 +146,24 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
     matrix4 mat = meshTransform->GetMatrix();
     matrix4 model = mat * parent;
     
+    int counter = 0;
     if(rc->children.size()) {
         auto it = rc->children.begin();
         for(; it != rc->children.end(); it++) {
+            counter++;
+            
             MeshComponent* mc = dynamic_cast<MeshComponent*>(*it);
             if(mc == 0) continue;
             
+            program->Set("childIndex", (float)counter);
             RecursiveRender(mc, view, model, program);
         }
         
         return;
     }
     
-    // Send view/proj matrix to shader
-    matrix4 modelviewMatrix = view * model;
-    program->Set("modelviewMatrix", modelviewMatrix);
+    // Send model matrix to shader
+    program->Set("modelMatrix", model);
     
     Renderable* m = rc->renderable;
     if(m == 0) return;
@@ -201,6 +207,22 @@ void ForwardPass::RecursiveRender(MeshComponent* rc, matrix4 view, matrix4 paren
         m->normalTexture->Bind(1);
         program->Set("normalTexture", 1);
     }
+    
+    // Get our material texture
+    MaterialSystem* materialSystem = GetSystem<MaterialSystem>();
+    Texture* materialTexture = materialSystem->GetTexture();
+    
+    materialTexture->Bind(3);
+    program->Set("textureMaterialLookup", 3);
+    materialTexture->SetTextureFilter(FILTER_NEAREST);
+    
+    // Specify material
+    Material* material = m->material;
+    int materialID = 0;
+    if(material) {
+        materialID = material->GetMaterial();
+    }
+    program->Set("materialID", (float)materialID);
     
     // Get render system
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
