@@ -114,7 +114,8 @@ void DirectionalLightComponent::GenerateDepthTexture(Scene* scene) {
             center += frustumCorners[k];
             
             for(int j = 0; j < 8; j++) {
-                maxDistance = std::max(maxDistance, glm::distance(frustumCorners[k], frustumCorners[j]));
+                float distance = glm::distance(frustumCorners[k], frustumCorners[j]);
+                maxDistance = std::max(maxDistance, distance);
             }
         }
         

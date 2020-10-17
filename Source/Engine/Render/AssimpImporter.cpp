@@ -433,8 +433,6 @@ void AssimpImporter::LoadMesh(std::string filename, Mesh* mesh) {
     }
 
     aiReleaseImport(scene);
-    
-    return(mesh);
 }
 
 void AssimpImporter::LoadAnimation(std::string filename, std::string animationName, Mesh* mesh) {

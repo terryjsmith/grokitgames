@@ -12,15 +12,16 @@
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #include <time.h>
 
 #ifdef GIGA_EXPORTS
     // We are building this library
-    #define GIGA_API __declspec(dllexport)
+    #define GIGA_API //__declspec(dllexport)
 #else
     // We are using this library
-    #define GIGA_API __declspec(dllimport)
+    #define GIGA_API //__declspec(dllimport)
 #endif
 
 #endif

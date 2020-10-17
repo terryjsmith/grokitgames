@@ -718,7 +718,7 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
     GIGA_ASSERT(fi != ci->second->methods.end(), "Function not found.");
     
     // Set params
-    void* args[argc];
+    void** args = (void**)malloc(sizeof(void*) * argc);
     for(int i = 0; i < argc; i++) {
         int vtype = argv[i]->GetType();
         switch(vtype) {
@@ -746,6 +746,8 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
         mono_print_unhandled_exception(exc);
         GIGA_ASSERT(false, "Unable to run function.");
     }
+
+    free(args);
     
     /*
      
