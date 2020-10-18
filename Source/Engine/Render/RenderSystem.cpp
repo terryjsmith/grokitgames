@@ -5,6 +5,7 @@
 #include <Core/World.h>
 #include <Render/RenderComponent.h>
 #include <Render/CameraComponent.h>
+#include <IO/ResourceSystem.h>
 #include <IO/Profiler.h>
 
 RenderSystem::RenderSystem() {
@@ -14,6 +15,7 @@ RenderSystem::RenderSystem() {
     
     m_ambient = vector3(0.25f, 0.25f, 0.25f);
     m_triCount = 0;
+    m_renderPipeline = new RenderPipeline();
 }
 
 RenderSystem::~RenderSystem() {
@@ -21,7 +23,7 @@ RenderSystem::~RenderSystem() {
 }
 
 void RenderSystem::Initialize() {
-
+    
 }
 
 void RenderSystem::Update(float delta) {
@@ -41,4 +43,12 @@ void RenderSystem::Update(float delta) {
     
     m_renderPipeline->Render(m_scene);
     PROFILE_END_AREA("RenderSystem");
+}
+
+void RenderSystem::SetRenderPipeline(RenderPipeline* pipeline) { 
+    if (m_renderPipeline) {
+        delete m_renderPipeline;
+    }
+
+    m_renderPipeline = pipeline; 
 }

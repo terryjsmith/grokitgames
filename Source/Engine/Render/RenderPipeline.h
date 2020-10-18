@@ -9,6 +9,8 @@ class GIGA_API RenderPipeline : public GigaObject {
 public:
     RenderPipeline();
     ~RenderPipeline();
+
+    GIGA_CLASS_NAME("RenderPipeline");
     
     /**
      * Initialize render pipeline
@@ -18,7 +20,7 @@ public:
     /**
      * Render scene
      */
-    virtual void Render(Scene* scene) = 0;
+    virtual void Render(Scene* scene) { } 
     
     /**
      * Add render pass

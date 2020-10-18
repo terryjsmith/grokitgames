@@ -6,6 +6,7 @@
 /**
  * Our class for storing textures loaded from disk
  */
+GIGA_CLASS()
 class GIGA_API Texture2D : public Texture {
 public:
     Texture2D() = default;

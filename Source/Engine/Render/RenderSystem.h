@@ -50,7 +50,7 @@ public:
     /**
      * Set/get render pipeline
      */
-    void SetRenderPipeline(RenderPipeline* pipeline) { m_renderPipeline = pipeline; }
+    void SetRenderPipeline(RenderPipeline* pipeline);
     RenderPipeline* GetRenderPipeline() { return m_renderPipeline; }
     
     /**
