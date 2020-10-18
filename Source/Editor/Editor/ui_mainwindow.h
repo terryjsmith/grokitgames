@@ -14,6 +14,7 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLineEdit>
@@ -23,6 +24,7 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QToolButton>
@@ -63,7 +65,16 @@ public:
     QPushButton *btnEditMode_Move;
     QPushButton *btnEditMode_Rotate;
     QPushButton *btnEditMode_Scale;
+    QSpacerItem *horizontalSpacer_2;
     QWidget *tab_2;
+    QHBoxLayout *horizontalLayout_6;
+    QFrame *frame;
+    QHBoxLayout *horizontalLayout_7;
+    QPushButton *btnEditMode_TerrainAdd;
+    QPushButton *btnEditMode_TerrainRaise;
+    QPushButton *btnEditMode_TerrainFlatten;
+    QPushButton *btnEditMode_TerrainPaint;
+    QSpacerItem *horizontalSpacer;
     QTabWidget *tabWidget_2;
     QWidget *tab_3;
     QVBoxLayout *verticalLayout;
@@ -75,6 +86,9 @@ public:
     QVBoxLayout *verticalLayout_3;
     QLineEdit *resourceSearch;
     QListView *resourceView;
+    QWidget *tab_7;
+    QVBoxLayout *verticalLayout_6;
+    QGridLayout *gridLayout;
     QVBoxLayout *openGLlayout;
     QTabWidget *tabWidget_3;
     QWidget *tab_5;
@@ -220,12 +234,74 @@ public:
 
         horizontalLayout_5->addWidget(btnEditMode_Scale);
 
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_5->addItem(horizontalSpacer_2);
+
 
         horizontalLayout_4->addWidget(frame_2);
 
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName(QString::fromUtf8("tab_2"));
+        horizontalLayout_6 = new QHBoxLayout(tab_2);
+        horizontalLayout_6->setSpacing(6);
+        horizontalLayout_6->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_6->setObjectName(QString::fromUtf8("horizontalLayout_6"));
+        horizontalLayout_6->setContentsMargins(0, 0, 0, 0);
+        frame = new QFrame(tab_2);
+        frame->setObjectName(QString::fromUtf8("frame"));
+        frame->setFrameShape(QFrame::StyledPanel);
+        frame->setFrameShadow(QFrame::Raised);
+        horizontalLayout_7 = new QHBoxLayout(frame);
+        horizontalLayout_7->setSpacing(0);
+        horizontalLayout_7->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_7->setObjectName(QString::fromUtf8("horizontalLayout_7"));
+        horizontalLayout_7->setContentsMargins(0, 0, 0, 0);
+        btnEditMode_TerrainAdd = new QPushButton(frame);
+        btnEditMode_TerrainAdd->setObjectName(QString::fromUtf8("btnEditMode_TerrainAdd"));
+        QIcon icon4;
+        icon4.addFile(QString::fromUtf8(":/Icons/plus.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnEditMode_TerrainAdd->setIcon(icon4);
+        btnEditMode_TerrainAdd->setCheckable(false);
+
+        horizontalLayout_7->addWidget(btnEditMode_TerrainAdd);
+
+        btnEditMode_TerrainRaise = new QPushButton(frame);
+        btnEditMode_TerrainRaise->setObjectName(QString::fromUtf8("btnEditMode_TerrainRaise"));
+        QIcon icon5;
+        icon5.addFile(QString::fromUtf8(":/Icons/terrain_hills.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnEditMode_TerrainRaise->setIcon(icon5);
+        btnEditMode_TerrainRaise->setCheckable(true);
+        btnEditMode_TerrainRaise->setFlat(false);
+
+        horizontalLayout_7->addWidget(btnEditMode_TerrainRaise);
+
+        btnEditMode_TerrainFlatten = new QPushButton(frame);
+        btnEditMode_TerrainFlatten->setObjectName(QString::fromUtf8("btnEditMode_TerrainFlatten"));
+        QIcon icon6;
+        icon6.addFile(QString::fromUtf8(":/Icons/terrain_flatten.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnEditMode_TerrainFlatten->setIcon(icon6);
+        btnEditMode_TerrainFlatten->setCheckable(true);
+
+        horizontalLayout_7->addWidget(btnEditMode_TerrainFlatten);
+
+        btnEditMode_TerrainPaint = new QPushButton(frame);
+        btnEditMode_TerrainPaint->setObjectName(QString::fromUtf8("btnEditMode_TerrainPaint"));
+        QIcon icon7;
+        icon7.addFile(QString::fromUtf8(":/Icons/terrain_paint.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnEditMode_TerrainPaint->setIcon(icon7);
+        btnEditMode_TerrainPaint->setCheckable(true);
+
+        horizontalLayout_7->addWidget(btnEditMode_TerrainPaint);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+        horizontalLayout_7->addItem(horizontalSpacer);
+
+
+        horizontalLayout_6->addWidget(frame);
+
         tabWidget->addTab(tab_2, QString());
 
         toolsLayout->addWidget(tabWidget);
@@ -288,6 +364,20 @@ public:
         verticalLayout_3->addWidget(resourceView);
 
         tabWidget_2->addTab(tab_4, QString());
+        tab_7 = new QWidget();
+        tab_7->setObjectName(QString::fromUtf8("tab_7"));
+        verticalLayout_6 = new QVBoxLayout(tab_7);
+        verticalLayout_6->setSpacing(6);
+        verticalLayout_6->setContentsMargins(11, 11, 11, 11);
+        verticalLayout_6->setObjectName(QString::fromUtf8("verticalLayout_6"));
+        verticalLayout_6->setContentsMargins(0, 0, 0, 0);
+        gridLayout = new QGridLayout();
+        gridLayout->setSpacing(6);
+        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
+
+        verticalLayout_6->addLayout(gridLayout);
+
+        tabWidget_2->addTab(tab_7, QString());
 
         toolsLayout->addWidget(tabWidget_2);
 
@@ -442,12 +532,17 @@ public:
         btnEditMode_Rotate->setText(QString());
         btnEditMode_Scale->setText(QString());
         tabWidget->setTabText(tabWidget->indexOf(tab), QCoreApplication::translate("MainWindow", "Tools", nullptr));
-        tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Create", nullptr));
+        btnEditMode_TerrainAdd->setText(QString());
+        btnEditMode_TerrainRaise->setText(QString());
+        btnEditMode_TerrainFlatten->setText(QString());
+        btnEditMode_TerrainPaint->setText(QString());
+        tabWidget->setTabText(tabWidget->indexOf(tab_2), QCoreApplication::translate("MainWindow", "Terrain", nullptr));
         sceneSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search scene...", nullptr));
         btnNewEntity->setText(QCoreApplication::translate("MainWindow", "+", nullptr));
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_3), QCoreApplication::translate("MainWindow", "Scene", nullptr));
         resourceSearch->setPlaceholderText(QCoreApplication::translate("MainWindow", "Search resources...", nullptr));
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_4), QCoreApplication::translate("MainWindow", "Resources", nullptr));
+        tabWidget_2->setTabText(tabWidget_2->indexOf(tab_7), QCoreApplication::translate("MainWindow", "Brushes", nullptr));
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_5), QCoreApplication::translate("MainWindow", "Scene", nullptr));
         tabWidget_3->setTabText(tabWidget_3->indexOf(tab_6), QCoreApplication::translate("MainWindow", "Tab 2", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "File", nullptr));

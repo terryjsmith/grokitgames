@@ -49,7 +49,12 @@ void MetaSystem::AddClass(Meta::Class* cl) {
     Meta::Class* exists = this->FindClass(cl->typeID);
     GIGA_ASSERT(exists == 0, "Type ID already registered.");
     
-    m_maxTypeID = std::max(cl->typeID, m_maxTypeID);
+    if(cl->typeID == 0) {
+        cl->typeID = GetNextTypeID();
+    }
+    else {
+        m_maxTypeID = std::max(cl->typeID, m_maxTypeID);
+    }
     
     m_definitions.push_back(cl);
 }

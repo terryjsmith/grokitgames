@@ -13,6 +13,16 @@ public:
     
     GIGA_CLASS_NAME("Scene");
     
+    /**
+     * Unproject 2D screen coordinates to a 3D world position
+     */
+    vector3 Unproject(vector2 screenCoords);
+    
+    /**
+     * Project a 3D world position to 2D screen coordinates
+     */
+    vector2 Project(vector3 worldCoords);
+    
 public:
     Array<RenderComponent*> renderables;
     CameraComponent* camera;

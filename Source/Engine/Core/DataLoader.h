@@ -2,11 +2,11 @@
 #ifndef dataloader_h
 #define dataloader_h
 
-#include <Core/GigaObject.h>
+#include <Core/AppService.h>
 #include <Core/DataRecord.h>
 
 GIGA_CLASS()
-class GIGA_API DataLoader : public GigaObject {
+class GIGA_API DataLoader : public AppService {
 public:
     virtual ~DataLoader() = default;
     

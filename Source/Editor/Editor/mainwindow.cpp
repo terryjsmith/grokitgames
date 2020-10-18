@@ -120,7 +120,7 @@ void MainWindow::btnOpenProject_clicked() {
     }
 
     m_dataLoader = new SQLiteDataLoader();
-    Application::GetInstance()->RegisterDataLoader("game", m_dataLoader);
+    Application::GetInstance()->CreateAppService<SQLiteDataLoader>();
 
     // Look for a game.db file
     QString gamedbFile = directory + "/game.db";
@@ -246,7 +246,7 @@ void MainWindow::cbTextEditFinished() {
 
     // Serialize
     DataRecord* dr = new DataRecord();
-    obj->Serialize(dr);
+    obj->SerializeObject(dr);
 
     // Get which field this is
     QString qFieldName = edit->property("fieldName").value<QString>();
@@ -360,7 +360,7 @@ void MainWindow::cbTextEditFinished() {
     }
 
     // Set values into obj
-    obj->Deserialize(dr);
+    obj->DeserializeObject(dr);
 
     // Clean up
     delete dr;
@@ -682,7 +682,7 @@ void MainWindow::cbStateChange(int s) {
 
     // Serialize
     DataRecord* dr = new DataRecord();
-    obj->Serialize(dr);
+    obj->SerializeObject(dr);
 
     // Get which field this is
     QString qFieldName = checkbox->property("fieldName").value<QString>();
@@ -691,7 +691,7 @@ void MainWindow::cbStateChange(int s) {
     bool isChecked = checkbox->isChecked();
     dr->Set(fieldName, new Variant(isChecked));
 
-    obj->Deserialize(dr);
+    obj->DeserializeObject(dr);
 
     delete dr;
 }

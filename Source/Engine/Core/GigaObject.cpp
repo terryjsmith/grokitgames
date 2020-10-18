@@ -69,3 +69,12 @@ Array<GigaObject*> GigaObject::GetObjects(std::string className) {
 std::string GigaObject::ToString() {
     return(this->GetGigaName());
 }
+
+void GigaObject::SerializeObject(DataRecord* record) {
+    record->objectType = m_mc->typeID;
+    this->Serialize(record);
+}
+
+void GigaObject::DeserializeObject(DataRecord* record) {
+    this->Deserialize(record);
+}

@@ -1,5 +1,7 @@
 
 #include <Core/DataRecord.h>
+#include <IO/MemoryWriter.h>
+#include <IO/MemoryReader.h>
 
 DataRecord::DataRecord() {
     m_updated = false;
@@ -43,16 +45,9 @@ bool DataRecord::KeyExists(std::string var) {
     return(false);
 }
 
-unsigned char* DataRecord::Serialize(int& size) {
-    return(0);
-}
-
-void DataRecord::Deserialize(unsigned char* data, int& size) {
-    
-}
-
 Array<std::string> DataRecord::GetKeys() {
     Array<std::string> keys;
+    
     auto it = m_vars.begin();
     for(; it != m_vars.end(); it++) {
         keys.push_back(it->first);

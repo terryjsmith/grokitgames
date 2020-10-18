@@ -37,7 +37,7 @@ Sphere* RenderComponent::GetBoundingSphere(matrix4 parent) {
     for(int i = 0; i < 8; i++) {
         center += renderable->aabb->points[i];
     }
-    center /= 8.0f;
+    center = center * 0.125f;
     
     // Translate to model matrix
     center = vector3(modelMatrix * vector4(center, 1.0f));

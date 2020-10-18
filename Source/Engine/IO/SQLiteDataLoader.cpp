@@ -108,7 +108,7 @@ Array<GigaObject*> SQLiteDataLoader::GetObjects(std::string table, std::map<std:
         }
         
         // Deserialize data record
-        obj->Deserialize(*oi);
+        obj->DeserializeObject(*oi);
         
         m_recordCache[obj] = *oi;
         retval.push_back(obj);
@@ -340,7 +340,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records
     auto di = m_recordCache.find(records[0]);
     if(di == m_recordCache.end()) {
         firstRecord = new DataRecord();
-        records[0]->Serialize(firstRecord);
+        records[0]->SerializeObject(firstRecord);
         m_recordCache[records[0]] = firstRecord;
     }
     else {
@@ -418,7 +418,7 @@ void SQLiteDataLoader::SaveObjects(std::string table, Array<GigaObject*> records
             dr = di->second;
         }
 
-        (*ri)->Serialize(dr);
+        (*ri)->SerializeObject(dr);
         
         // Process new record
         if(dr->GetID() == 0) {

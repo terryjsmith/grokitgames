@@ -22,7 +22,7 @@ NewObjectDialog::NewObjectDialog(QString type, QWidget *parent) :
     DataRecord* record = new DataRecord();
 
     // Serialize
-    obj->Serialize(record);
+    obj->SerializeObject(record);
 
     // Get form layout
     MainWindow* mainWindow = MainWindow::getInstance();

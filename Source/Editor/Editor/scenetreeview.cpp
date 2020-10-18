@@ -32,13 +32,6 @@ void SceneTreeView::ProcessSelectedEntity(Entity* entity) {
         (*it)->Serialize(dr);
 
         window->GetFormLayout(dr, *it, 0, layout, QString::fromStdString((*it)->GetGigaName()));
-
-        /*QLabel* label = new QLabel(QString::fromStdString(((*it)->GetGigaName())));
-        label->setStyleSheet("font-weight: bold; background: #999; padding: 5px; color: #fff;");
-        newLayout->addWidget(label);
-        newLayout->addLayout(layout);
-
-        propertyFrame->addLayout(newLayout);*/
     }
 
     propertyFrame->addLayout(layout);

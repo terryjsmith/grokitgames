@@ -116,11 +116,11 @@ void OpenGLTexture2D::ProcessData() {
     m_dataType = GL_UNSIGNED_BYTE;
     
     // Get the width, height and channels back out
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height);
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_width));
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_height));
     
     int format = 0;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format));
     
     switch(format) {
         case GL_RED:
@@ -168,12 +168,12 @@ void OpenGLTexture2D::Save(std::string filename) {
     int height = 0;
     int format = 0;
     
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format);
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width));
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height));
+    GL_CHECK(glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &format));
     GL_UNSIGNED_BYTE;
-    glGetTexImage(GL_TEXTURE_2D, 0, m_channels == 3 ? GL_RGB : GL_DEPTH_COMPONENT, m_dataType, pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, m_channels == 3 ? GL_RGB : GL_DEPTH_COMPONENT, m_dataType, pixels));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     
     // Convert from float to unsigned char
     unsigned char* data = (unsigned char*)malloc(m_width * m_height * m_channels);
@@ -202,35 +202,30 @@ unsigned int OpenGLTexture2D::GetTarget(int slot) {
 }
 
 void* OpenGLTexture2D::GetData() {
-    if(m_data) {
-        return(m_data);
-    }
-    
-    m_data = SOIL_load_image_from_memory(m_resource->GetData(), m_resource->filesize, &m_width, &m_height, &m_channels, SOIL_LOAD_AUTO);
-    
-    /*GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-    void* pixels = (void*)malloc(m_width * m_height * m_channels * ((m_dataType == GL_FLOAT) ? sizeof(float) : 1));
+    GL_CHECK(glActiveTexture(GL_TEXTURE0 + m_slot));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_texture));
+    int size = ((m_dataType == GL_FLOAT) ? sizeof(float) : 1);
+    void* pixels = (void*)malloc(m_width * m_height * m_channels * size);
     int format = GL_RGB;
     if(m_channels == 1) {
-        format = GL_RED;
+        format = GL_DEPTH_COMPONENT;
     }
     if(m_channels == 4) {
         format = GL_RGBA;
     }
     
-    glGetTexImage(GL_TEXTURE_2D, 0, format, m_dataType, pixels);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, format, m_dataType, pixels));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     
-    m_data = (unsigned char*)pixels;*/
+    m_data = (unsigned char*)pixels;
     return(m_data);
 }
 
 void OpenGLTexture2D::SetAnisotropicFilter(float samples) {
-    glTexParameterf(GL_TEXTURE_2D, GL_ANISOTROPHY_MAX, samples);
+    GL_CHECK(glTexParameterf(GL_TEXTURE_2D, GL_ANISOTROPHY_MAX, samples));
 }
 
 void OpenGLTexture2D::SetWrapping(bool wrap) {
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE);
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap ? GL_REPEAT : GL_CLAMP_TO_EDGE));
 }

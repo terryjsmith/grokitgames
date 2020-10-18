@@ -49,15 +49,17 @@ void Application::Update(float delta) {
     }
 }
 
-DataLoader* Application::GetDataLoader(std::string name) {
-    auto di = m_dataLoaders.find(name);
-    if(di != m_dataLoaders.end()) {
-        return di->second;
+AppService* Application::GetAppService(std::string className) {
+    auto it = m_services.begin();
+    for(; it != m_services.end(); it++) {
+        if((*it)->GetGigaName() == className) {
+            return(*it);
+        }
     }
     
     return(0);
 }
 
-void Application::RegisterDataLoader(std::string name, DataLoader* loader) {
-    m_dataLoaders[name] = loader;
+void Application::RegisterAppService(AppService *service) {
+    m_services.push_back(service);
 }

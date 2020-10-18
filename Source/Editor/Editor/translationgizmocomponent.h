@@ -1,9 +1,9 @@
 #ifndef TRANSLATIONGIZMOCOMPONENT_H
 #define TRANSLATIONGIZMOCOMPONENT_H
 
-#include <Render/MeshComponent.h>
+#include "gizmocomponent.h"
 
-class TranslationGizmoComponent : public MeshComponent
+class TranslationGizmoComponent : public GizmoComponent
 {
 public:
     TranslationGizmoComponent();

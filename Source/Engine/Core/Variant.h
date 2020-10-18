@@ -154,6 +154,11 @@ public:
     void FromString(std::string value, int type);
     
     /**
+     * From binary data
+     */
+    void FromBytes(void* bytes, int type, int length = 0);
+    
+    /**
      * Add / remove members to array
      */
     void Add(Variant* var);

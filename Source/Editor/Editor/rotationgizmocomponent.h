@@ -1,9 +1,9 @@
 #ifndef ROTATIONGIZMOCOMPONENT_H
 #define ROTATIONGIZMOCOMPONENT_H
 
-#include <Render/MeshComponent.h>
+#include "gizmocomponent.h"
 
-class RotationGizmoComponent : public MeshComponent
+class RotationGizmoComponent : public GizmoComponent
 {
 public:
     RotationGizmoComponent();

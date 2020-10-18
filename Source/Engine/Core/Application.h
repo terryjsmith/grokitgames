@@ -69,12 +69,38 @@ public:
     /**
      * Find a data loader by class type
      */
-    GIGA_FUNCTION() DataLoader* GetDataLoader(std::string name);
+    GIGA_FUNCTION() AppService* GetAppService(std::string className);
+    
+    /**
+     * Find a data loader by class type
+     */
+    template<class T>
+    T* GetAppService() {
+        auto it = m_services.begin();
+        for(; it != m_services.end(); it++) {
+            T* obj = dynamic_cast<T*>(*it);
+            if(obj) {
+                return(obj);
+            }
+        }
+        
+        return(0);
+    }
     
     /**
      * Register a data loader
      */
-    GIGA_FUNCTION() void RegisterDataLoader(std::string name, DataLoader* loader);
+    template<class T>
+    T* CreateAppService() {
+        T* obj = new T();
+        m_services.push_back(obj);
+        return(obj);
+    }
+    
+    /**
+     * Register a data loader
+     */
+    GIGA_FUNCTION() void RegisterAppService(AppService* service);
 
     /**
      * Get application main window
@@ -115,7 +141,7 @@ protected:
     Array<RegisteredSystem*> m_systems;
     
     // Registered data loaders
-    std::map<std::string, DataLoader*> m_dataLoaders;
+    std::vector<AppService*> m_services;
     
     // Singleton application instance
     static Application *m_instance;

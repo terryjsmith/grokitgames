@@ -941,3 +941,127 @@ void* Variant::GetPtr() {
                    
     return(0);
 }
+
+void Variant::FromBytes(void* bytes, int type, int length) {
+    m_type = type;
+    
+    if(type == VAR_INT32) {
+        int32_t ui = 0;
+        memcpy(&ui, bytes, sizeof(int32_t));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_UINT32) {
+        uint32_t ui = 0;
+        memcpy(&ui, bytes, sizeof(uint32_t));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_INT64) {
+        int64_t ui = 0;
+        memcpy(&ui, bytes, sizeof(int64_t));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_UINT32) {
+        uint64_t ui = 0;
+        memcpy(&ui, bytes, sizeof(uint64_t));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_BOOL) {
+        bool ui = 0;
+        memcpy(&ui, bytes, sizeof(bool));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_FLOAT) {
+        float ui = 0;
+        memcpy(&ui, bytes, sizeof(float));
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_VECTOR2) {
+        vector2 ui;
+        unsigned char* ptr = (unsigned char*)bytes;
+        
+        int offset = 0;
+        memcpy(&ui.x, ptr, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.y, ptr + offset, sizeof(float));
+        
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_VECTOR3) {
+        vector3 ui;
+        unsigned char* ptr = (unsigned char*)bytes;
+        
+        int offset = 0;
+        memcpy(&ui.x, ptr, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.y, ptr + offset, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.z, ptr + offset, sizeof(float));
+        
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_VECTOR4) {
+        vector4 ui;
+        unsigned char* ptr = (unsigned char*)bytes;
+        
+        int offset = 0;
+        memcpy(&ui.x, ptr, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.y, ptr + offset, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.z, ptr + offset, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.w, ptr + offset, sizeof(float));
+        
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_QUATERNION) {
+        quaternion ui;
+        unsigned char* ptr = (unsigned char*)bytes;
+        
+        int offset = 0;
+        memcpy(&ui.x, ptr, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.y, ptr + offset, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.z, ptr + offset, sizeof(float));
+        
+        offset += sizeof(float);
+        memcpy(&ui.w, ptr + offset, sizeof(float));
+        
+        *this = &ui;
+        return;
+    }
+    
+    if(type == VAR_STRING) {
+        char* ui = new char[length];
+        memcpy(ui, bytes, length);
+        *this = ui;
+        return;
+    }
+}

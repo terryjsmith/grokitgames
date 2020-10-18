@@ -25,8 +25,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 sdk_no_version_check
 
 SOURCES += \
+        editormode.cpp \
         editorsettings.cpp \
         gigaopenglwidget.cpp \
+        gizmocomponent.cpp \
         main.cpp \
         mainwindow.cpp \
         modeltest.cpp \
@@ -41,8 +43,10 @@ SOURCES += \
         translationgizmocomponent.cpp
 
 HEADERS += \
+        editormode.h \
         editorsettings.h \
         gigaopenglwidget.h \
+        gizmocomponent.h \
         mainwindow.h \
         metatypes.h \
         modeltest.h \

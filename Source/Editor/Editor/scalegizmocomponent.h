@@ -1,9 +1,9 @@
 #ifndef SCALEGIZMOCOMPONENT_H
 #define SCALEGIZMOCOMPONENT_H
 
-#include <Render/MeshComponent.h>
+#include "gizmocomponent.h"
 
-class ScaleGizmoComponent : public MeshComponent
+class ScaleGizmoComponent : public GizmoComponent
 {
 public:
     ScaleGizmoComponent();

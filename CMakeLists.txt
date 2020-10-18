@@ -133,12 +133,14 @@ clear_source_files()
 ##
 
 list_source_files("Source/Engine/Network")
+list_source_files("Source/Engine/Network/Messages")
 group_source_files("Source" "Source/Engine/Network")
+group_source_files("Source\\\\ Messages" "Source/Engine/Network/Messages")
 add_library(networking STATIC ${ENGINE_SOURCE_FILES})
 target_include_directories(networking PRIVATE ${ENGINE_INCLUDE_DIRS})
 set_property(TARGET networking APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
 set_property(TARGET networking APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
-target_link_libraries(networking "core")
+target_link_libraries(networking "core" "io")
 
 clear_source_files()
 

@@ -30,8 +30,8 @@ public:
     /**
      * Serialization
      */
-    virtual void Serialize(DataRecord* record) { }
-    virtual void Deserialize(DataRecord* record) { }
+    void SerializeObject(DataRecord* record);
+    void DeserializeObject(DataRecord* record);
     
     /**
      * Get class type
@@ -53,6 +53,13 @@ public:
      * Show a string representation of an object (defaults to giga name)
      */
     virtual std::string ToString();
+    
+protected:
+    /**
+     * Serialization
+     */
+    virtual void Serialize(DataRecord* record) { }
+    virtual void Deserialize(DataRecord* record) { }
     
 protected:
     GigaObject();

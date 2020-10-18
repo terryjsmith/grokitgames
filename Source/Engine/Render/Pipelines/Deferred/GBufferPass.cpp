@@ -35,7 +35,7 @@ void GBufferPass::Initialize(int width, int height) {
     fb->AddTexture(aux, FRAMEBUFFER_SLOT_3);
     
     Texture2D* depth = renderSystem->CreateTexture2D();
-    depth->Initialize(width, height, COLOR_DEPTH_COMPONENT24, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
+    depth->Initialize(width, height, COLOR_DEPTH_COMPONENT32F, TEXTURE_TYPE_FLOAT, COLOR_DEPTH_COMPONENT);
     fb->AddTexture(depth, FRAMEBUFFER_SLOT_DEPTH);
     
     m_framebuffers.push_back(fb);

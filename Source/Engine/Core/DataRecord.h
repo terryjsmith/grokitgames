@@ -26,12 +26,6 @@ public:
     bool KeyExists(std::string var);
     
     /**
-     * Serialize into binary
-     */
-    unsigned char* Serialize(int& size);
-    void Deserialize(unsigned char* data, int& size);
-    
-    /**
      * Get/set updated sttus
      */
     void SetUpdated(bool updated) { m_updated = updated; }
@@ -55,13 +49,9 @@ public:
     bool IsDeleted() { return m_deleted; }
     void MarkDeleted(bool deleted) { m_deleted = deleted; }
     
-    /**
-     * Type hint for objects that don't exist yet
-     */
-    struct TypeHint {
-        std::string type;
-        bool single;
-    };
+public:
+    // Object type
+    uint32_t objectType;
     
 protected:
     // Variant variables
