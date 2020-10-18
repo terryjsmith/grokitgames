@@ -3,7 +3,6 @@
 #ifndef win32udpsocket_h
 #define win32udpsocket_h
 
-#include <eternity.h>
 #include <Network/UDPSocketBase.h>
 
 class GIGA_API UDPSocketWin32 : public UDPSocketBase {
@@ -26,6 +25,11 @@ public:
      * Receive a message
      */
     int Read(void* buffer, int length);
+
+    /**
+     * Create a listening socket
+     */
+    void Listen(int port);
     
     /**
      * Close the connection to the server

@@ -135,6 +135,9 @@ int main(int argc, const char * argv[]) {
             }
         }
     }
+
+    // Start client
+    scriptingSystem->CallFunction("Pokeclone", "StartClient", 0, 0);
     
     // Set up render pipeline
     DeferredRenderPipeline* renderPipeline = new DeferredRenderPipeline();

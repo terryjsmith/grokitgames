@@ -71,6 +71,11 @@ public:
      * Call a function on a script object
      */
     Variant* CallFunction(GigaObject* obj, std::string func, int argc, Variant** argv);
+
+    /**
+     * Call static function
+     */
+    Variant* CallFunction(std::string className, std::string func, int argc, Variant** argv, void* obj = 0);
     
     /**
      * Add manual function call

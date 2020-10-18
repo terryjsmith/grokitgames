@@ -705,61 +705,57 @@ MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var, std::string class
     return(mobj);
 }
 
-Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int argc, Variant** argv) {
-    // Get the object
-    MonoObject* mobj = this->GetRemoteObject(obj);
-    std::string className = obj->GetGigaName();
-    
+Variant* ScriptingSystem::CallFunction(std::string className, std::string func, int argc, Variant** argv, void* obj) {
     auto ci = m_classes.find(className);
     GIGA_ASSERT(ci != m_classes.end(), "Class name not found.");
-    
+
     // Get function
     auto fi = ci->second->methods.find(func);
     GIGA_ASSERT(fi != ci->second->methods.end(), "Function not found.");
-    
+
     // Set params
     void** args = (void**)malloc(sizeof(void*) * argc);
-    for(int i = 0; i < argc; i++) {
+    for (int i = 0; i < argc; i++) {
         int vtype = argv[i]->GetType();
-        switch(vtype) {
-            case Variant::VAR_STRING:
-                args[i] = mono_string_new(mono_domain_get(), argv[i]->AsString().c_str());
-                break;
-            case Variant::VAR_VECTOR2:
-            case Variant::VAR_VECTOR3:
-            case Variant::VAR_VECTOR4:
-            case Variant::VAR_QUATERNION:
-            case Variant::VAR_OBJECT:
-            case Variant::VAR_ARRAY:
-                args[i] = this->VariantToMonoObject(argv[i]);
-                break;
-            default:
-                args[i] = argv[i]->GetPtr();
-                break;
+        switch (vtype) {
+        case Variant::VAR_STRING:
+            args[i] = mono_string_new(mono_domain_get(), argv[i]->AsString().c_str());
+            break;
+        case Variant::VAR_VECTOR2:
+        case Variant::VAR_VECTOR3:
+        case Variant::VAR_VECTOR4:
+        case Variant::VAR_QUATERNION:
+        case Variant::VAR_OBJECT:
+        case Variant::VAR_ARRAY:
+            args[i] = this->VariantToMonoObject(argv[i]);
+            break;
+        default:
+            args[i] = argv[i]->GetPtr();
+            break;
         };
     }
-    
+
     // Call
     MonoObject* exc = 0;
-    MonoObject* retval = mono_runtime_invoke(fi->second->method, mobj, args, &exc);
-    if(exc) {
+    MonoObject* retval = mono_runtime_invoke(fi->second->method, obj, args, &exc);
+    if (exc) {
         mono_print_unhandled_exception(exc);
         GIGA_ASSERT(false, "Unable to run function.");
     }
 
     free(args);
-    
+
     /*
-     
+
      // You might think you want to use mono_runtime_invoke_array, but it will crash on macOS 10.14+ attempting to
      // get into GC in the mono internals
-     
+
      MonoArray *params = mono_array_new(mono_domain_get(), mono_get_object_class(), argc);
     for(int i = 0; i < argc; i++) {
         MonoObject *param_obj = this->VariantToMonoObject(argv[i]);
         mono_array_setref(params, i, param_obj);
     }
-    
+
     // Call
     MonoObject* exc = 0;
     MonoObject* retval = mono_runtime_invoke_array(fi->second->method, mobj, params, &exc);
@@ -767,6 +763,14 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
         mono_print_unhandled_exception(exc);
         GIGA_ASSERT(false, "Unable to run function.");
     }*/
-    
+
     return(MonoObjectToVariant(retval));
+}
+
+Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int argc, Variant** argv) {
+    // Get the object
+    MonoObject* mobj = this->GetRemoteObject(obj);
+    std::string className = obj->GetGigaName();
+    
+    return(this->CallFunction(className, func, argc, argv, mobj));
 }

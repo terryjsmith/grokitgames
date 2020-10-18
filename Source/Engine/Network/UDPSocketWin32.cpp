@@ -3,6 +3,7 @@
 
 #include <Network/UDPSocketWin32.h>
 #include <Core/ErrorSystem.h>
+#include <Core/Application.h>
 
 UDPSocketWin32::UDPSocketWin32() {
     memset(&m_sockaddr, 0, sizeof(sockaddr_in));
@@ -83,6 +84,35 @@ void UDPSocketWin32::Close() {
         closesocket(m_socket);
         m_socket = 0;
     }
+
+    WSACleanup();
 }
 
 #endif
+
+void UDPSocketWin32::Listen(int port) {
+    ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
+
+    WSAData data;
+    WSAStartup(MAKEWORD(2, 2), &data);
+
+    int sock, length, n;
+    int fromlen;
+    struct sockaddr_in server;
+    struct sockaddr_in from;
+    char buf[1024];
+
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to open socket"));
+    }
+
+    length = sizeof(server);
+    memset(&server, 0, length);
+    server.sin_family = AF_INET;
+    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_port = htons(port);
+    if (bind(sock, (struct sockaddr*)&server, length) < 0) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to bind socket"));
+    }
+}

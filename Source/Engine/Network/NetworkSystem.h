@@ -41,7 +41,7 @@ public:
     /**
      * Listen for new connections on a particular port (server)
      */
-    void Listen(int port);
+    GIGA_FUNCTION() void Listen(int port);
     
     /**
      * Send a message to all connected sessions
