@@ -88,8 +88,6 @@ void UDPSocketWin32::Close() {
     WSACleanup();
 }
 
-#endif
-
 void UDPSocketWin32::Listen(int port) {
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
 
@@ -116,3 +114,5 @@ void UDPSocketWin32::Listen(int port) {
         errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to bind socket"));
     }
 }
+
+#endif

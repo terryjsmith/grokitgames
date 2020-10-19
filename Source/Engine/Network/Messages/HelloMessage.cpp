@@ -23,7 +23,6 @@ void HelloMessage::OnSend() {
     
     writer->Write(&size, sizeof(uint32_t));
     writer->Write((char*)sessionCode.data(), size);
-    delete writer;
     
     SetPayload(payload, writer->GetPosition());
     
