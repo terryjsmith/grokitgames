@@ -6,6 +6,7 @@
 #include <Network/NetworkMessagePart.h>
 // #include <Network/Messages/ResendPartialMessage.h>
 #include <Network/Messages/EchoRequestMessage.h>
+#include <Network/Messages/EchoResponseMessage.h>
 #include <Network/ReplicationSystem.h>
 #include <Core/Application.h>
 #include <Network/Messages/HelloMessage.h>
@@ -21,7 +22,9 @@ NetworkSystem::~NetworkSystem() {
 }
 
 void NetworkSystem::Initialize() {
-    
+    this->RegisterMessageType<HelloMessage>(10);
+    this->RegisterMessageType<EchoRequestMessage>(20);
+    this->RegisterMessageType<EchoResponseMessage>(30);
 }
 
 void NetworkSystem::Connect(std::string host, int port) {
