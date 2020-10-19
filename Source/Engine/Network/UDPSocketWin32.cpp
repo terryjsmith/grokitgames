@@ -96,14 +96,14 @@ void UDPSocketWin32::Listen(int port) {
     WSAData data;
     WSAStartup(MAKEWORD(2, 2), &data);
 
-    int sock, length, n;
+    int length, n;
     int fromlen;
     struct sockaddr_in server;
     struct sockaddr_in from;
     char buf[1024];
 
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock < 0) {
+    m_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (m_socket < 0) {
         errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to open socket"));
     }
 
@@ -112,7 +112,7 @@ void UDPSocketWin32::Listen(int port) {
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(port);
-    if (bind(sock, (struct sockaddr*)&server, length) < 0) {
+    if (bind(m_socket, (struct sockaddr*)&server, length) < 0) {
         errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to bind socket"));
     }
 }
