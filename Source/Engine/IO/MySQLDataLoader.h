@@ -13,7 +13,8 @@ public:
     /**
      * Connect to a MySQL server
      */
-    bool Connect(std::string url, std::string username, std::string password, std::string db);
+    bool Connect(std::string host, int port, std::string username, std::string password, std::string db);
+    void Close();
     
     /**
      * Query for records
@@ -33,10 +34,13 @@ public:
      * Create or alter any necessary tables for registered types
      */
     void UpdateTables();
+
+protected:
+    bool TableExists(std::string name);
     
 protected:
     std::string m_url, m_username, m_password, m_db;
-    MYSQL *m_connection;
+    MYSQL *m_handle;
 };
 
 #endif

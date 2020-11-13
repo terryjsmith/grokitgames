@@ -21,6 +21,7 @@
 #include <IO/Profiler.h>
 #include <IO/SQLiteDataLoader.h>
 #include <Core/TransformComponent.h>
+#include <Network/ReplicationSystem.h>
 
 int main(int argc, const char* argv[]) {
     // Get application instance
@@ -38,6 +39,7 @@ int main(int argc, const char* argv[]) {
     MaterialSystem* materialSystem = app->CreateSystem<MaterialSystem>();
     ScriptingSystem* scriptingSystem = app->CreateSystem<ScriptingSystem>();
     NetworkSystem* networkSystem = app->CreateSystem<NetworkSystem>();
+    ReplicationSystem* replicationSystem = app->CreateSystem<ReplicationSystem>();
     AudioSystem* audioSystem = app->CreateSystem<AudioSystem>();
     AnimationSystem* animationSystem = app->CreateSystem<AnimationSystem>();
     LogSystem* logSystem = app->CreateSystem<LogSystem>();

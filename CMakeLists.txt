@@ -312,7 +312,7 @@ add_dependencies(game core networking generator-mono editor-mono)
 
 # game server
 
-add_executable(server Source/Server/main.cpp)
+add_executable(server Source/Server/main.cpp "${DEPENDENCY_PATH}/gl3w/src/gl3w.c")
 
 set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")

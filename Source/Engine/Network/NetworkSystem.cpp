@@ -10,6 +10,7 @@
 #include <Network/ReplicationSystem.h>
 #include <Core/Application.h>
 #include <Network/Messages/HelloMessage.h>
+#include <Network/Messages/MessageTypes.h>
 
 NetworkSystem::NetworkSystem() {
     m_systemType = 0;
@@ -22,9 +23,9 @@ NetworkSystem::~NetworkSystem() {
 }
 
 void NetworkSystem::Initialize() {
-    this->RegisterMessageType<HelloMessage>(10);
-    this->RegisterMessageType<EchoRequestMessage>(20);
-    this->RegisterMessageType<EchoResponseMessage>(30);
+    this->RegisterMessageType<HelloMessage>(Message_HelloMessage);
+    this->RegisterMessageType<EchoRequestMessage>(Message_EchoRequestMessage);
+    this->RegisterMessageType<EchoResponseMessage>(Message_EchoResponseMessage);
 }
 
 void NetworkSystem::Connect(std::string host, int port) {

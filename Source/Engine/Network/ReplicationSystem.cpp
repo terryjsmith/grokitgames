@@ -8,6 +8,7 @@
 #include <Network/Messages/CommandMessage.h>
 #include <Core/DataRecord.h>
 #include <Core/World.h>
+#include <Network/Messages/MessageTypes.h>
 
 ReplicationSystem::ReplicationSystem() {
     m_lastTick = 0;
@@ -30,7 +31,9 @@ ReplicationSystem::~ReplicationSystem() {
 }
 
 void ReplicationSystem::Initialize() {
-    
+    NetworkSystem* networkSystem = GetSystem<NetworkSystem>();
+    networkSystem->RegisterMessageType<EntitySnapshotMessage>(Message_EntitySnapshotMessage);
+    networkSystem->RegisterMessageType<CommandMessage>(Message_CommandMessage);
 }
 
 void ReplicationSystem::Update(float delta) {
