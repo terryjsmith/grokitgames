@@ -15,20 +15,6 @@ void OpenGLRenderSystem::Initialize() {
 }
 
 void OpenGLRenderSystem::Initialize(int width, int height, bool fullscreen) {
-#ifdef WIN32
-    ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
-    
-    if (gl3wInit()) {
-        errorSystem->HandleError(new Error(Error::MSG_FATAL, "Unable to initialize GL3W."));
-        return;
-    }
-
-    if (!gl3wIsSupported(4, 0)) {
-        errorSystem->HandleError(new Error(Error::MSG_FATAL, "OpenGL 4.0 not supported."));
-        fprintf(stderr, "OpenGL 4.0 not supported\n");
-    }
-#endif
-
     GL_CHECK(glEnable(GL_TEXTURE_2D));
     GL_CHECK(glDisable(GL_CULL_FACE));
     //GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));

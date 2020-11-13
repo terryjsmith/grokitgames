@@ -16,6 +16,7 @@ find_library(LIBRARY_BULLET_COLLISION BulletCollision "${DEPENDENCY_PATH}/bullet
 find_library(LIBRARY_BULLET_DYNAMICS BulletDynamics "${DEPENDENCY_PATH}/bullet/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_BULLET_LINEARMATH LinearMath "${DEPENDENCY_PATH}/bullet/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_LIBCURL curl "${DEPENDENCY_PATH}/libcurl/lib" NO_DEFAULT_PATH)
+find_library(LIBRARY_MYSQL mysqlclient "${DEPENDENCY_PATH}/mysql/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_SSL ssl "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_CRYPTO crypto "${DEPENDENCY_PATH}/openssl/lib" NO_DEFAULT_PATH)
 find_library(LIBRARY_ZLIB zlib "${DEPENDENCY_PATH}/zip/lib" NO_DEFAULT_PATH)
@@ -72,6 +73,8 @@ list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/assimp/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/openssl/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/rapidjson/include")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/fmod/include")
+list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/mysql/include")
+list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/imgui")
 list (APPEND ENGINE_INCLUDE_DIRS "${DEPENDENCY_PATH}/mono/include/mono-2.0")
 
 set (ENGINE_LIBS "")
@@ -86,6 +89,7 @@ list (APPEND ENGINE_LIBS ${LIBRARY_CRYPTO})
 list (APPEND ENGINE_LIBS ${LIBRARY_ASSIMP})
 list (APPEND ENGINE_LIBS ${LIBRARY_IRRXML})
 list (APPEND ENGINE_LIBS ${LIBRARY_FMOD})
+list (APPEND ENGINE_LIBS ${LIBRARY_MYSQL})
 list (APPEND ENGINE_LIBS ${LIBRARY_MONO})
 
 IF(WIN32)
@@ -170,7 +174,8 @@ group_source_files("Source" "Source/Engine/Render")
 group_source_files("Source\\\\OpenGL" "Source/Engine/Render/OpenGL")
 group_source_files("Source\\\\Pipelines" "Source/Engine/Render/Pipelines")
 group_source_files("Source\\\\Pipelines\\\\Deferred" "Source/Engine/Render/Pipelines/Deferred")
-add_library(render STATIC ${ENGINE_SOURCE_FILES} "${DEPENDENCY_PATH}/gl3w/src/gl3w.c" "${DEPENDENCY_PATH}/soil/src/SOIL.c" "${DEPENDENCY_PATH}/soil/src/image_helper.c" "${DEPENDENCY_PATH}/soil/src/image_dxt.c" "${DEPENDENCY_PATH}/soil/src/stb_image_aug.c")
+
+add_library(render STATIC ${ENGINE_SOURCE_FILES} "${DEPENDENCY_PATH}/soil/src/SOIL.c" "${DEPENDENCY_PATH}/soil/src/image_helper.c" "${DEPENDENCY_PATH}/soil/src/image_dxt.c" "${DEPENDENCY_PATH}/soil/src/stb_image_aug.c" "${DEPENDENCY_PATH}/imgui/imgui.cpp" "${DEPENDENCY_PATH}/imgui/imgui_draw.cpp" "${DEPENDENCY_PATH}/imgui/imgui_widgets.cpp" "${DEPENDENCY_PATH}/imgui/backends/imgui_impl_glfw.cpp" "${DEPENDENCY_PATH}/imgui/backends/imgui_impl_opengl3.cpp")
 set_property(TARGET render APPEND PROPERTY COMPILE_DEFINITIONS "GIGA_EXPORTS")
 target_include_directories(render PRIVATE ${ENGINE_INCLUDE_DIRS})
 target_link_libraries(render "core" "io" ${ENGINE_LIBS})
@@ -290,12 +295,11 @@ target_link_libraries(meta "core" "networking" "render" "audio" "physics" "io" "
 add_dependencies(meta generator-prebuild)
 
 
-
 ##
 ## game client
 ##
 
-add_executable(game Source/Game/main.cpp Source/Game/register_globals.cpp)
+add_executable(game Source/Game/main.cpp Source/Game/register_globals.cpp "${DEPENDENCY_PATH}/gl3w/src/gl3w.c")
 
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
@@ -304,6 +308,7 @@ set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WAR
 target_link_libraries(game ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(game PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(game core networking generator-mono editor-mono)
+
 
 # game server
 
@@ -316,3 +321,16 @@ set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_W
 target_link_libraries(server ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(server PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(server core networking generator-mono editor-mono)
+
+
+# game editor
+
+add_executable(editor Source/Editor/main.cpp "${DEPENDENCY_PATH}/gl3w/src/gl3w.c")
+
+set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS)
+set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
+set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+
+target_link_libraries(editor ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
+target_include_directories(editor PRIVATE ${ENGINE_INCLUDE_DIRS})
+add_dependencies(editor render generator-mono editor-mono)

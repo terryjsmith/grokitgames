@@ -2,16 +2,17 @@
 #ifndef opengl_h
 #define opengl_h
 
+#include <GL/gl3w.h>
+
 #ifdef WIN32
 
-#include <GL/gl3w.h>
 #define GL_ANISOTROPHY_MAX  GL_TEXTURE_MAX_ANISOTROPY
 
 #else
 
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
-#define GL_ANISOTROPHY_MAX  GL_TEXTURE_MAX_ANISOTROPY_EXT
+//#include <OpenGL/gl3.h>
+//#include <OpenGL/gl3ext.h>
+//#define GL_ANISOTROPHY_MAX  GL_TEXTURE_MAX_ANISOTROPY_EXT
 
 #endif
 

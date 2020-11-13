@@ -28,7 +28,7 @@
 #include <Render/ParticleEmitterComponent.h>
 #include <Render/ParticleSystem.h>
 #include <Network/ReplicationSystem.h>
-#include "register_globals.h"
+#include <Render/GuiSystem.h>
 
 int main(int argc, const char * argv[]) {
     // insert code here...
@@ -54,6 +54,7 @@ int main(int argc, const char * argv[]) {
     LogSystem* logSystem = app->CreateSystem<LogSystem>();
     ParticleSystem* particleSystem = app->CreateSystem<ParticleSystem>();
     ReplicationSystem* replicationSystem = app->CreateSystem<ReplicationSystem>();
+    GuiSystem* guiSystem = app->CreateSystem<GuiSystem>();
     
     // Initialize systems
     app->Initialize();
@@ -89,6 +90,9 @@ int main(int argc, const char * argv[]) {
     // Initialize render system
     renderSystem->Initialize(framebufferWidth, framebufferHeight, false);
     
+    // Initialize GUI
+    guiSystem->Startup();
+    
     // Register built-in component types
     metaSystem->RegisterComponentType("TransformComponent");
     metaSystem->RegisterComponentType("AudioComponent");
@@ -103,44 +107,6 @@ int main(int argc, const char * argv[]) {
     metaSystem->RegisterComponentType("BillboardComponent");
     metaSystem->RegisterComponentType("ParticleEmitterComponent");
     
-    // Load game code
-    if(Resource::Exists("game.dll")) {
-        scriptingSystem->LoadLibrary("game.dll");
-    }
-    
-    // Open our game database
-    SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
-    dataLoader->Open("game.db");
-    
-    /* Load entities
-    Array<GigaObject*> entities = dataLoader->GetObjects("Entity");
-
-    // Add entities to world
-    auto it = entities.begin();
-    for(; it != entities.end(); it++) {
-        Entity* entity = dynamic_cast<Entity*>(*it);
-        world->AddEntity(entity);
-    }
-
-    // Load components
-    Array<std::string> componentTypes = metaSystem->GetComponentTypes();
-    auto cti = componentTypes.begin();
-    for(; cti != componentTypes.end(); cti++) {
-        Array<GigaObject*> components = dataLoader->GetObjects(*cti);
-        auto ci = components.begin();
-        for(; ci != components.end(); ci++) {
-            // Check whether this is attached to an entity
-            Component* component = dynamic_cast<Component*>(*ci);
-            Entity* entity = component->GetParent();
-            if(entity != 0) {
-
-            }
-        }
-    }*/
-
-    // Start client
-    scriptingSystem->CallFunction("Pokeclone", "StartClient", 0, 0);
-    
     // Set up render pipeline
     DeferredRenderPipeline* renderPipeline = new DeferredRenderPipeline();
     renderPipeline->Initialize(framebufferWidth, framebufferHeight);
@@ -153,29 +119,6 @@ int main(int argc, const char * argv[]) {
     
     inputSystem->RegisterInputDevice(keyboard);
     
-    /**
-     * Load extra stuff
-     */
-    /*
-    Entity* entity = world->CreateEntity();
-    ParticleEmitterComponent* emitter = entity->CreateComponent<ParticleEmitterComponent>();
-    emitter->GetTransform()->SetWorldPosition(vector3(0, 0.6f, 0));
-    Texture2D* tex = (Texture2D*)resourceSystem->LoadResource("Resources/Textures/fireparticle.png", "Texture2D");
-    emitter->Initialize(tex, 1.0f, 1000);
-    
-    ScriptComponent* script = entity->CreateComponent<ScriptComponent>();
-    script->className = "Fire";
-    */
-    
-    /*BillboardComponent* bc = entity->CreateComponent<BillboardComponent>();
-    bc->Initialize();
-    bc->GetTransform()->SetWorldPosition(vector3(0, 0.6f, 0));
-    
-    Texture2D* tex = (Texture2D*)resourceSystem->LoadResource("Resources/Textures/fireparticle.png", "Texture2D");
-    bc->Create(tex, 0.5f);*/
-    
-    
-    
     // Game timer
     Timer* gameTimer = new Timer();
     gameTimer->Start();
@@ -187,11 +130,60 @@ int main(int argc, const char * argv[]) {
         float delta = gameTimer->Duration();
         gameTimer->Reset();
         
+        // Start gui frame
+        guiSystem->StartFrame();
+        
         app->Update(delta);
         
         PROFILE_START_AREA("ProcessEvents");
         window->ProcessEvents();
         PROFILE_END_AREA("ProcessEvents");
+        
+        PROFILE_START_AREA("ImGui");
+        
+        // Render gui
+        bool closed = false;
+        
+        int windowWidth, windowHeight;
+        window->GetWindowDimensions(windowWidth, windowHeight);
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight), ImGuiCond_Always);
+        
+        // Start window
+        ImGui::Begin("main_window", &closed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
+        
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(255, 0, 0, 255));
+        ImGui::BeginChild("resource_panel", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+        
+        // Resource panel
+        
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+        
+        ImGui::SameLine();
+        
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 255, 0, 255));
+        ImGui::BeginChild("render_panel", ImVec2(windowWidth - 400 - (ImGui::GetStyle().ItemSpacing.x * 4), 0), false, ImGuiWindowFlags_NoDecoration);
+        
+        // Render panel
+        
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+        
+        ImGui::SameLine();
+        
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 255, 255));
+        ImGui::BeginChild("scene_panel", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+        
+        // Scene objects panel
+        
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+        
+        ImGui::End();
+        
+        guiSystem->Render();
+        PROFILE_END_AREA("ImGui");
         
         PROFILE_START_AREA("SwapBuffer");
         window->SwapBuffer();

@@ -3,6 +3,7 @@
 #include <Core/ErrorSystem.h>
 #include <IO/LogSystem.h>
 #include <Core/Application.h>
+#include <Render/OpenGL/OpenGL.h>
 #include <GLFW/glfw3.h>
 
 bool Window::m_initialized = false;
@@ -47,9 +48,19 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     // Make our OpenGL context current
     glfwMakeContextCurrent((GLFWwindow*)m_window);
     
+    if (gl3wInit()) {
+        errorSystem->HandleError(new Error(Error::MSG_FATAL, "Unable to initialize GL3W."));
+        return;
+    }
+
+    if (!gl3wIsSupported(4, 0)) {
+        errorSystem->HandleError(new Error(Error::MSG_FATAL, "OpenGL 4.0 not supported."));
+        fprintf(stderr, "OpenGL 4.0 not supported\n");
+    }
+    
     // Get our actual framebuffer size
     glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
-
+    
     LogSystem* logSystem = GetSystem<LogSystem>();
     logSystem->Log(Error::MSG_INFO, "Window created @ " + std::to_string(width) + " x " + std::to_string(height));
     logSystem->Log(Error::MSG_INFO, std::string("GL version: ") + (char*)glGetString(GL_VERSION));
@@ -77,11 +88,16 @@ Window* Window::GetInstance() {
 }
 
 void Window::GetWindowDimensions(int& width, int& height) {
+    glfwGetWindowSize((GLFWwindow*)m_window, &m_width, &m_height);
+    
     width = m_width;
     height = m_height;
 }
 
 void Window::GetFramebufferDimensions(int& width, int& height) {
+    // Get our actual framebuffer size
+    glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
+    
     width = m_framebufferWidth;
     height = m_framebufferHeight;
 }
