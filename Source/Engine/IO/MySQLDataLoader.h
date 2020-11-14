@@ -34,6 +34,11 @@ public:
      * Create or alter any necessary tables for registered types
      */
     void UpdateTables();
+    
+    /**
+     * Truncate a table/data source
+     */
+    virtual void Delete(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>());
 
 protected:
     bool TableExists(std::string name);

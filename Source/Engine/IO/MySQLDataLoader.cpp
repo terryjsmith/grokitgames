@@ -16,6 +16,8 @@ MySQLDataLoader::~MySQLDataLoader() {
 bool MySQLDataLoader::Connect(std::string host, int port, std::string username, std::string password, std::string db) {
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
     m_handle = mysql_init(NULL);
+    
+    m_db = db;
 
     if (mysql_real_connect(m_handle, host.c_str(), username.c_str(), password.c_str(), db.c_str(), 0, NULL, 0) == NULL) {
         errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to connect to MySQL", (char*)mysql_error(m_handle)));
@@ -70,47 +72,62 @@ Array<GigaObject*> MySQLDataLoader::GetObjects(std::string table, std::map<std::
 
     MYSQL_ROW row;
     MYSQL_FIELD* sqlfields = mysql_fetch_fields(result);
+    std::string primaryKeyCol = table + "_id";
+    std::vector<DataRecord*> records;
     while ((row = mysql_fetch_row(result))) {
         unsigned int primaryKeyID = 0;
-        StorableObject* record = type->CreateRecord();
-        record->InitializeStorableObject(type->GetName());
-        record->SetDataMappings();
-
+        DataRecord* record = new DataRecord();
+        
         for (int i = 0; i < colCount; i++) {
             printf("Setting %s to %s.\n", sqlfields[i].name, row[i]);
-            if (strcmp(sqlfields[i].name, type->GetPrimaryKey().c_str()) == 0) {
+            if (strcmp(sqlfields[i].name, primaryKeyCol.c_str()) == 0) {
                 primaryKeyID = atoi(row[i]);
+                record->SetID(primaryKeyID);
                 continue;
             }
+            
+            // Read type and value
+            std::string fieldValue = row[i];
+            int type = atoi(fieldValue.substr(0, fieldValue.find(":")).c_str());
+            std::string value = fieldValue.substr(fieldValue.find(":") + 1);
 
-            record->UpdateStorableObjectFieldValue(std::string(sqlfields[i].name), std::string(row[i]));
+            record->Set(std::string(sqlfields[i].name), std::string(row[i]), type);
         }
 
-        record->SetStorableObjectID(primaryKeyID);
-        record->SetStorableObjectType(type);
-
-        m_records[name].push_back(record);
+        records.push_back(record);
     }
 
     mysql_free_result(result);
+    
+    // Save records
+    auto ri = m_records.find(table);
+    if(ri == m_records.end()) {
+        m_records[table] = std::map<uint32_t, DataRecord*>();
+        ri = m_records.find(table);
+    }
+    
+    auto it = records.begin();
+    for(; it != records.end(); it++) {
+        uint32_t id = (*it)->GetID();
+        ri->second[id] = (*it);
+    }
 
     // Process objects
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
 
-    std::string primaryKeyCol = table + "_id";
     auto ci = m_objectCache.find(table);
     if (ci == m_objectCache.end()) {
         m_objectCache[table] = std::map<uint32_t, GigaObject*>();
         ci = m_objectCache.find(table);
     }
 
-    auto oi = m_tempRecords[table].begin();
-    for (; oi != m_tempRecords[table].end(); oi++) {
+    auto oi = records.begin();
+    for (; oi != records.end(); oi++) {
         // Check cache for existing object
         GigaObject* obj = 0;
         uint32_t primaryKeyValue = (*oi)->GetID();
-        auto obi = ci->second.find(primaryKeyValue);
-        if (obi != ci->second.end()) {
+        auto obi = ri->second.find(primaryKeyValue);
+        if (obi != ri->second.end()) {
             obj = obi->second;
         }
         else {
@@ -125,43 +142,22 @@ Array<GigaObject*> MySQLDataLoader::GetObjects(std::string table, std::map<std::
         retval.push_back(obj);
     }
 
-    m_tempTableName = prevTableName;
     return(retval);
 }
 
 
 Array<DataRecord*> MySQLDataLoader::GetRecords(std::string table, std::map<std::string, std::string> search) {
-    // Store and restore temp table name (nested gets)
-    std::string prevTableName = m_tempTableName;
-    m_tempTableName = table;
-
-    // Clear any previous temporary records
-    auto ri = m_tempRecords.find(table);
-    if (ri != m_tempRecords.end()) {
-        ri->second.clear();
-    }
-    else {
-        m_tempRecords[table] = Array<DataRecord*>();
-    }
-
+    Array<DataRecord*> records;
+    
     // Get error system
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
 
     if (this->TableExists(table) == false) {
-        m_tempTableName = prevTableName;
-        return(m_tempRecords[table]);
+        return(records);
     }
 
-    // Get table structure
-    std::string query = "PRAGMA table_info(" + table + ")";
-    if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to get SQLite schema.");
-        m_tempTableName = prevTableName;
-        return(m_tempRecords[table]);
-    }
-
-    query = "SELECT * FROM " + table;
+    this->UpdateTables();
+    std::string query = "SELECT * FROM " + table;
 
     // Add where clauses
     if (search.size()) {
@@ -172,16 +168,60 @@ Array<DataRecord*> MySQLDataLoader::GetRecords(std::string table, std::map<std::
         }
     }
 
-    // Execute
-    if (sqlite3_exec(m_handle, query.c_str(), InternalDataCallback, this, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get record list from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to get record list from SQLite.");
-        m_tempTableName = prevTableName;
-        return(m_tempRecords[table]);
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get record list from MySQL.", (char*)mysql_error(m_handle)));
+        return(records);
     }
 
-    m_tempTableName = prevTableName;
-    return(m_tempRecords[table]);
+    MYSQL_RES* result = mysql_store_result(m_handle);
+    if (result == NULL) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get record list from MySQL result.", (char*)mysql_error(m_handle)));
+        return(records);
+    }
+
+    int colCount = mysql_field_count(m_handle);
+
+    MYSQL_ROW row;
+    MYSQL_FIELD* sqlfields = mysql_fetch_fields(result);
+    std::string primaryKeyCol = table + "_id";
+    while ((row = mysql_fetch_row(result))) {
+        unsigned int primaryKeyID = 0;
+        DataRecord* record = new DataRecord();
+        
+        for (int i = 0; i < colCount; i++) {
+            printf("Setting %s to %s.\n", sqlfields[i].name, row[i]);
+            if (strcmp(sqlfields[i].name, primaryKeyCol.c_str()) == 0) {
+                primaryKeyID = atoi(row[i]);
+                record->SetID(primaryKeyID);
+                continue;
+            }
+            
+            // Read type and value
+            std::string fieldValue = row[i];
+            int type = atoi(fieldValue.substr(0, fieldValue.find(":")).c_str());
+            std::string value = fieldValue.substr(fieldValue.find(":") + 1);
+
+            record->Set(std::string(sqlfields[i].name), std::string(row[i]), type);
+        }
+
+        records.push_back(record);
+    }
+
+    mysql_free_result(result);
+    
+    // Save records
+    auto ri = m_records.find(table);
+    if(ri == m_records.end()) {
+        m_records[table] = std::map<uint32_t, DataRecord*>();
+        ri = m_records.find(table);
+    }
+    
+    auto it = records.begin();
+    for(; it != records.end(); it++) {
+        uint32_t id = (*it)->GetID();
+        ri->second[id] = (*it);
+    }
+    return(records);
 }
 
 void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records) {
@@ -205,38 +245,42 @@ void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records)
     Array<std::string> fields = firstRecord->GetKeys();
     auto fi = fields.begin();
     for (; fi != fields.end(); fi++) {
-        query += "," + (*fi) + " TEXT";
+        query += "," + (*fi) + " VARCHAR(255)";
     }
 
     query += ", PRIMARY KEY(" + table + "_id ASC))";
 
-    if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to create SQLite table.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to create SQLite table.");
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to create table.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to create table.");
         return;
     }
 
     // Add any columns that may not yet exist
-    query = "PRAGMA table_info(" + table + ")";
-    if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to get SQLite schema.");
+    query = "DESCRIBE " + table + "";
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get schema.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to get schema.");
         return;
     }
 
     // Put the column names into a vector
-    sqlite3_stmt* stmt = 0;
-    int result = 0;
     Array<std::string> existingCols;
-    result = sqlite3_prepare(m_handle, query.c_str(), (int)query.length() + 1, &stmt, 0);
-    while ((result = sqlite3_step(stmt))) {
-        if (result != SQLITE_ROW) {
-            break;
-        }
-
-        std::string colname = (const char*)sqlite3_column_text(stmt, 1);
-        existingCols.push_back(colname);
+    MYSQL_RES* result = mysql_store_result(m_handle);
+    if (result == NULL) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to store MySQL result.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to store MySQL result.");
+        return;
     }
+
+    int colCount = mysql_field_count(m_handle);
+
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(result))) {
+        existingCols.push_back(row[0]);
+    }
+    
+    mysql_free_result(result);
 
     fi = fields.begin();
     for (; fi != fields.end(); fi++) {
@@ -244,9 +288,9 @@ void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records)
         if (it == existingCols.end()) {
             query = "ALTER TABLE " + table + " ADD COLUMN " + (*fi) + " TEXT";
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to alter SQLite table.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to alter SQLite DB.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to alter table.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to alter DB.");
                 return;
             }
         }
@@ -281,15 +325,15 @@ void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records)
 
             query += values + ")";
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to insert object.");
             }
 
-            unsigned int newID = (unsigned int)sqlite3_last_insert_rowid(m_handle);
+            unsigned int newID = (unsigned int)mysql_insert_id(m_handle);
             if (newID == 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to insert object.");
             }
 
             dr->SetID(newID);
@@ -306,9 +350,9 @@ void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records)
             query = "DELETE FROM " + table + " WHERE " + primaryKeyCol + " = ";
             query += primaryKeyID;
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to delete object from SQLite.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to delete object");
             }
 
             continue;
@@ -330,9 +374,9 @@ void MySQLDataLoader::SaveRecords(std::string table, Array<DataRecord*> records)
 
         query += " WHERE " + primaryKeyCol + " = " + primaryKeyID;
 
-        if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to update object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-            GIGA_ASSERT(false, "Unable to update object in SQLite DB.");
+        if (mysql_query(m_handle, query.c_str())) {
+            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to update object.", (char*)mysql_error(m_handle)));
+            GIGA_ASSERT(false, "Unable to update object.");
         }
     }
 }
@@ -367,38 +411,42 @@ void MySQLDataLoader::SaveObjects(std::string table, Array<GigaObject*> records)
     Array<std::string> fields = firstRecord->GetKeys();
     auto fi = fields.begin();
     for (; fi != fields.end(); fi++) {
-        query += ",'" + (*fi) + "' TEXT";
+        query += ",'" + (*fi) + "' VARCHAR(255)";
     }
 
     query += ", PRIMARY KEY(" + table + "_id ASC))";
 
-    if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to create SQLite table.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to create SQLite table.");
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to create table.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to create table.");
         return;
     }
 
     // Add any columns that may not yet exist
-    query = "PRAGMA table_info(" + table + ")";
-    if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get SQLite schema.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to get SQLite schema.");
+    query = "DESCRIBE " + table + "";
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to get schema.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to get schema.");
         return;
     }
 
     // Put the column names into a vector
-    sqlite3_stmt* stmt = 0;
-    int result = 0;
     Array<std::string> existingCols;
-    result = sqlite3_prepare(m_handle, query.c_str(), (int)query.length() + 1, &stmt, 0);
-    while ((result = sqlite3_step(stmt))) {
-        if (result != SQLITE_ROW) {
-            break;
-        }
-
-        std::string colname = (const char*)sqlite3_column_text(stmt, 1);
-        existingCols.push_back(colname);
+    MYSQL_RES* result = mysql_store_result(m_handle);
+    if (result == NULL) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to store MySQL result.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to store MySQL result.");
+        return;
     }
+
+    int colCount = mysql_field_count(m_handle);
+
+    MYSQL_ROW row;
+    while ((row = mysql_fetch_row(result))) {
+        existingCols.push_back(row[0]);
+    }
+    
+    mysql_free_result(result);
 
     fi = fields.begin();
     for (; fi != fields.end(); fi++) {
@@ -406,9 +454,9 @@ void MySQLDataLoader::SaveObjects(std::string table, Array<GigaObject*> records)
         if (it == existingCols.end()) {
             query = "ALTER TABLE " + table + " ADD COLUMN " + (*fi) + " TEXT";
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to alter SQLite table.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to alter SQLite DB.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to alter table.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to alter DB.");
                 return;
             }
         }
@@ -454,15 +502,15 @@ void MySQLDataLoader::SaveObjects(std::string table, Array<GigaObject*> records)
 
             query += values + ")";
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to insert object.");
             }
 
-            unsigned int newID = (unsigned int)sqlite3_last_insert_rowid(m_handle);
+            unsigned int newID = (unsigned int)mysql_insert_id(m_handle);
             if (newID == 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to insert object in SQLite DB.");
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to insert object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to insert object.");
             }
 
             dr->SetID(newID);
@@ -479,9 +527,9 @@ void MySQLDataLoader::SaveObjects(std::string table, Array<GigaObject*> records)
             query = "DELETE FROM " + table + " WHERE " + primaryKeyCol + " = ";
             query += primaryKeyID;
 
-            if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-                GIGA_ASSERT(false, "Unable to delete object from SQLite.");
+            if (mysql_query(m_handle, query.c_str())) {
+                errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete object.", (char*)mysql_error(m_handle)));
+                GIGA_ASSERT(false, "Unable to delete object.");
             }
 
             continue;
@@ -503,9 +551,9 @@ void MySQLDataLoader::SaveObjects(std::string table, Array<GigaObject*> records)
 
         query += " WHERE " + primaryKeyCol + " = " + primaryKeyID;
 
-        if (sqlite3_exec(m_handle, query.c_str(), 0, 0, 0) != 0) {
-            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to update object from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-            GIGA_ASSERT(false, "Unable to update object in SQLite DB.");
+        if (mysql_query(m_handle, query.c_str())) {
+            errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to update object.", (char*)mysql_error(m_handle)));
+            GIGA_ASSERT(false, "Unable to update object.");
         }
     }
 }
@@ -529,69 +577,6 @@ GigaObject* MySQLDataLoader::GetObject(std::string table, int primaryKey) {
     return(0);
 }
 
-int MySQLDataLoader::InternalDataCallback(void* instance, int count, char** data, char** cols) {
-    DataRecord* record = new DataRecord();
-    MySQLDataLoader* loader = (MySQLDataLoader*)instance;
-
-    auto ci = loader->m_records.find(loader->m_tempTableName);
-    if (ci == loader->m_records.end()) {
-        loader->m_records[loader->m_tempTableName] = std::map<uint32_t, DataRecord*>();
-        ci = loader->m_records.find(loader->m_tempTableName);
-    }
-
-    // Iterate over count columns of data
-    std::string primaryKeyCol = loader->m_tempTableName + "_id";
-    uint32_t primaryKeyVal = 0;
-    for (int i = 0; i < count; i++) {
-        if (data[i] == 0) {
-            continue;
-        }
-
-        if (primaryKeyCol.compare(cols[i]) == 0) {
-            // Check our cache for an existing record to update
-            primaryKeyVal = atoi(data[i]);
-            auto cache = ci->second.find(primaryKeyVal);
-            if (cache != ci->second.end()) {
-                delete record;
-                record = cache->second;
-            }
-            else {
-                ci->second[primaryKeyVal] = record;
-            }
-
-            record->SetID(primaryKeyVal);
-            continue;
-        }
-
-        // Read type and value
-        std::string fieldValue = data[i];
-        int type = atoi(fieldValue.substr(0, fieldValue.find(":")).c_str());
-        std::string value = fieldValue.substr(fieldValue.find(":") + 1);
-
-        Variant* v = 0;
-
-        if (type == Variant::VAR_OBJECT) {
-            std::string lookup = value.substr(value.find(":") + 1);
-            std::string className = value.substr(0, value.find(":"));
-
-            GigaObject* obj = 0;
-            if (lookup != "0") {
-                obj = loader->GetObject(className, atoi(lookup.c_str()));
-            }
-            v = new Variant(obj);
-        }
-        else {
-            v = new Variant();
-            v->FromString(value, type);
-        }
-
-        record->Set(cols[i], v);
-    }
-
-    loader->m_tempRecords[loader->m_tempTableName].push_back(record);
-    return(0);
-}
-
 void MySQLDataLoader::Delete(std::string table, std::map<std::string, std::string> search) {
     if (this->TableExists(table) == false) {
         return;
@@ -612,27 +597,32 @@ void MySQLDataLoader::Delete(std::string table, std::map<std::string, std::strin
     }
 
     // Execute
-    if (sqlite3_exec(m_handle, query.c_str(), InternalDataCallback, this, 0) != 0) {
-        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete from SQLite.", (char*)sqlite3_errmsg(m_handle)));
-        GIGA_ASSERT(false, "Unable to delete from SQLite.");
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to delete.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to delete.");
     }
 }
 
 bool MySQLDataLoader::TableExists(std::string name) {
+    // Get error system
+    ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
+    
     // Check if the table exists
-    sqlite3_stmt* stmt = 0;
-    int result = 0;
     bool tableExists = false;
-    std::string query = "SELECT name FROM sqlite_master WHERE type='table' AND name='" + name + "';";
-    result = sqlite3_prepare(m_handle, query.c_str(), (int)query.length() + 1, &stmt, 0);
-    while ((result = sqlite3_step(stmt))) {
-        if (result != SQLITE_ROW) {
-            break;
-        }
-
-        tableExists = true;
+    std::string query = "SELECT * FROM information_schema.tables WHERE table_schema = '" + m_db + "' AND table_name = '" + name + "' LIMIT 1;";
+    if (mysql_query(m_handle, query.c_str())) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to check table.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to check table.");
     }
-
-    sqlite3_finalize(stmt);
+    
+    MYSQL_RES* result = mysql_store_result(m_handle);
+    if (result == NULL) {
+        errorSystem->HandleError(new Error(Error::MSG_WARN, "Unable to store MySQL result.", (char*)mysql_error(m_handle)));
+        GIGA_ASSERT(false, "Unable to store MySQL result.");
+    }
+    
+    tableExists = mysql_num_rows(result) > 0;
+    mysql_free_result(result);
+    
     return(tableExists);
 }

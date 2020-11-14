@@ -47,8 +47,14 @@ protected:
     // Open connection
     std::string m_location;
     
-    // Data records
-    Array<DataRecord*> m_records;
+    // Cache of data record to objects
+    std::map<GigaObject*, DataRecord*> m_recordCache;
+    
+    // Cache of all data records loaded
+    std::map<std::string, std::map<uint32_t, DataRecord*>> m_records;
+    
+    // Cache of primary keys to existing objects
+    std::map<std::string, std::map<uint32_t, GigaObject*>> m_objectCache;
 };
 
 #endif
