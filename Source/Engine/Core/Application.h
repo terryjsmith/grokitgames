@@ -11,7 +11,7 @@ class Window;
 /**
  * Singleton application class
  */
-GIGA_CLASS()
+GIGA_CLASS(Singleton)
 class GIGA_API Application : public GigaObject {
 public:
     Application();

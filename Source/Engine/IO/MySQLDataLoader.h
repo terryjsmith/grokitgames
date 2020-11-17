@@ -5,16 +5,19 @@
 #include <mysql.h>
 #include <Core/DataLoader.h>
 
+GIGA_CLASS()
 class MySQLDataLoader : public DataLoader {
 public:
     MySQLDataLoader();
     ~MySQLDataLoader();
     
+    GIGA_CLASS_NAME("MySQLDataLoader");
+    
     /**
      * Connect to a MySQL server
      */
-    bool Connect(std::string host, int port, std::string username, std::string password, std::string db);
-    void Close();
+    GIGA_FUNCTION() bool Connect(std::string host, int port, std::string username, std::string password, std::string db);
+    GIGA_FUNCTION() void Close();
     
     /**
      * Query for records

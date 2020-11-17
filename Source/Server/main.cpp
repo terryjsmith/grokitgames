@@ -86,7 +86,7 @@ int main(int argc, const char* argv[]) {
         scriptingSystem->LoadLibrary("game.dll");
     }
 
-    // Open our game database
+    /* Open our game database
     SQLiteDataLoader* dataLoader = new SQLiteDataLoader();
     dataLoader->Open("game.db");
 
@@ -114,7 +114,7 @@ int main(int argc, const char* argv[]) {
 
             }
         }
-    }
+    }*/
 
     // Start server
     scriptingSystem->CallFunction("Pokeclone", "StartServer", 0, 0);

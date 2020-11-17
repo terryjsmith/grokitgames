@@ -12,6 +12,8 @@ public:
     LogSystem();
     ~LogSystem() = default;
     
+    GIGA_CLASS_NAME("LogSystem");
+    
     /**
      * Initialize
      */

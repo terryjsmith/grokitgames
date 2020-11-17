@@ -9,8 +9,6 @@ public:
     System() = default;
     virtual ~System() = default;
     
-    GIGA_CLASS_NAME("System");
-    
     virtual void Initialize() { }
     virtual void Update(float delta) { }
     virtual void Shutdown() { }

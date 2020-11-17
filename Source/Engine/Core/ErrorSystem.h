@@ -13,6 +13,8 @@ public:
     ErrorSystem() = default;
     ~ErrorSystem() = default;
     
+    GIGA_CLASS_NAME("ErrorSystem");
+    
     /**
      * Initialize system
      */

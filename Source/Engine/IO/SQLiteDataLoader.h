@@ -5,6 +5,7 @@
 #include <Core/DataLoader.h>
 #include <sqlite3.h>
 
+GIGA_CLASS()
 class GIGA_API SQLiteDataLoader : public DataLoader {
 public:
     SQLiteDataLoader();
@@ -15,12 +16,12 @@ public:
     /**
      * Open a connection
      */
-    virtual void Open(std::string location);
+    GIGA_FUNCTION() virtual void Open(std::string location);
     
     /**
      * Close connection
      */
-    virtual void Close() ;
+    GIGA_FUNCTION() virtual void Close() ;
     
     /**
      * Query for records

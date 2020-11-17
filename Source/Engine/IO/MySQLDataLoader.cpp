@@ -626,3 +626,7 @@ bool MySQLDataLoader::TableExists(std::string name) {
     
     return(tableExists);
 }
+
+void MySQLDataLoader::UpdateTables() {
+    
+}

@@ -29,6 +29,13 @@ void DataRecord::Set(std::string var, Variant* val) {
     m_vars[var] = val;
 }
 
+void DataRecord::Set(std::string var, std::string val, uint32_t type) {
+    Variant* v = new Variant();
+    v->FromString(val, type);
+    
+    this->Set(var, v);
+}
+
 Variant* DataRecord::Get(std::string var) {
     auto it = m_vars.find(var);
     if(it != m_vars.end()) {

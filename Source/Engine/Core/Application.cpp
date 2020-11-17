@@ -20,6 +20,10 @@ void Application::Initialize() {
     for(; it != m_systems.end(); it++) {
         (*it)->system->Initialize();
     }
+    
+    // Register singleton self
+    MetaSystem* metaSystem = GetSystem<MetaSystem>();
+    metaSystem->SetSingleton(this);
 }
 
 void Application::Update(float delta) {
@@ -63,3 +67,4 @@ AppService* Application::GetAppService(std::string className) {
 void Application::RegisterAppService(AppService *service) {
     m_services.push_back(service);
 }
+
