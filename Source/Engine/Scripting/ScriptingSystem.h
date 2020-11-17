@@ -57,6 +57,12 @@ public:
     GigaObject* GetLocalObject(MonoObject* obj);
     
     /**
+     * Start client/server
+     */
+    void StartClient();
+    void StartServer();
+    
+    /**
      * Variant to MonoObject and vice versa
      */
     Variant* MonoObjectToVariant(MonoObject* mobj);
@@ -97,6 +103,16 @@ protected:
         ScriptComponent* component;
         std::string funcName;
     };
+    
+    // Stored specialized functions
+    struct StoredFunction {
+        std::string objectName;
+        MonoMethod* func;
+    };
+    
+    // Special functions
+    MonoMethod* m_startServerFunc;
+    MonoMethod* m_startClientFunc;
     
     Array<EventHandler*> m_eventHandlers;
     

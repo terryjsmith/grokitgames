@@ -179,6 +179,14 @@ MonoImage* ScriptingSystem::LoadLibrary(std::string filename) {
                 loadLibrary = method;
             }
             
+            if(funcName == "StartServer") {
+                m_startServerFunc = method;
+            }
+            
+            if(funcName == "StartClient") {
+                m_startClientFunc = method;
+            }
+            
             MonoMethodDesc* fn = new MonoMethodDesc();
             fn->name = funcName;
             fn->method = method;
@@ -773,4 +781,22 @@ Variant* ScriptingSystem::CallFunction(GigaObject* obj, std::string func, int ar
     std::string className = obj->GetGigaName();
     
     return(this->CallFunction(className, func, argc, argv, mobj));
+}
+
+void ScriptingSystem::StartClient() {
+    MonoObject* exc = 0;
+    mono_runtime_invoke(m_startClientFunc, nullptr, nullptr, &exc);
+    if(exc) {
+        mono_print_unhandled_exception(exc);
+        GIGA_ASSERT(false, "Unable to run StartClient function.");
+    }
+}
+
+void ScriptingSystem::StartServer() {
+    MonoObject* exc = 0;
+    mono_runtime_invoke(m_startServerFunc, nullptr, nullptr, &exc);
+    if(exc) {
+        mono_print_unhandled_exception(exc);
+        GIGA_ASSERT(false, "Unable to run StartServer function.");
+    }
 }

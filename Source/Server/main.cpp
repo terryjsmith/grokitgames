@@ -117,7 +117,7 @@ int main(int argc, const char* argv[]) {
     }*/
 
     // Start server
-    scriptingSystem->CallFunction("Pokeclone", "StartServer", 0, 0);
+    scriptingSystem->StartServer();
 
      // Game timer
     Timer* gameTimer = new Timer();
