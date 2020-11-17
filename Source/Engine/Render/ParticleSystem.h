@@ -9,6 +9,8 @@ class GIGA_API ParticleSystem : public System {
 public:
     ParticleSystem() = default;
     ~ParticleSystem() = default;
+
+    GIGA_CLASS_NAME("ParticleSystem");
     
     virtual void Update(float delta);
 };
