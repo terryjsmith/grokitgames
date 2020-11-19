@@ -454,6 +454,7 @@ void NetworkSystem::MarkReceived(int sessionID, int messageID) {
     }
 }
 
-void NetworkSystem::SetSessionAuth(std::string sessionCode) {
+void NetworkSystem::SetSessionAuth(int sessionID, std::string sessionCode) {
     m_sessionCode = sessionCode;
+    m_info.client_info->sessionID = sessionID;
 }

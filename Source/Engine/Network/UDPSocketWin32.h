@@ -35,6 +35,16 @@ public:
      * Close the connection to the server
      */
     void Close();
+
+    /**
+     * Set the destination address
+     */
+    void SetSocketAddress(sockaddr_in* sock, socklen_t length);
+
+    /**
+     * Get the last known/read socket address
+     */
+    sockaddr_in* GetLastSocketAddress(socklen_t& len);
 };
 
 #endif

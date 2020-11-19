@@ -185,7 +185,7 @@ Array<DataRecord*> MySQLDataLoader::GetRecords(std::string table, std::map<std::
     MYSQL_FIELD* sqlfields = mysql_fetch_fields(result);
     std::string primaryKeyCol = table + "_id";
     while ((row = mysql_fetch_row(result))) {
-        unsigned int primaryKeyID = 0;
+        uint32_t primaryKeyID = 0;
         DataRecord* record = new DataRecord();
         
         for (int i = 0; i < colCount; i++) {
@@ -193,6 +193,7 @@ Array<DataRecord*> MySQLDataLoader::GetRecords(std::string table, std::map<std::
             if (strcmp(sqlfields[i].name, primaryKeyCol.c_str()) == 0) {
                 primaryKeyID = atoi(row[i]);
                 record->SetID(primaryKeyID);
+                record->Set(std::string(sqlfields[i].name), std::to_string(primaryKeyID), Variant::VAR_INT32);
                 continue;
             }
             

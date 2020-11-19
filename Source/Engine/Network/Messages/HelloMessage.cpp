@@ -57,7 +57,7 @@ void HelloMessage::OnReceive() {
     // Validate session
     DataLoader* loader = app->GetAppService<DataLoader>();
     std::map<std::string, std::string> args;
-    args["sessionCode"] = sessionCode;
+    args["session_hash"] = sessionCode;
     Array<DataRecord*> records = loader->GetRecords("session", args);
     
     if(records.size() == 0) {
@@ -65,12 +65,12 @@ void HelloMessage::OnReceive() {
         return;
     }
     
-    if(records[0]->Get("sessionID")->AsInt() != m_envelope.session) {
+    if(records[0]->Get("session_id")->AsInt() != m_envelope.session) {
         errorSystem->HandleError(new Error(Error::MSG_INFO, "Mis-matched session ID", sessionCode));
         return;
     }
     
     // Set player ID
-    session->playerID = records[0]->Get("playerID")->AsInt();
+    session->playerID = records[0]->Get("player_id")->AsInt();
     delete records[0];
 }

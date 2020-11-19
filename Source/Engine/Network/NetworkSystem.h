@@ -94,7 +94,7 @@ public:
     /**
      * Set connection info
      */
-    GIGA_FUNCTION() void SetSessionAuth(std::string sessionCode);
+    GIGA_FUNCTION() void SetSessionAuth(int sessionID, std::string sessionCode);
     
 protected:
     // Internal send function

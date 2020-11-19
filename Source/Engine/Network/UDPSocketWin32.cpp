@@ -6,6 +6,7 @@
 #include <Core/Application.h>
 
 UDPSocketWin32::UDPSocketWin32() {
+    m_connected = false;
     memset(&m_sockaddr, 0, sizeof(sockaddr_in));
 }
 
@@ -70,12 +71,29 @@ bool UDPSocketWin32::Connect(std::string server, int port) {
 }
 
 int UDPSocketWin32::Write(unsigned char* buffer, int length) {
-    int ret = ::send(m_socket, (char*)buffer, length, 0);
+    int ret = 0;
+    socklen_t len = sizeof(sockaddr_in);
+
+    if (m_connected)
+        ret = ::send(m_socket, (char*)buffer, length, 0);
+    else 
+        ret = ::sendto(m_socket, (char*)buffer, length, 0, (struct sockaddr*)&m_sockaddr, len);
+
     return(ret);
 }
 
 int UDPSocketWin32::Read(void* buffer, int length) {
-    int ret = ::recv(m_socket, (char*)buffer, length, 0);
+    int ret = 0;
+    socklen_t len = sizeof(sockaddr_in);
+
+    if (m_connected) {
+        ret = (int)recv(m_socket, (char*)buffer, length, 0);
+    }
+    else {
+        ret = (int)recvfrom(m_socket, (char*)buffer, length, 0, (struct sockaddr*)&m_lastsockaddr, &len);
+        m_lastLength = len;
+    }
+
     return(ret);
 }
 
@@ -113,6 +131,17 @@ void UDPSocketWin32::Listen(int port) {
     if (bind(m_socket, (struct sockaddr*)&server, length) < 0) {
         errorSystem->HandleError(new Error(Error::MSG_WARN, (char*)"Unable to bind socket"));
     }
+}
+
+void UDPSocketWin32::SetSocketAddress(sockaddr_in* sock, socklen_t length) {
+    m_sockaddr.sin_family = sock->sin_family;
+    memcpy((void*)&m_sockaddr.sin_addr, (void*)&sock->sin_addr, sizeof(in_addr));
+    m_sockaddr.sin_port = sock->sin_port;
+}
+
+sockaddr_in* UDPSocketWin32::GetLastSocketAddress(socklen_t& len) {
+    len = m_lastLength;
+    return(&m_lastsockaddr);
 }
 
 #endif
