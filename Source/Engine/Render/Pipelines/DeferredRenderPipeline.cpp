@@ -9,7 +9,7 @@
 #include <Render/Pipelines/Deferred/SkyboxPass.h>
 #include <IO/Profiler.h>
 
-void DeferredRenderPipeline::Initialize(int width, int height) {
+void DeferredRenderPipeline::Initialize(int x, int y, int width, int height) {
     auto ri = m_renderPasses.begin();
     for(; ri != m_renderPasses.end(); ri++) {
         delete(*ri);
@@ -63,7 +63,7 @@ void DeferredRenderPipeline::Initialize(int width, int height) {
     AddPass(skyboxPass);
     
     RenderToScreenPass* screenPass = new RenderToScreenPass();
-    screenPass->Initialize(width, height);
+    screenPass->Initialize(width, height, x, y);
     screenPass->SetInputTexture((Texture2D*)skyboxPass->GetFramebuffer(0)->GetTexture(0));
     
     AddPass(screenPass);

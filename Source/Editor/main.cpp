@@ -29,6 +29,9 @@
 #include <Render/ParticleSystem.h>
 #include <Network/ReplicationSystem.h>
 #include <Render/GuiSystem.h>
+#include <Render/Defines.h>
+
+#include "IconsFontAwesome5.h"
 
 int main(int argc, const char * argv[]) {
     // insert code here...
@@ -80,8 +83,10 @@ int main(int argc, const char * argv[]) {
     scriptingSystem->Start();
     
     // Create window
+    int windowWidth = 800;
+    int windowHeight = 600;
     Window* window = Window::GetInstance();
-    window->Create("Game", 800, 600, false);
+    window->Create("Game", windowWidth, windowHeight, false, true);
     
     // Get framebuffer size (different for retina)
     int framebufferWidth, framebufferHeight;
@@ -89,6 +94,11 @@ int main(int argc, const char * argv[]) {
     
     // Initialize render system
     renderSystem->Initialize(framebufferWidth, framebufferHeight, false);
+    
+    // Check for retina
+    window->GetWindowDimensions(windowWidth, windowHeight);
+    
+    float retina = framebufferWidth / windowWidth;
     
     // Initialize GUI
     guiSystem->Startup();
@@ -109,7 +119,7 @@ int main(int argc, const char * argv[]) {
     
     // Set up render pipeline
     DeferredRenderPipeline* renderPipeline = new DeferredRenderPipeline();
-    renderPipeline->Initialize(framebufferWidth, framebufferHeight);
+    renderPipeline->Initialize(0, 0, framebufferWidth, framebufferHeight);
     
     renderSystem->SetRenderPipeline(renderPipeline);
     
@@ -122,7 +132,18 @@ int main(int argc, const char * argv[]) {
     // Game timer
     Timer* gameTimer = new Timer();
     gameTimer->Start();
-
+    
+    // Load fonts
+    ImGuiIO& io = ImGui::GetIO();
+    io.Fonts->AddFontDefault();
+     
+    // merge in icons from Font Awesome
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+    io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FAS, 12.0f, &icons_config, icons_ranges);
+    
+    ImVec2 lastWindowSize = ImVec2(0.0f, 0.0f);
+    
     // Main loop
     while(window->IsClosing() == false) {
         PROFILE_START_FRAME();
@@ -133,7 +154,21 @@ int main(int argc, const char * argv[]) {
         // Start gui frame
         guiSystem->StartFrame();
         
+        // Clear full screen
+        renderSystem->UseDefaultFramebuffer();
+        renderSystem->SetViewport(framebufferWidth, framebufferHeight);
+        renderSystem->SetClearColor(vector4(0, 0, 0, 1));
+        renderSystem->Clear(COLOR_BUFFER_BIT);
+        
+        // Adjust viewport for render
+        renderSystem->SetClearColor(vector4(1, 0, 0, 1));
+        //renderSystem->SetViewport(lastWindowSize.x, lastWindowSize.y);
+        //renderSystem->Clear(COLOR_BUFFER_BIT);
+        
+        // Do main game loop
+        PROFILE_START_AREA("Update");
         app->Update(delta);
+        PROFILE_END_AREA("Update");
         
         PROFILE_START_AREA("ProcessEvents");
         window->ProcessEvents();
@@ -150,37 +185,151 @@ int main(int argc, const char * argv[]) {
         ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight), ImGuiCond_Always);
         
         // Start window
-        ImGui::Begin("main_window", &closed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
+        ImGui::Begin("main_window", &closed, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_MenuBar);
         
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(255, 0, 0, 255));
+        // Menu items
+        bool menu_file_new_project = false;
+        bool menu_file_open_project = false;
+        bool menu_file_close_project = false;
+        bool menu_file_publish = false;
+        bool menu_file_exit = false;
+        
+        ImGui::BeginMenuBar();
+        if (ImGui::BeginMenu("File"))
+        {
+            ImGui::MenuItem("New Project", NULL, &menu_file_new_project);
+            ImGui::MenuItem("Open Project...", NULL, &menu_file_open_project);
+            ImGui::MenuItem("Close Project", NULL, &menu_file_close_project, false);
+            ImGui::Separator();
+            ImGui::MenuItem("Publish...", NULL, &menu_file_publish, false);
+            ImGui::Separator();
+            ImGui::MenuItem("Exit", NULL, &menu_file_exit, false);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+        
         ImGui::BeginChild("resource_panel", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
         
         // Resource panel
+        ImGui::BeginChild("scene_entities", ImVec2(200, (windowHeight / 2.0f) - ImGui::GetStyle().ItemSpacing.y), false, ImGuiWindowFlags_NoDecoration);
+        
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        if (ImGui::BeginTabBar("entity_tab_bar", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("Scene"))
+            {
+                char search_buffer[200];
+                memset(search_buffer, 0, 200);
+                ImGui::InputText("", search_buffer, 200);
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_PLUS))
+                    ;
+                
+                ImGui::BeginChild("resource_panel", ImVec2(200, 0), false, 0);
+                ImGui::SetScrollY(0.0f);
+                for(int i = 0; i < 40; i++)
+                    ImGui::Text("Item %d", i);
+                ImGui::EndChild();
+                
+                ImGui::EndTabItem();
+            }
+            
+            /*if (ImGui::BeginTabItem("Broccoli"))
+            {
+                ImGui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Cucumber"))
+            {
+                ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
+                ImGui::EndTabItem();
+            }*/
+            ImGui::EndTabBar();
+        }
         
         ImGui::EndChild();
-        ImGui::PopStyleColor();
+        
+        ImGui::BeginChild("scene_filetree", ImVec2(200, (windowHeight / 2.0f) - ImGui::GetStyle().ItemSpacing.y), false, ImGuiWindowFlags_NoDecoration);
+        
+        // File tree
+        if (ImGui::BeginTabBar("filesystem_window", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("Files"))
+            {
+                ImGui::BeginChild("filesystem_treeview", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+
+                ImGui::EndChild();
+                
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        
+        ImGui::EndChild();
+        
+        ImGui::EndChild();
         
         ImGui::SameLine();
         
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 255, 0, 255));
-        ImGui::BeginChild("render_panel", ImVec2(windowWidth - 400 - (ImGui::GetStyle().ItemSpacing.x * 4), 0), false, ImGuiWindowFlags_NoDecoration);
+        ImGui::BeginChild("render_panel", ImVec2(windowWidth - 400 - (ImGui::GetStyle().ItemSpacing.x * 4), 0), false, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground);
         
         // Render panel
+        if (ImGui::BeginTabBar("render_window", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("Render"))
+            {
+                ImGui::BeginChild("render_game", ImVec2(windowWidth - 400 - (ImGui::GetStyle().ItemSpacing.x * 4), 0), false, ImGuiWindowFlags_NoDecoration);
+                
+                // Game view
+                ImVec2 window_pos = ImGui::GetWindowPos();
+                ImVec2 window_size = ImGui::GetWindowSize();
+                
+                if(lastWindowSize.x != window_size.x || lastWindowSize.y != window_size.y) {
+                    lastWindowSize = window_size;
+                    int ycoord = framebufferHeight - (window_size.y * retina) - (window_pos.y * retina); // Invert Y (from bottom)
+                    renderPipeline->Initialize(window_pos.x * retina, ycoord, window_size.x * retina, window_size.y * retina);
+                }
+
+                ImGui::EndChild();
+                
+                ImGui::EndTabItem();
+            }
+            
+            ImGui::EndTabBar();
+        }
         
         ImGui::EndChild();
-        ImGui::PopStyleColor();
         
         ImGui::SameLine();
         
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 255, 255));
         ImGui::BeginChild("scene_panel", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
         
         // Scene objects panel
+        ImGui::BeginChild("scene_inspector", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+        
+        if (ImGui::BeginTabBar("inspector_window", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("Inspector"))
+            {
+                ImGui::BeginChild("inspector_props", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+                
+                // Properties
+
+                ImGui::EndChild();
+                
+                ImGui::EndTabItem();
+            }
+            
+            ImGui::EndTabBar();
+        }
         
         ImGui::EndChild();
-        ImGui::PopStyleColor();
+        
+        ImGui::EndChild();
         
         ImGui::End();
+        
+        ImGui::ShowDemoWindow();
         
         guiSystem->Render();
         PROFILE_END_AREA("ImGui");

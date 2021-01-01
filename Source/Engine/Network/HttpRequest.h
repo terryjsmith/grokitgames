@@ -31,6 +31,9 @@ public:
     // Execute the request
     GIGA_FUNCTION() std::string Execute();
     
+    // Get response code
+    GIGA_FUNCTION() uint32_t GetResponseCode() { return m_responseCode; }
+    
 protected:
     // Whether the CURL system is initialized
     static bool m_initialized;
@@ -46,7 +49,7 @@ protected:
     std::map<std::string, std::string> m_vars;
     
     // Response HTTP code
-    long m_responseCode;
+    uint32_t m_responseCode;
     
     // The URL we are trying to access
     std::string m_url;

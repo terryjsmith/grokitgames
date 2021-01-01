@@ -58,12 +58,6 @@ void NetworkSystem::Connect(std::string host, int port) {
     // Set max socket ID for polling
     m_maxSocketID = std::max(m_maxSocketID, session->socket->GetSocket());
     FD_SET(session->socket->GetSocket(), &info->sockets);
-    
-    // Send auth message
-    HelloMessage* msg = new HelloMessage();
-    msg->sessionCode = m_sessionCode;
-    this->Send(msg);
-    delete msg;
 }
 
 void NetworkSystem::Listen(int port) {
@@ -457,4 +451,10 @@ void NetworkSystem::MarkReceived(int sessionID, int messageID) {
 void NetworkSystem::SetSessionAuth(int sessionID, std::string sessionCode) {
     m_sessionCode = sessionCode;
     m_info.client_info->sessionID = sessionID;
+    
+    // Send auth message
+    HelloMessage* msg = new HelloMessage();
+    msg->sessionCode = m_sessionCode;
+    this->Send(msg);
+    delete msg;
 }

@@ -84,6 +84,7 @@ public:
      * Set viewport (normally done by framebuffer)
      */
     virtual void SetViewport(int width, int height) { }
+    virtual void SetViewport(int x, int y, int width, int height) { }
     
     /**
      * Set render type (front/back/none)

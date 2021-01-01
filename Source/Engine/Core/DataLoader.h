@@ -23,10 +23,12 @@ public:
     /**
      * Query for records
      */
-    virtual Array<GigaObject*> GetObjects(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
+    virtual Array<GigaObject*> GetObjects(std::string table, std::map<std::string, std::string> search) = 0;
+    GIGA_FUNCTION() Array<GigaObject*> GetObjects(std::string table);
     virtual GigaObject* GetObject(std::string table, int primaryKey) = 0;
     
-    virtual Array<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search = std::map<std::string, std::string>()) = 0;
+    virtual Array<DataRecord*> GetRecords(std::string table, std::map<std::string, std::string> search) = 0;
+    GIGA_FUNCTION() Array<DataRecord*> GetRecords(std::string table);
     
     /**
      * Save records

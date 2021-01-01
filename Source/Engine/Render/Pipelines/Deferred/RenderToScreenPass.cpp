@@ -11,9 +11,10 @@ RenderToScreenPass::RenderToScreenPass() {
     m_vertexBuffer = 0;
     m_vertexFormat = 0;
     m_inputTexture = 0;
+    m_windowX = m_windowY = 0;
 }
 
-void RenderToScreenPass::Initialize(int width, int height) {
+void RenderToScreenPass::Initialize(int width, int height, int x, int y) {
     ResourceSystem* resourceSystem = GetSystem<ResourceSystem>();
     RenderSystem* renderSystem = GetSystem<RenderSystem>();
     
@@ -49,6 +50,8 @@ void RenderToScreenPass::Initialize(int width, int height) {
     
     m_windowWidth = width;
     m_windowHeight = height;
+    m_windowX = x;
+    m_windowY = y;
     
     // Populate our vertex buffer and type
     float box[] = {
@@ -76,10 +79,10 @@ void RenderToScreenPass::Render(Scene* scene) {
     renderSystem->DisableDepthTest();
     
     renderSystem->UseDefaultFramebuffer();
-    renderSystem->SetViewport(m_windowWidth, m_windowHeight);
+    renderSystem->SetViewport(m_windowX, m_windowY, m_windowWidth, m_windowHeight);
     
     // Clear our buffer
-    renderSystem->Clear(COLOR_BUFFER_BIT);
+    //renderSystem->Clear(COLOR_BUFFER_BIT);
     
     // Get matrices
     matrix4 proj = glm::ortho(0.0f, (float)m_windowWidth, (float)m_windowHeight, 0.0f);

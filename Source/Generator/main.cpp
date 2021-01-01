@@ -1701,7 +1701,13 @@ int main(int argc, char** argv) {
             
             if((*fi)->returnType == Variant::VAR_OBJECT || (*fi)->returnType == Variant::VAR_ARRAY) returnType = (*fi)->strReturnType;
             if((*fi)->returnType == Variant::VAR_OBJECT) returnType = returnType.substr(0, returnType.length() - 2);
-            if((*fi)->returnType == Variant::VAR_ARRAY) returnType = returnType.substr(0, returnType.length() - 2) + "[]";
+            if((*fi)->returnType == Variant::VAR_ARRAY) {
+                if(returnType.find("*") != std::string::npos)
+                    returnType = returnType.substr(0, returnType.length() - 2);
+                if(returnType == "std::string")
+                    returnType = "string";
+                returnType += "[]";
+            }
             output += returnType + " " + (*fi)->name;
             
             std::string params;
@@ -1714,7 +1720,13 @@ int main(int argc, char** argv) {
                 mi = csharpMappings.find((*pi)->type);
                 if(mi != csharpMappings.end()) paramType = mi->second;
                 if((*pi)->type == Variant::VAR_OBJECT) paramType = paramType.substr(0, paramType.length() - 2);
-                if((*pi)->type == Variant::VAR_ARRAY) paramType = paramType.substr(0, paramType.length() - 2) + "[]";
+                if((*pi)->type == Variant::VAR_ARRAY) {
+                    if(paramType.find("*") != std::string::npos)
+                        paramType = paramType.substr(0, paramType.length() - 2);
+                    if(paramType == "std::string")
+                        paramType = "string";
+                    paramType += "[]";
+                }
     
                 params += paramType + " " + (*pi)->name;
             }

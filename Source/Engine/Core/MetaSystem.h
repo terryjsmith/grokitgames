@@ -63,7 +63,7 @@ public:
     /**
      * Get component types
      */
-    Array<std::string>& GetComponentTypes() { return m_componentTypes; }
+    GIGA_FUNCTION() Array<std::string> GetComponentTypes() { return m_componentTypes; }
     
 protected:
     // Class definitions

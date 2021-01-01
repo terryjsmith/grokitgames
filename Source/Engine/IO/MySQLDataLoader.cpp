@@ -83,7 +83,7 @@ Array<GigaObject*> MySQLDataLoader::GetObjects(std::string table, std::map<std::
             if (strcmp(sqlfields[i].name, primaryKeyCol.c_str()) == 0) {
                 primaryKeyID = atoi(row[i]);
                 record->SetID(primaryKeyID);
-                continue;
+                //continue;
             }
             
             // Read type and value
@@ -91,7 +91,7 @@ Array<GigaObject*> MySQLDataLoader::GetObjects(std::string table, std::map<std::
             int type = atoi(fieldValue.substr(0, fieldValue.find(":")).c_str());
             std::string value = fieldValue.substr(fieldValue.find(":") + 1);
 
-            record->Set(std::string(sqlfields[i].name), std::string(row[i]), type);
+            record->Set(std::string(sqlfields[i].name), value, type);
         }
 
         records.push_back(record);
@@ -126,8 +126,8 @@ Array<GigaObject*> MySQLDataLoader::GetObjects(std::string table, std::map<std::
         // Check cache for existing object
         GigaObject* obj = 0;
         uint32_t primaryKeyValue = (*oi)->GetID();
-        auto obi = ri->second.find(primaryKeyValue);
-        if (obi != ri->second.end()) {
+        auto obi = ci->second.find(primaryKeyValue);
+        if (obi != ci->second.end()) {
             obj = obi->second;
         }
         else {

@@ -82,6 +82,10 @@ void OpenGLRenderSystem::SetViewport(int width, int height) {
     GL_CHECK(glViewport(0, 0, width, height));
 }
 
+void OpenGLRenderSystem::SetViewport(int x, int y, int width, int height) {
+    GL_CHECK(glViewport(x, y, width, height));
+}
+
 void OpenGLRenderSystem::SetDrawBuffer(int buffer) {
     GL_CHECK(glDrawBuffer(buffer));
 }

@@ -28,6 +28,7 @@
 #include <Render/ParticleEmitterComponent.h>
 #include <Render/ParticleSystem.h>
 #include <Network/ReplicationSystem.h>
+#include <Render/Defines.h>
 #include "register_globals.h"
 
 int main(int argc, const char * argv[]) {
@@ -186,6 +187,12 @@ int main(int argc, const char * argv[]) {
         
         float delta = gameTimer->Duration();
         gameTimer->Reset();
+        
+        // Clear full screen
+        renderSystem->UseDefaultFramebuffer();
+        renderSystem->SetViewport(framebufferWidth, framebufferHeight);
+        renderSystem->SetClearColor(vector4(0, 0, 0, 1));
+        renderSystem->Clear(COLOR_BUFFER_BIT);
         
         app->Update(delta);
         

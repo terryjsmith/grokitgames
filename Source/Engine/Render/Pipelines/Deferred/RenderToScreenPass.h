@@ -14,7 +14,7 @@ public:
     /**
      * Initialize render pass (called on window size change, should re-initialize)
      */
-    virtual void Initialize(int width, int height);
+    virtual void Initialize(int width, int height, int x, int y);
     
     /**
      * Render
@@ -32,6 +32,7 @@ protected:
 protected:
     // Window width and height
     int m_windowWidth, m_windowHeight;
+    int m_windowX, m_windowY;
     
     // Internal vertex buffer and format for screen pass
     VertexBuffer* m_vertexBuffer;

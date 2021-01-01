@@ -641,6 +641,10 @@ MonoObject* ScriptingSystem::VariantToMonoObject(Variant* var, std::string class
         }
         
         if(v->IsObject()) {
+            // Check the first object type
+            v = var->At(0);
+            classHint = v->AsObject()->GetGigaName();
+            
             MonoClass* cl = m_classes[classHint]->_class;
             MonoArray* array = mono_array_new(mono_domain_get(), cl, size);
             for(int i = 0; i < size; i++) {

@@ -14,7 +14,7 @@ public:
     /**
      * Initialize render pipeline
      */
-    void Initialize(int width, int height);
+    void Initialize(int x, int y, int width, int height);
     
     /**
      * Render scene

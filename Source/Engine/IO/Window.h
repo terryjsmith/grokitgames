@@ -14,7 +14,7 @@ public:
     /**
      * Create a new window
      */
-    void Create(std::string name, int width, int height, bool fullscreen);
+    void Create(std::string name, int width, int height, bool fullscreen, bool maximized = false);
     
     /**
      * Whether the window is closed/closing or not

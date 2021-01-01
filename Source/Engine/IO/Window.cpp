@@ -9,7 +9,7 @@
 bool Window::m_initialized = false;
 Window* Window::m_instance = 0;
 
-void Window::Create(std::string name, int width, int height, bool fullscreen) {
+void Window::Create(std::string name, int width, int height, bool fullscreen, bool maximized) {
     ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
     
     // If we do not have a window yet, initialize it
@@ -23,6 +23,10 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
         //glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
         glfwWindowHint(GLFW_SAMPLES, 4);
+        
+        if(maximized) {
+            glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+        }
     }
     
     // Save properties
@@ -60,6 +64,9 @@ void Window::Create(std::string name, int width, int height, bool fullscreen) {
     
     // Get our actual framebuffer size
     glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
+    
+    // Get actual window size
+    glfwGetWindowSize((GLFWwindow*)m_window, &m_width, &m_height);
     
     LogSystem* logSystem = GetSystem<LogSystem>();
     logSystem->Log(Error::MSG_INFO, "Window created @ " + std::to_string(width) + " x " + std::to_string(height));
