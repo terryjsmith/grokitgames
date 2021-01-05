@@ -1,7 +1,7 @@
 
 #include <Render/OpenGL/OpenGLTexture3D.h>
 #include <Render/OpenGL/OpenGL.h>
-#include <SOIL.h>
+#include <SOIL/SOIL.h>
 #include <IO/ResourceSystem.h>
 #include <Core/Application.h>
 

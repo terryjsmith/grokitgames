@@ -1,7 +1,7 @@
 
 #include <Render/OpenGL/OpenGLTexture2D.h>
 #include <Render/OpenGL/OpenGL.h>
-#include <SOIL.h>
+#include <SOIL/SOIL.h>
 #include <Render/Defines.h>
 
 OpenGLTexture2D::~OpenGLTexture2D() {

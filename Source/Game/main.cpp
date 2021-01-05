@@ -144,7 +144,7 @@ int main(int argc, const char * argv[]) {
     
     // Set up render pipeline
     DeferredRenderPipeline* renderPipeline = new DeferredRenderPipeline();
-    renderPipeline->Initialize(framebufferWidth, framebufferHeight);
+    renderPipeline->Initialize(0, 0, framebufferWidth, framebufferHeight);
     
     renderSystem->SetRenderPipeline(renderPipeline);
     

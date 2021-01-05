@@ -305,7 +305,7 @@ set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
 set_property(TARGET game APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 
-target_link_libraries(game ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
+target_link_libraries(game ${ENGINE_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(game PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(game core networking generator-mono editor-mono)
 
@@ -318,7 +318,7 @@ set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
 set_property(TARGET server APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 
-target_link_libraries(server ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
+target_link_libraries(server ${ENGINE_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(server PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(server core networking generator-mono editor-mono)
 
@@ -331,6 +331,6 @@ set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS)
 set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS "CURL_STATICLIB")
 set_property(TARGET editor APPEND PROPERTY COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 
-target_link_libraries(editor ${ETERNITY_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
+target_link_libraries(editor ${ENGINE_LIBS} "core" "networking" "meta" "render" "audio" "physics" "io" "scripting" "gui")
 target_include_directories(editor PRIVATE ${ENGINE_INCLUDE_DIRS})
 add_dependencies(editor render generator-mono editor-mono)
