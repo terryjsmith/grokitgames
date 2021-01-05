@@ -220,30 +220,40 @@ int main(int argc, const char * argv[]) {
             {
                 char search_buffer[200];
                 memset(search_buffer, 0, 200);
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, IM_COL32(50, 50, 50, 255));
                 ImGui::InputText("", search_buffer, 200);
+                ImGui::PopStyleColor();
+                ImGui::SameLine();
+                ImGui::Text(ICON_FA_SEARCH);
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_PLUS))
                     ;
                 
+                int selected = -1;
                 ImGui::BeginChild("resource_panel", ImVec2(200, 0), false, 0);
                 ImGui::SetScrollY(0.0f);
                 for(int i = 0; i < 40; i++)
-                    ImGui::Text("Item %d", i);
+                {
+                    char buf[32];
+                    sprintf(buf, "Object %d", i);
+                    if (ImGui::Selectable(buf, selected == i))
+                        ;
+                }
                 ImGui::EndChild();
+                /*int selected = -1;
+                if (ImGui::TreeNode("Entities"))
+                {
+                    for(int i = 0; i < 40; i++) {
+                        char buf[32];
+                        sprintf(buf, "Object %d", i);
+                        if (ImGui::Selectable(buf, selected == i))
+                            ;
+                    }
+                }
+                ImGui::TreePop();*/
                 
                 ImGui::EndTabItem();
             }
-            
-            /*if (ImGui::BeginTabItem("Broccoli"))
-            {
-                ImGui::Text("This is the Broccoli tab!\nblah blah blah blah blah");
-                ImGui::EndTabItem();
-            }
-            if (ImGui::BeginTabItem("Cucumber"))
-            {
-                ImGui::Text("This is the Cucumber tab!\nblah blah blah blah blah");
-                ImGui::EndTabItem();
-            }*/
             ImGui::EndTabBar();
         }
         
@@ -254,9 +264,18 @@ int main(int argc, const char * argv[]) {
         // File tree
         if (ImGui::BeginTabBar("filesystem_window", tab_bar_flags))
         {
+            if (ImGui::BeginTabItem("Resources"))
+            {
+                ImGui::BeginChild("filesystem_resources", ImVec2(200, 0), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
+
+                ImGui::EndChild();
+                
+                ImGui::EndTabItem();
+            }
+            
             if (ImGui::BeginTabItem("Files"))
             {
-                ImGui::BeginChild("filesystem_treeview", ImVec2(200, 0), false, ImGuiWindowFlags_NoDecoration);
+                ImGui::BeginChild("filesystem_treeview", ImVec2(200, 0), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 
                 ImGui::EndChild();
                 
