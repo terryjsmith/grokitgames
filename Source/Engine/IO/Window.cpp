@@ -52,16 +52,6 @@ void Window::Create(std::string name, int width, int height, bool fullscreen, bo
     // Make our OpenGL context current
     glfwMakeContextCurrent((GLFWwindow*)m_window);
     
-    if (gl3wInit()) {
-        errorSystem->HandleError(new Error(Error::MSG_FATAL, "Unable to initialize GL3W."));
-        return;
-    }
-
-    if (!gl3wIsSupported(4, 0)) {
-        errorSystem->HandleError(new Error(Error::MSG_FATAL, "OpenGL 4.0 not supported."));
-        fprintf(stderr, "OpenGL 4.0 not supported\n");
-    }
-    
     // Get our actual framebuffer size
     glfwGetFramebufferSize((GLFWwindow*)m_window, &m_framebufferWidth, &m_framebufferHeight);
     
@@ -70,9 +60,6 @@ void Window::Create(std::string name, int width, int height, bool fullscreen, bo
     
     LogSystem* logSystem = GetSystem<LogSystem>();
     logSystem->Log(Error::MSG_INFO, "Window created @ " + std::to_string(width) + " x " + std::to_string(height));
-    logSystem->Log(Error::MSG_INFO, std::string("GL version: ") + (char*)glGetString(GL_VERSION));
-    logSystem->Log(Error::MSG_INFO, std::string("GL renderer: ") + (char*)glGetString(GL_RENDERER));
-    //logSystem->Log(Error::MSG_INFO, std::string("GLSL version: ") + (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
 bool Window::IsClosing() {

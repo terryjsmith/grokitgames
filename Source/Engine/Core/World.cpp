@@ -2,6 +2,7 @@
 #include <Core/World.h>
 #include <Core/Application.h>
 #include <Core/MetaSystem.h>
+#include <Core/MessageSystem.h>
 
 World* World::m_instance = 0;
 
@@ -12,6 +13,12 @@ World::World() {
 void World::Initialize() {
     MetaSystem* metaSystem = GetSystem<MetaSystem>();
     metaSystem->SetSingleton(this);
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->RegisterMessageType("ENTITY_ADDED");
+    messageSystem->RegisterMessageType("ENTITY_REMOVED");
+    messageSystem->RegisterMessageType("COMPONENT_ADDED");
+    messageSystem->RegisterMessageType("COMPONENT_REMOVED");
 }
 
 World* World::GetInstance() {
@@ -26,6 +33,9 @@ World* World::GetInstance() {
 Entity* World::CreateEntity() {
     Entity* e = new Entity();
     e->entityID = m_nextEntityID++;
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("ENTITY_ADDED", e));
     
     m_entities.push_back(e);
     return(e);
@@ -39,6 +49,9 @@ void World::AddEntity(Entity* entity) {
         m_nextEntityID = std::max((uint32_t)m_nextEntityID, entity->entityID);
         m_nextEntityID++;
     }
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("ENTITY_ADDED", entity));
     
     m_entities.push_back(entity);
 }
@@ -96,4 +109,7 @@ void World::RemoveEntity(Entity* entity) {
     if(it != m_entities.end()) {
         m_entities.erase(it);
     }
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("ENTITY_REMOVED", entity));
 }

@@ -4,6 +4,7 @@
 #include <Core/Application.h>
 #include <Core/DataRecord.h>
 #include <Core/TransformComponent.h>
+#include <Core/MessageSystem.h>
 
 Entity::~Entity() {
     auto ci = m_components.begin();
@@ -23,6 +24,9 @@ Component* Entity::CreateComponent(std::string className) {
     
     component->m_parent = this;
     m_components.push_back(component);
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("COMPONENT_ADDED"), component);
     
     // Alert this component
     component->onEntitySet();
@@ -45,6 +49,9 @@ Component* Entity::CreateComponent(uint32_t typeID) {
     
     component->m_parent = this;
     m_components.push_back(component);
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("COMPONENT_ADDED"), component);
     
     // Alert this component
     component->onEntitySet();
@@ -98,6 +105,9 @@ void Entity::AddComponent(Component* c) {
     
     c->m_parent = this;
     m_components.push_back(c);
+
+    MessageSystem* messageSystem = GetSystem<MessageSystem>();
+    messageSystem->Broadcast(new Message("COMPONENT_ADDED"), c);
     
     // Alert this component
     c->onEntitySet();

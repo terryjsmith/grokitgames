@@ -4,6 +4,7 @@
 #include <IO/ResourceSystem.h>
 #include <Core/ErrorSystem.h>
 #include <Core/Application.h>
+#include <IO/LogSystem.h>
 #include <Render/OpenGL/OpenGLTexture2D.h>
 
 void OpenGLRenderSystem::Initialize() {
@@ -15,6 +16,22 @@ void OpenGLRenderSystem::Initialize() {
 }
 
 void OpenGLRenderSystem::Initialize(int width, int height, bool fullscreen) {
+    ErrorSystem* errorSystem = GetSystem<ErrorSystem>();
+    if (gl3wInit()) {
+        errorSystem->HandleError(new Error(Error::MSG_FATAL, "Unable to initialize GL3W."));
+        return;
+    }
+
+    if (!gl3wIsSupported(4, 0)) {
+        errorSystem->HandleError(new Error(Error::MSG_FATAL, "OpenGL 4.0 not supported."));
+        fprintf(stderr, "OpenGL 4.0 not supported\n");
+    }
+
+    LogSystem* logSystem = GetSystem<LogSystem>();
+    logSystem->Log(Error::MSG_INFO, std::string("GL version: ") + (char*)glGetString(GL_VERSION));
+    logSystem->Log(Error::MSG_INFO, std::string("GL renderer: ") + (char*)glGetString(GL_RENDERER));
+    //logSystem->Log(Error::MSG_INFO, std::string("GLSL version: ") + (char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
+
     GL_CHECK(glEnable(GL_TEXTURE_2D));
     GL_CHECK(glDisable(GL_CULL_FACE));
     //GL_CHECK(glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ));

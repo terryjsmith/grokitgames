@@ -46,6 +46,8 @@ void RenderSystem::Update(float delta) {
 }
 
 void RenderSystem::SetRenderPipeline(RenderPipeline* pipeline) { 
+    if (pipeline == m_renderPipeline) return;
+
     if (m_renderPipeline) {
         delete m_renderPipeline;
     }
